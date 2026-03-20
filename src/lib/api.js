@@ -22,7 +22,7 @@ api.interceptors.response.use(
       localStorage.removeItem('classiq_user')
       window.location.href = '/login'
     } else if (err.response && err.response.status >= 500) {
-      fetch('https://api-classiq.onrender.com/log_error.php', {
+      fetch('https://api-classiq.onrender.com/system_ping.php', {
          method: 'POST',
          headers: { 'Content-Type': 'application/json' },
          body: JSON.stringify({
