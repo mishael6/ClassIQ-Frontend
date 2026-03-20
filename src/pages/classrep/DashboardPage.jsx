@@ -35,7 +35,7 @@ export default function DashboardPage() {
 
   // Add student modal
   const [addModal,  setAddModal]  = useState(false)
-  const [addForm,   setAddForm]   = useState({ name: '', index_number: '', email: '', phone: '' })
+  const [addForm,   setAddForm]   = useState({ name: '', index_number: '', email: '', phone: '', level: '' })
   const [adding,    setAdding]    = useState(false)
 
   // Delete
@@ -106,9 +106,9 @@ export default function DashboardPage() {
       // Build full student data using classrep's own info
       const payload = {
         ...addForm,
-        institution: data?.classrep?.institution || '',
-        department:  data?.classrep?.department  || '',
-        program:     data?.classrep?.program     || '',
+        institution: data?.classrep?.institution || data?.stats?.institution || '',
+        department:  data?.classrep?.department  || data?.stats?.department  || '',
+        program:     data?.classrep?.program     || data?.stats?.program     || '',
       }
       await classrepApi.addStudent(payload)
       toast('Student added successfully!')
@@ -323,6 +323,13 @@ export default function DashboardPage() {
           <Input label="Index Number *" value={addForm.index_number} onChange={e=>setAddForm(f=>({...f,index_number:e.target.value.toUpperCase()}))} icon={<Hash size={14}/>} placeholder="e.g. 20240001" />
           <Input label="Phone *"        value={addForm.phone}        onChange={e=>setAddForm(f=>({...f,phone:e.target.value}))}        icon={<Phone size={14}/>} placeholder="e.g. 0240000000" />
           <Input label="Email *"        value={addForm.email}        onChange={e=>setAddForm(f=>({...f,email:e.target.value}))}        icon={<Mail size={14}/>} type="email" placeholder="e.g. kofi@example.com" />
+          <div className="field">
+            <label className="field-label">Level</label>
+            <select className="field-select" value={addForm.level} onChange={e=>setAddForm(f=>({...f,level:e.target.value}))}>
+              <option value="">— Select level —</option>
+              {['100','200','300','400'].map(l=><option key={l} value={l}>Level {l}</option>)}
+            </select>
+          </div>
           <div style={{ display: 'flex', gap: 10, marginTop: 4 }}>
             <Button variant="secondary" fullWidth onClick={() => setAddModal(false)}>Cancel</Button>
             <Button variant="primary"   fullWidth loading={adding} onClick={addStudent} icon={<Plus size={14}/>}>Add Student</Button>
