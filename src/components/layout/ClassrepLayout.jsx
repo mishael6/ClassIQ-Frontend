@@ -32,7 +32,7 @@ export default function ClassrepLayout() {
 
       <aside className={`sidebar ${open ? 'sidebar-open' : ''}`}>
         <div className="sidebar-logo">
-          <div className="logo-mark">CQ</div>
+          <img src="/logo.png" alt="ClassIQ" className="lp-logo-img" />
           <span className="logo-text">Class<span>IQ</span></span>
         </div>
 
