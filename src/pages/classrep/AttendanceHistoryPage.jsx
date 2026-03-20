@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
 import { classrepApi } from '../../lib/api'
 import { Card, PageHeader, Button, Badge, Alert, Modal, Table } from '../../components/ui'
-import { UserPlus, RotateCcw, Trash2, MapPin, Flag, ChevronLeft, ChevronRight, Search } from 'lucide-react'
+import { UserPlus, RotateCcw, Trash2, MapPin, Flag, ChevronLeft, ChevronRight, Search, Download } from 'lucide-react'
 import { format } from 'date-fns'
+import jsPDF from 'jspdf'
+import autoTable from 'jspdf-autotable'
 import '../../components/ui/components.css'
 import './attendance.css'
 
@@ -79,6 +81,37 @@ export default function AttendanceHistoryPage() {
       if (data.success) { toast('Student added!'); setModal(null); setAddIndex(''); load() }
       else toast(data.message || 'Failed to add', true)
     } catch { toast('Failed to add student', true) }
+  }
+
+  const exportPDF = (date, lecture, entries) => {
+    const doc = new jsPDF()
+    const title = `Attendance Report - ${lecture}`
+    const dateStr = format(new Date(date + 'T00:00:00'), 'EEEE, MMMM d, yyyy')
+    doc.setFontSize(14)
+    doc.text(title, 14, 15)
+    doc.setFontSize(10)
+    doc.text(`Date: ${dateStr}`, 14, 22)
+    doc.text(`Total Students: ${entries.length}`, 14, 27)
+
+    const tableData = entries.map((entry, index) => {
+      let timeStr = entry.time_marked
+      if (timeStr) {
+        try { timeStr = format(new Date(`2000-01-01T${timeStr}`), 'h:mm a') }
+        catch { /* keep original */ }
+      } else { timeStr = '—' }
+      
+      return [ index + 1, entry.student_name, entry.index_number, timeStr, entry.status ]
+    })
+
+    autoTable(doc, {
+      startY: 32,
+      head: [['#', 'Student Name', 'Index Number', 'Time Marked', 'Status']],
+      body: tableData,
+      theme: 'grid',
+      headStyles: { fillColor: [66, 133, 244] }
+    })
+
+    doc.save(`Attendance_${lecture.replace(/\\s+/g, '_')}_${date}.pdf`)
   }
 
   if (loading) return <div className="dash-loading"><div className="spinner"/></div>
@@ -166,6 +199,9 @@ export default function AttendanceHistoryPage() {
                     <div className="lec-controls">
                       <Button size="sm" variant="success" icon={<UserPlus size={13}/>} onClick={() => setModal({ date, lecture })}>
                         Add Student
+                      </Button>
+                      <Button size="sm" variant="secondary" icon={<Download size={13}/>} onClick={() => exportPDF(date, lecture, entries)}>
+                        Export PDF
                       </Button>
                       {flagged > 0 && <>
                         <Button size="sm" variant="secondary" icon={<RotateCcw size={13}/>} onClick={() => restoreFlagged(date, lecture)}>
