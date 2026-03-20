@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { adminApi } from '../../lib/api'
-import { Alert, Modal, Table } from '../../components/ui'
+import { Alert, Modal, Table, Badge } from '../../components/ui'
 import {
   Users, CheckCircle, BookOpen, QrCode,
   Clock, ChevronRight, Calendar, TrendingUp
@@ -42,7 +42,7 @@ export default function AdminAttendancePage() {
   const openClassrep = async (cr) => {
     setSelected(cr); setLoadingStu(true)
     try {
-      const r = await adminApi.getStudents({ classrep_id: cr.classrep_id, limit: 300 })
+      const r = await adminApi.getStudents({ classrep_id: cr.classrep_id, date: date, limit: 300 })
       setStudents(r.data.students || [])
     } catch { setStudents([]) }
     finally { setLoadingStu(false) }
@@ -230,6 +230,7 @@ export default function AdminAttendancePage() {
                   { key: 'program',      label: 'Program' },
                   { key: 'level',        label: 'Level',  render: r => r.level ? `Level ${r.level}` : '—' },
                   { key: 'phone',        label: 'Phone' },
+                  { key: 'status',       label: 'Status', render: r => r.attendance_status ? <Badge variant={r.attendance_status === 'Flagged' ? 'flagged' : 'present'}>{r.attendance_status === 'Flagged' ? '⚠️ Flagged' : '✅ Present'}</Badge> : <Badge variant="default">Absent</Badge> }
                 ]}
                 data={students}
                 emptyText="No students registered under this class rep."
