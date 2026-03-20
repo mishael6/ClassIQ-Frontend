@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { classrepApi } from '../../lib/api'
 import { Button, Select, Alert, Card, PageHeader } from '../../components/ui'
-import { MapPin, QrCode, Navigation, Loader2, ArrowLeft } from 'lucide-react'
+import { MapPin, QrCode, Navigation, Loader2, ArrowLeft, Bookmark, Save, Trash2 } from 'lucide-react'
 import QRCode from 'qrcode'
 import '../../components/ui/components.css'
 import './generateqr.css'
@@ -39,12 +39,23 @@ export default function GenerateQRPage() {
   const [mapReady,  setMapReady]  = useState(false)
   const [pinStatus, setPinStatus] = useState('idle')
 
+  // Saved Locations states
+  const [savedLocs, setSavedLocs] = useState([])
+  const [saving,    setSaving]    = useState(false)
+  const [locName,   setLocName]   = useState('')
+  const [deleting,  setDeleting]  = useState(null)
+
   const mapRef    = useRef(null)
   const leaflet   = useRef(null)
   const markerRef = useRef(null)
   const circleRef = useRef(null)
 
   useEffect(() => {
+    // Load saved locations cleanly on mount
+    classrepApi.getSavedLocations()
+      .then(res => setSavedLocs(res.data.locations || []))
+      .catch(() => {}) // non-fatal
+
     let destroyed = false
     loadLeaflet().then(L => {
       if (destroyed || !mapRef.current || leaflet.current) return
@@ -112,6 +123,41 @@ export default function GenerateQRPage() {
     )
   }
 
+  const applySavedLocation = (id) => {
+    const loc = savedLocs.find(l => String(l.id) === String(id))
+    if (!loc || !leaflet.current) return
+    const lat = parseFloat(loc.lat)
+    const lng = parseFloat(loc.lng)
+    setRadius(parseInt(loc.radius_m))
+    placePin(leaflet.current.L, leaflet.current.map, leaflet.current.pinIcon, lat, lng)
+  }
+
+  const savePreset = async () => {
+    if (!locName.trim() || !pin) return;
+    setSaving(true)
+    try {
+      const res = await classrepApi.saveLocation({ name: locName, lat: pin.lat, lng: pin.lng, radius_m: radius })
+      if (res.data.success) {
+        setSavedLocs([{ id: res.data.id, name: locName, lat: pin.lat, lng: pin.lng, radius_m: radius }, ...savedLocs])
+        setLocName('')
+      } else setError(res.data.message || 'Error saving location.')
+    } catch {
+      setError('Network error saving location.')
+    } finally { setSaving(false) }
+  }
+
+  const removeSavedLocation = async (id, e) => {
+    e.stopPropagation()
+    if (!confirm('Delete this saved location?')) return
+    setDeleting(id)
+    try {
+      await classrepApi.deleteSavedLocation(id)
+      setSavedLocs(savedLocs.filter(l => l.id !== id))
+    } catch {
+      setError('Failed to delete saved location.')
+    } finally { setDeleting(null) }
+  }
+
   const generate = async () => {
     if (!pin) { setError('Please drop a pin on the map first.'); return }
     setError(''); setLoading(true)
@@ -143,7 +189,6 @@ export default function GenerateQRPage() {
       if (markerRef.current) leaflet.current?.map?.removeLayer(markerRef.current)
       if (circleRef.current) leaflet.current?.map?.removeLayer(circleRef.current)
       markerRef.current = null; circleRef.current = null
-      // Reinvalidate map size when returning
       setTimeout(() => leaflet.current?.map?.invalidateSize(), 200)
     } catch { setError('Failed to end session.') }
     finally { setEnding(false) }
@@ -164,16 +209,49 @@ export default function GenerateQRPage() {
       {step === 'map' && (
         <div className="qr-map-step">
           <Card>
-            <div className="step-head">
-              <div className="step-num">1</div>
-              <div>
-                <p className="step-title">Pin Your Classroom</p>
-                <p className="step-sub">Click the map or use GPS to set your location</p>
+            <div className="step-head" style={{ flexWrap: 'wrap', gap: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div className="step-num">1</div>
+                <div>
+                  <p className="step-title">Pin Your Classroom</p>
+                  <p className="step-sub">Click the map or select a saved preset</p>
+                </div>
               </div>
-              <Button variant="ghost" size="sm" icon={<Navigation size={14}/>} onClick={autoLocate} style={{ marginLeft: 'auto' }}>
-                Use GPS
-              </Button>
+              
+              <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                {savedLocs.length > 0 && (
+                  <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <Bookmark size={15} style={{ color: 'var(--blue)' }}/>
+                    <select 
+                      onChange={e => applySavedLocation(e.target.value)} 
+                      value="" 
+                      style={{ padding: '6px 28px 6px 10px', borderRadius: 6, border: '1px solid var(--border)', fontSize: '0.85rem', minWidth: 140, cursor: 'pointer', background: 'var(--surface)' }}
+                    >
+                      <option value="" disabled>Quick Select...</option>
+                      {savedLocs.map(loc => (
+                        <option key={loc.id} value={loc.id}>{loc.name} ({loc.radius_m}m)</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+                <Button variant="ghost" size="sm" icon={<Navigation size={14}/>} onClick={autoLocate}>
+                  Use GPS
+                </Button>
+              </div>
             </div>
+
+            {/* If they want to rapidly delete a location without picking it */}
+            {savedLocs.length > 0 && (
+              <div style={{ padding: '8px 12px', background: 'var(--bg)', borderRadius: 6, marginBottom: 12, display: 'flex', gap: 8, overflowX: 'auto', whiteSpace: 'nowrap' }}>
+                 <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--muted)', display: 'flex', alignItems: 'center', marginRight: 4 }}>Saved:</span>
+                 {savedLocs.map(loc => (
+                   <span key={loc.id} style={{ fontSize: '0.75rem', padding: '4px 10px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                     <span style={{ cursor: 'pointer' }} onClick={() => applySavedLocation(loc.id)}>{loc.name}</span>
+                     <Trash2 size={12} style={{ cursor: 'pointer', color: 'var(--red)', opacity: deleting === loc.id ? 0.5 : 1 }} onClick={(e) => removeSavedLocation(loc.id, e)}/>
+                   </span>
+                 ))}
+              </div>
+            )}
 
             {/* Map */}
             <div className="qr-map-wrap">
@@ -203,6 +281,21 @@ export default function GenerateQRPage() {
                 ))}
               </div>
             </div>
+
+            {pinStatus === 'set' && (
+              <div style={{ marginTop: 12, padding: '12px 16px', background: 'rgba(0,102,255,0.04)', border: '1px solid rgba(0,102,255,0.1)', borderRadius: 8, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--blue)' }}>Save this preset for next time:</span>
+                <input 
+                  placeholder="e.g. Lecture Hall C"
+                  value={locName}
+                  onChange={e => setLocName(e.target.value)}
+                  style={{ flex: 1, minWidth: 150, padding: '6px 12px', border: '1px solid var(--border)', borderRadius: 6, fontSize: '0.85rem' }}
+                />
+                <Button size="sm" variant="secondary" loading={saving} onClick={savePreset} disabled={!locName.trim()}>
+                  <Save size={14} style={{ marginRight: 6 }}/> Save
+                </Button>
+              </div>
+            )}
           </Card>
 
           {/* Step 2 — lecture + generate */}
@@ -237,7 +330,7 @@ export default function GenerateQRPage() {
 
               <Button fullWidth loading={loading} onClick={generate}
                 icon={<QrCode size={16}/>} style={{ marginTop: 16 }} size="lg">
-                Generate QR Code
+                 Generate QR Code
               </Button>
             </Card>
           )}

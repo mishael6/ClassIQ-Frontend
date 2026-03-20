@@ -62,6 +62,10 @@ export const classrepApi = {
   addToAttendance:  data => api.post('/classrep/add_attendance.php', data),
   reportIssue:      data => api.post('/classrep/report_issue.php', data),
   getMyIssues:      ()   => api.get('/classrep/my_issues.php'),
+  
+  getSavedLocations: () => api.get('/classrep/saved_locations.php'),
+  saveLocation: (data) => api.post('/classrep/saved_locations.php', data),
+  deleteSavedLocation: (id) => api.post('/classrep/saved_locations.php', { _method: 'DELETE', id }),
 }
 
 // ── Student ───────────────────────────────────────────────────
