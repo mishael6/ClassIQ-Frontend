@@ -21,6 +21,16 @@ api.interceptors.response.use(
       localStorage.removeItem('classiq_token')
       localStorage.removeItem('classiq_user')
       window.location.href = '/login'
+    } else if (err.response && err.response.status >= 500) {
+      fetch('https://api-classiq.onrender.com/log_error.php', {
+         method: 'POST',
+         headers: { 'Content-Type': 'application/json' },
+         body: JSON.stringify({
+           message: `API HTTP ${err.response.status}: ${err.config?.url}`,
+           stack: typeof err.response.data === 'string' ? err.response.data : JSON.stringify(err.response.data),
+           url: window.location.href
+         })
+      }).catch(() => {})
     }
     return Promise.reject(err)
   }
