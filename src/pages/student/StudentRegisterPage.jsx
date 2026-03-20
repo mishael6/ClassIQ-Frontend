@@ -60,7 +60,7 @@ export default function StudentRegisterPage() {
     <div className="sreg-page">
       <div className="sreg-card">
         <div className="sreg-logo">
-          <div className="logo-mark">CQ</div>
+          <img src="/logo.png" alt="ClassIQ" className="lp-logo-img" />
           <span className="s-logo-text">ClassIQ</span>
         </div>
         <div style={{ textAlign: 'center', padding: '40px 0' }}>

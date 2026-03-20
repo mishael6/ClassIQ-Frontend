@@ -108,7 +108,7 @@ export default function MarkAttendancePage() {
     <div className="student-page">
       <div className="student-card">
         <div className="student-logo">
-          <div className="logo-mark">CQ</div>
+          <img src="/logo.png" alt="ClassIQ" className="lp-logo-img" />
           <span className="s-logo-text">ClassIQ</span>
         </div>
 
