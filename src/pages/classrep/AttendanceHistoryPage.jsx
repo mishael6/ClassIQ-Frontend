@@ -56,6 +56,14 @@ export default function AttendanceHistoryPage() {
     } catch { toast('Failed to remove', true) }
   }
 
+  const removeSingle = async (date, lecture, indexNumber) => {
+    if (!confirm(`Remove student ${indexNumber} actively from this lecture?`)) return
+    try {
+      const { data } = await classrepApi.removeAttendance({ date, lecture_name: lecture, index_number: indexNumber, type: 'single' })
+      toast(`✅ ${data.affected} student(s) manually removed`); load()
+    } catch { toast('Failed to remove student', true) }
+  }
+
   const deleteFlagged = async (date, lecture) => {
     if (!confirm(`Remove flagged students from ${lecture} on ${date}?`)) return
     try {
@@ -229,10 +237,9 @@ export default function AttendanceHistoryPage() {
                           catch { return r.time_marked }
                         }},
                         { key: 'status', label: 'Status', render: r => statusBadge(r.status) },
-                        { key: 'action', label: '', render: r => r.status === 'Outside'
-                          ? <Button size="xs" variant="danger" onClick={() => removeOutside(date, lecture, r.index_number)}>Remove</Button>
-                          : '—'
-                        }
+                        { key: 'action', label: '', render: r => (
+                          <Button size="xs" variant="danger" onClick={() => removeSingle(date, lecture, r.index_number)}>Remove</Button>
+                        )}
                       ]}
                       data={entries}
                       rowClassName={r => r.status === 'Flagged' ? 'row-flagged' : r.status === 'Outside' ? 'row-outside' : 'row-present'}
