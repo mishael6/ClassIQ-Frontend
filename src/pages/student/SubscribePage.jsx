@@ -12,6 +12,9 @@ export default function SubscribePage() {
   const [message, setMessage] = useState('')
 
   useEffect(() => {
+    console.log('API Key set:', !!import.meta.env.VITE_PAYLOQA_API_KEY)
+    console.log('Platform ID set:', !!import.meta.env.VITE_PAYLOQA_PLATFORM_ID)
+
     const params = new URLSearchParams(window.location.search)
     const id = params.get('student_id')
     const name = params.get('name') || 'Student'
