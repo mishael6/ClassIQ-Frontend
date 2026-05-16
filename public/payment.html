@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pay with Payloqa</title>
+  <script src="https://cdn.payloqa.com/payment-widget.js"></script>
+  <link rel="stylesheet" href="https://cdn.payloqa.com/payment-widget.css" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #F5F7FA;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .card {
+      background: #fff;
+      border-radius: 24px;
+      padding: 40px 32px;
+      max-width: 420px;
+      width: 100%;
+      box-shadow: 0 4px 40px rgba(0,0,0,0.10);
+      text-align: center;
+    }
+    h1 { font-size: 24px; font-weight: 800; color: #0D1B2A; margin-bottom: 8px; }
+    p { font-size: 14px; color: #4A5568; margin-bottom: 24px; line-height: 1.6; }
+    .plan {
+      background: #1A73E812;
+      border: 1.5px solid #1A73E840;
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 24px;
+      text-align: left;
+    }
+    .price { font-size: 48px; font-weight: 900; color: #1A73E8; text-align: center; }
+    .per { font-size: 14px; color: #4A5568; text-align: center; margin-bottom: 16px; }
+    ul { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    li { font-size: 14px; color: #0D1B2A; font-weight: 500; }
+    #pay-btn {
+      background: #1A73E8;
+      color: #fff;
+      border: none;
+      border-radius: 999px;
+      padding: 16px 32px;
+      font-size: 16px;
+      font-weight: 800;
+      cursor: pointer;
+      width: 100%;
+      margin-bottom: 12px;
+    }
+    #pay-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .secured { font-size: 12px; color: #9AA5B4; }
+    #status { margin-top: 16px; font-size: 14px; font-weight: 600; }
+    .success { color: #38A169; }
+    .error { color: #E53E3E; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div style="font-size:48px;margin-bottom:16px">✨</div>
+    <h1>Unlock Six Unlimited</h1>
+    <p id="greeting">Get unlimited AI explanations, flashcards, MCQs and more.</p>
+
+    <div class="plan">
+      <div class="price">GHS 30</div>
+      <div class="per">/month</div>
+      <ul>
+        <li>✓ Unlimited AI explanations</li>
+        <li>✓ Unlimited MCQ generation</li>
+        <li>✓ Unlimited flashcards</li>
+        <li>✓ Fill-in-the-blank questions</li>
+        <li>✓ Priority Six responses</li>
+      </ul>
+    </div>
+
+    <button id="pay-btn" disabled>Loading payment...</button>
+    <p class="secured">🔒 Secured by Payloqa</p>
+    <div id="status"></div>
+  </div>
+
+  <script>
+    const API_URL = 'https://api-classiq.onrender.com';
+    const PAYLOQA_KEY = 'pk_live_of502pjkel';
+    const PAYLOQA_PLATFORM = 'plat_xvadsq3rx0f';
+
+    const params = new URLSearchParams(window.location.search);
+    const studentId = params.get('student_id');
+    const studentName = decodeURIComponent(params.get('name') || 'Student');
+
+    document.getElementById('greeting').textContent =
+      `Hi ${studentName}! Get unlimited AI explanations, flashcards, MCQs and more.`;
+
+    const btn = document.getElementById('pay-btn');
+    const statusEl = document.getElementById('status');
+
+    // Wait for widget to load
+    window.addEventListener('load', () => {
+      if (typeof PaymentWidget !== 'undefined') {
+        btn.disabled = false;
+        btn.textContent = 'Pay GHS 30 & Activate Six';
+      } else {
+        btn.textContent = 'Payment unavailable';
+        statusEl.className = 'error';
+        statusEl.textContent = 'Payment service failed to load. Please try again later.';
+      }
+    });
+
+    btn.addEventListener('click', () => {
+      if (!studentId) {
+        statusEl.className = 'error';
+        statusEl.textContent = 'Invalid link. Please go back to the app.';
+        return;
+      }
+
+      const orderId = `SIX-${studentId}-${Date.now()}`;
+
+      const config = {
+        apiKey: PAYLOQA_KEY,
+        platformId: PAYLOQA_PLATFORM,
+        amount: 30.00,
+        currency: 'GHS',
+        primaryColor: '#1A73E8',
+        displayMode: 'modal',
+        webhookUrl: `${API_URL}/ai/payment_callback.php`,
+        orderId: orderId,
+        metadata: {
+          student_id: studentId,
+          type: 'six_subscription',
+          customer_name: studentName,
+        },
+      };
+
+      PaymentWidget.open({
+        config,
+        onSuccess: async (result) => {
+          statusEl.textContent = 'Activating subscription...';
+          try {
+            await fetch(`${API_URL}/ai/save_pending.php`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                student_id: studentId,
+                payment_id: result.payment_id || result.id || orderId,
+                amount: 30.00,
+              }),
+            });
+          } catch (e) {}
+          statusEl.className = 'success';
+          statusEl.textContent = '🎉 Payment successful! Go back to the ClassIQ app.';
+          btn.style.display = 'none';
+        },
+        onClose: () => {},
+        onError: (err) => {
+          statusEl.className = 'error';
+          statusEl.textContent = 'Payment failed. Please try again.';
+        },
+      });
+    });
+  </script>
+</body>
+</html>
