@@ -1,31 +1,45 @@
 import { useState, useEffect } from 'react'
-import { PaymentWidget } from '@payloqa/payment-widget'
-import '@payloqa/payment-widget/styles'
 
 const API_URL = 'https://api-classiq.onrender.com'
+const PAYLOQA_KEY = import.meta.env.VITE_PAYLOQA_API_KEY
+const PAYLOQA_PLATFORM = import.meta.env.VITE_PAYLOQA_PLATFORM_ID
 
 export default function SubscribePage() {
   const [studentId, setStudentId] = useState(null)
   const [studentName, setStudentName] = useState('')
-  const [isOpen, setIsOpen] = useState(false)
-  const [status, setStatus] = useState('idle') // idle | loading | success | error | already_subscribed
+  const [status, setStatus] = useState('idle')
   const [message, setMessage] = useState('')
+  const [widgetReady, setWidgetReady] = useState(false)
 
   useEffect(() => {
-    console.log('API Key set:', !!import.meta.env.VITE_PAYLOQA_API_KEY)
-    console.log('Platform ID set:', !!import.meta.env.VITE_PAYLOQA_PLATFORM_ID)
-
     const params = new URLSearchParams(window.location.search)
     const id = params.get('student_id')
     const name = params.get('name') || 'Student'
+
     if (!id) {
       setStatus('error')
       setMessage('Invalid link. Please go back to the app.')
       return
     }
+
     setStudentId(id)
     setStudentName(decodeURIComponent(name))
     checkExistingSubscription(id)
+
+    // Load Payloqa CDN script
+    const script = document.createElement('script')
+    script.src = 'https://cdn.payloqa.com/payment-widget.js'
+    script.async = true
+    script.onload = () => setWidgetReady(true)
+    script.onerror = () => {
+      console.log('CDN failed, using direct API')
+      setWidgetReady(true)
+    }
+    document.body.appendChild(script)
+
+    return () => {
+      document.body.removeChild(script)
+    }
   }, [])
 
   const checkExistingSubscription = async (id) => {
@@ -34,61 +48,109 @@ export default function SubscribePage() {
       const data = await res.json()
       if (data.subscribed) {
         setStatus('already_subscribed')
-        setMessage('You already have an active Six subscription!')
       }
     } catch (e) {}
   }
 
-  const handleSuccess = async (result) => {
-    setIsOpen(false)
+  const handlePay = async () => {
+    if (!studentId) return
     setStatus('loading')
+
+    const orderId = `SIX-${studentId}-${Date.now()}`
+
     try {
-      // Save the payment to our backend
+      // Try CDN widget first
+      if (window.PayloqaWidget) {
+        window.PayloqaWidget.open({
+          apiKey: PAYLOQA_KEY,
+          platformId: PAYLOQA_PLATFORM,
+          amount: 30.00,
+          currency: 'GHS',
+          primaryColor: '#1A73E8',
+          orderId,
+          webhookUrl: `${API_URL}/ai/payment_callback.php`,
+          metadata: {
+            student_id: studentId,
+            type: 'six_subscription',
+            customer_name: studentName,
+          },
+          onSuccess: async (result) => {
+            await savePending(result.payment_id || result.id || orderId)
+            setStatus('success')
+          },
+          onClose: () => setStatus('idle'),
+          onError: () => {
+            setStatus('idle')
+            alert('Payment failed. Please try again.')
+          },
+        })
+      } else {
+        // Fallback — use direct API via our PHP backend
+        const res = await fetch(`${API_URL}/ai/subscribe.php`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            student_id: studentId,
+            phone: prompt('Enter your MoMo number (e.g. 0244000000):'),
+            network: prompt('Enter your network (mtn / vodafone / airteltigo):') || 'mtn',
+          }),
+        })
+        const data = await res.json()
+        if (data.success) {
+          setStatus('pending_momo')
+          setMessage(data.message)
+        } else {
+          setStatus('idle')
+          alert(data.message || 'Payment failed.')
+        }
+      }
+    } catch (e) {
+      setStatus('idle')
+      alert('Something went wrong. Please try again.')
+    }
+  }
+
+  const savePending = async (paymentId) => {
+    try {
       await fetch(`${API_URL}/ai/save_pending.php`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           student_id: studentId,
-          payment_id: result.payment_id || result.id || result.reference,
+          payment_id: paymentId,
           amount: 30.00,
         }),
       })
-      setStatus('success')
-    } catch (e) {
-      setStatus('success') // still show success since payment went through
-    }
+    } catch (e) {}
   }
 
-  const paymentConfig = {
-    apiKey: import.meta.env.VITE_PAYLOQA_API_KEY,
-    platformId: import.meta.env.VITE_PAYLOQA_PLATFORM_ID,
-    amount: 30.00,
-    currency: 'GHS',
-    primaryColor: '#1A73E8',
-    displayMode: 'modal',
-    webhookUrl: `${API_URL}/ai/payment_callback.php`,
-    orderId: `SIX-${studentId}-${Date.now()}`,
-    metadata: {
-      student_id: studentId,
-      type: 'six_subscription',
-      customer_name: studentName,
-    },
-  }
-
-  // ── Success screen ────────────────────────────────────────────
+  // ── Success ───────────────────────────────────────────────────
   if (status === 'success') {
     return (
       <div style={styles.page}>
         <div style={styles.card}>
           <div style={styles.emoji}>🎉</div>
           <h1 style={styles.title}>Payment Successful!</h1>
-          <p style={styles.subtitle}>
-            Six unlimited is now active. Go back to the ClassIQ app to start studying!
-          </p>
-          <div style={{ ...styles.badge, backgroundColor: '#38A16922', color: '#38A169' }}>
-            ✓ Subscription Activated
-          </div>
+          <p style={styles.subtitle}>Six unlimited is now active. Go back to the ClassIQ app to start studying!</p>
+          <div style={{ ...styles.badge, backgroundColor: '#38A16922', color: '#38A169' }}>✓ Subscription Activated</div>
           <p style={styles.hint}>You can close this page and return to the app.</p>
+        </div>
+      </div>
+    )
+  }
+
+  // ── Pending MoMo ──────────────────────────────────────────────
+  if (status === 'pending_momo') {
+    return (
+      <div style={styles.page}>
+        <div style={styles.card}>
+          <div style={styles.emoji}>📱</div>
+          <h1 style={styles.title}>Check Your Phone!</h1>
+          <p style={styles.subtitle}>{message}</p>
+          <p style={styles.hint}>Approve the MoMo prompt then return to the ClassIQ app.</p>
+          <button style={styles.payBtn} onClick={() => window.close()}>
+            Done — Go Back to App
+          </button>
         </div>
       </div>
     )
@@ -101,14 +163,14 @@ export default function SubscribePage() {
         <div style={styles.card}>
           <div style={styles.emoji}>✨</div>
           <h1 style={styles.title}>Already Subscribed!</h1>
-          <p style={styles.subtitle}>{message}</p>
+          <p style={styles.subtitle}>You already have an active Six subscription.</p>
           <p style={styles.hint}>Go back to the ClassIQ app to continue studying.</p>
         </div>
       </div>
     )
   }
 
-  // ── Error screen ──────────────────────────────────────────────
+  // ── Error ─────────────────────────────────────────────────────
   if (status === 'error') {
     return (
       <div style={styles.page}>
@@ -126,19 +188,17 @@ export default function SubscribePage() {
     return (
       <div style={styles.page}>
         <div style={styles.card}>
-          <div style={styles.spinner} />
-          <p style={styles.subtitle}>Activating your subscription...</p>
+          <div style={styles.emoji}>⏳</div>
+          <p style={styles.subtitle}>Opening payment...</p>
         </div>
       </div>
     )
   }
 
-  // ── Main page ─────────────────────────────────────────────────
+  // ── Main ──────────────────────────────────────────────────────
   return (
     <div style={styles.page}>
       <div style={styles.card}>
-
-        {/* Header */}
         <div style={styles.logoWrap}>
           <span style={{ fontSize: 36 }}>✨</span>
         </div>
@@ -147,7 +207,6 @@ export default function SubscribePage() {
           Hi {studentName}! Get unlimited AI explanations, flashcards, MCQs and more.
         </p>
 
-        {/* Plan card */}
         <div style={styles.planCard}>
           <div style={styles.priceRow}>
             <span style={styles.currency}>GHS</span>
@@ -167,23 +226,15 @@ export default function SubscribePage() {
           </ul>
         </div>
 
-        {/* Pay button */}
         <button
-          style={styles.payBtn}
-          onClick={() => setIsOpen(true)}
+          style={{ ...styles.payBtn, opacity: widgetReady ? 1 : 0.7 }}
+          onClick={handlePay}
+          disabled={!widgetReady}
         >
-          Pay GHS 30 & Activate Six
+          {widgetReady ? 'Pay GHS 30 & Activate Six' : 'Loading payment...'}
         </button>
 
         <p style={styles.securedBy}>🔒 Secured by Payloqa</p>
-
-        {/* Payment widget */}
-        <PaymentWidget
-          config={paymentConfig}
-          isOpen={isOpen}
-          onClose={() => setIsOpen(false)}
-          onSuccess={handleSuccess}
-        />
       </div>
     </div>
   )
@@ -247,7 +298,7 @@ const styles = {
     width: '100%',
     marginBottom: '12px',
   },
-  securedBy: { fontSize: '12px', color: '#9AA5B4', marginBottom: '0' },
+  securedBy: { fontSize: '12px', color: '#9AA5B4' },
   badge: {
     display: 'inline-block',
     padding: '8px 20px',
@@ -257,12 +308,4 @@ const styles = {
     marginBottom: '16px',
   },
   hint: { fontSize: '13px', color: '#9AA5B4', marginTop: '16px' },
-  spinner: {
-    width: '40px', height: '40px',
-    border: '4px solid #E2E8F0',
-    borderTop: '4px solid #1A73E8',
-    borderRadius: '50%',
-    animation: 'spin 1s linear infinite',
-    margin: '0 auto 16px',
-  },
 }
