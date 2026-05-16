@@ -18,6 +18,7 @@ import ReportIssuePage       from './pages/classrep/ReportIssuePage'
 // Student pages
 import MarkAttendancePage    from './pages/student/MarkAttendancePage'
 import StudentRegisterPage   from './pages/student/StudentRegisterPage'
+import SubscribePage from './pages/student/SubscribePage'
 
 // Admin pages
 import AdminDashboardPage    from './pages/admin/AdminDashboardPage'
@@ -84,6 +85,7 @@ export default function App() {
           {/* ── Student facing — always public, no auth needed ── */}
           <Route path="/mark-attendance"  element={<MarkAttendancePage />} />
           <Route path="/student/register" element={<StudentRegisterPage />} />
+          <Route path="/subscribe" element={<SubscribePage />} />
 
           {/* ── Classrep dashboard — protected ── */}
           <Route path="/dashboard" element={
