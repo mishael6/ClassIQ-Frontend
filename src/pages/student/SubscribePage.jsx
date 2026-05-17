@@ -48,8 +48,8 @@ export default function SubscribePage() {
   }
 
   const paymentConfig = {
-  apiKey: import.meta.env.VITE_PAYLOQA_API_KEY,
-  platformId: import.meta.env.VITE_PAYLOQA_PLATFORM_ID,
+  apiKey: import.meta.env.VITE_PAYLOQA_API_KEY || 'pk_live_of502pjkel',
+  platformId: import.meta.env.VITE_PAYLOQA_PLATFORM_ID || 'plat_xvadsq3rx0f',
   amount: 30.00,
   currency: 'GHS',
   primaryColor: '#1A73E8',
@@ -134,6 +134,16 @@ export default function SubscribePage() {
           </ul>
         </div>
 
+        <div style={styles.networkHint}>
+          <strong style={{ display: 'block', marginBottom: '4px', fontSize: '14px' }}>💡 Network Tips:</strong>
+          <span style={{ display: 'block', marginBottom: '6px' }}>
+            • <strong>MTN / AirtelTigo:</strong> You will get a direct push prompt on your phone to enter your PIN.
+          </span>
+          <span>
+            • <strong>Telecel (Vodafone):</strong> Telecel does not send OTPs automatically! You must dial <strong>*110#</strong> on your phone, choose <strong>Option 4 (Make Payment)</strong>, then <strong>Option 1 (Generate Voucher)</strong>, and enter that Voucher Code in the payment screen.
+          </span>
+        </div>
+
         <button style={styles.payBtn} onClick={() => setIsOpen(true)}>
           Pay GHS 30 & Activate Six
         </button>
@@ -189,4 +199,10 @@ const styles = {
   },
   securedBy: { fontSize: '12px', color: '#9AA5B4' },
   hint: { fontSize: '13px', color: '#9AA5B4', marginTop: '16px' },
+  networkHint: {
+    backgroundColor: '#FFF9E6', border: '1px solid #FFE0B2',
+    color: '#B78103', borderRadius: '12px', padding: '14px 16px',
+    fontSize: '13px', lineHeight: '1.5', textAlign: 'left',
+    marginBottom: '20px',
+  },
 }
