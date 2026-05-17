@@ -3,20 +3,26 @@ import { PaymentWidget } from '@payloqa/payment-widget'
 import '@payloqa/payment-widget/styles'
 
 const API_URL = 'https://api-classiq.onrender.com'
+const NETWORKS = [
+  { id: 'mtn', label: 'MTN Mobile Money', color: '#FFC107' },
+  { id: 'vodafone', label: 'Vodafone Cash', color: '#E53935' },
+  { id: 'airteltigo', label: 'AirtelTigo Money', color: '#1565C0' },
+]
 
 export default function SubscribePage() {
   const [studentId, setStudentId] = useState(null)
   const [studentName, setStudentName] = useState('')
   const [isOpen, setIsOpen] = useState(false)
   const [status, setStatus] = useState('idle')
+  const [phone, setPhone] = useState('')
+  const [network, setNetwork] = useState('mtn')
+  const [paymentConfig, setPaymentConfig] = useState(null)
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     const id = params.get('student_id')
     const name = params.get('name') || 'Student'
-
-    if (!id) { setStatus('error'); return; }
-
+    if (!id) { setStatus('error'); return }
     setStudentId(id)
     setStudentName(decodeURIComponent(name))
     checkSubscription(id)
@@ -28,6 +34,40 @@ export default function SubscribePage() {
       const data = await res.json()
       if (data.subscribed) setStatus('already_subscribed')
     } catch (e) {}
+  }
+
+  const handlePay = () => {
+    if (!phone.trim() || phone.replace(/\D/g, '').length < 10) {
+      alert('Please enter a valid phone number')
+      return
+    }
+
+    // Normalize phone
+    let normalized = phone.replace(/\D/g, '')
+    if (normalized.startsWith('0')) normalized = '233' + normalized.slice(1)
+
+    const orderId = `SIX-${studentId}-${Date.now()}`
+
+    setPaymentConfig({
+      apiKey: import.meta.env.VITE_PAYLOQA_API_KEY,
+      platformId: import.meta.env.VITE_PAYLOQA_PLATFORM_ID,
+      amount: 30.00,
+      currency: 'GHS',
+      primaryColor: '#1A73E8',
+      displayMode: 'modal',
+      phone_number: normalized,
+      network: network,
+      offline: true,
+      webhookUrl: `${API_URL}/ai/payment_callback.php`,
+      orderId,
+      metadata: {
+        student_id: studentId,
+        type: 'six_subscription',
+        customer_name: studentName,
+      },
+    })
+
+    setIsOpen(true)
   }
 
   const handleSuccess = async (result) => {
@@ -46,22 +86,6 @@ export default function SubscribePage() {
     } catch (e) {}
     setStatus('success')
   }
-
-  const paymentConfig = {
-  apiKey: import.meta.env.VITE_PAYLOQA_API_KEY || 'pk_live_of502pjkel',
-  platformId: import.meta.env.VITE_PAYLOQA_PLATFORM_ID || 'plat_xvadsq3rx0f',
-  amount: 30.00,
-  currency: 'GHS',
-  primaryColor: '#1A73E8',
-  displayMode: 'modal',
-  webhookUrl: `${API_URL}/ai/payment_callback.php`,
-  orderId: `SIX-${studentId}-${Date.now()}`,
-  metadata: {
-    student_id: studentId,
-    type: 'six_subscription',
-    customer_name: studentName,
-  },
-}
 
   if (status === 'success') return (
     <div style={styles.page}>
@@ -115,6 +139,7 @@ export default function SubscribePage() {
           Hi {studentName}! Get unlimited AI explanations, flashcards, MCQs and more.
         </p>
 
+        {/* Plan card */}
         <div style={styles.planCard}>
           <div style={styles.priceRow}>
             <span style={styles.currency}>GHS</span>
@@ -134,27 +159,56 @@ export default function SubscribePage() {
           </ul>
         </div>
 
-        <div style={styles.networkHint}>
-          <strong style={{ display: 'block', marginBottom: '4px', fontSize: '14px' }}>💡 Network Tips:</strong>
-          <span style={{ display: 'block', marginBottom: '6px' }}>
-            • <strong>MTN / AirtelTigo:</strong> You will get a direct push prompt on your phone to enter your PIN.
-          </span>
-          <span>
-            • <strong>Telecel (Vodafone):</strong> Telecel does not send OTPs automatically! You must dial <strong>*110#</strong> on your phone, choose <strong>Option 4 (Make Payment)</strong>, then <strong>Option 1 (Generate Voucher)</strong>, and enter that Voucher Code in the payment screen.
-          </span>
+        {/* Phone input */}
+        <div style={styles.formGroup}>
+          <label style={styles.label}>Select Network</label>
+          <div style={styles.networkRow}>
+            {NETWORKS.map(n => (
+              <button
+                key={n.id}
+                onClick={() => setNetwork(n.id)}
+                style={{
+                  ...styles.networkBtn,
+                  borderColor: network === n.id ? n.color : '#E2E8F0',
+                  backgroundColor: network === n.id ? n.color + '18' : '#F5F7FA',
+                  color: network === n.id ? n.color : '#4A5568',
+                  fontWeight: network === n.id ? '700' : '500',
+                }}
+              >
+                {n.label}
+              </button>
+            ))}
+          </div>
         </div>
 
-        <button style={styles.payBtn} onClick={() => setIsOpen(true)}>
+        <div style={styles.formGroup}>
+          <label style={styles.label}>MoMo Phone Number</label>
+          <input
+            type="tel"
+            placeholder="e.g. 0244000000"
+            value={phone}
+            onChange={e => setPhone(e.target.value)}
+            style={styles.input}
+          />
+        </div>
+
+        <p style={styles.hint}>
+          📱 You'll receive a MoMo prompt on this number. Approve it to activate your subscription.
+        </p>
+
+        <button style={styles.payBtn} onClick={handlePay}>
           Pay GHS 30 & Activate Six
         </button>
         <p style={styles.securedBy}>🔒 Secured by Payloqa</p>
 
-        <PaymentWidget
-          config={paymentConfig}
-          isOpen={isOpen}
-          onClose={() => setIsOpen(false)}
-          onSuccess={handleSuccess}
-        />
+        {paymentConfig && (
+          <PaymentWidget
+            config={paymentConfig}
+            isOpen={isOpen}
+            onClose={() => setIsOpen(false)}
+            onSuccess={handleSuccess}
+          />
+        )}
       </div>
     </div>
   )
@@ -192,17 +246,23 @@ const styles = {
   per: { fontSize: '16px', color: '#4A5568', marginBottom: '8px' },
   featureList: { listStyle: 'none', padding: '0', margin: '0', display: 'flex', flexDirection: 'column', gap: '8px' },
   featureItem: { fontSize: '14px', color: '#0D1B2A', fontWeight: '500' },
+  formGroup: { textAlign: 'left', marginBottom: '16px' },
+  label: { display: 'block', fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px', color: '#9AA5B4', marginBottom: '8px' },
+  networkRow: { display: 'flex', flexDirection: 'column', gap: '8px' },
+  networkBtn: {
+    padding: '12px 16px', borderRadius: '10px', border: '1.5px solid',
+    cursor: 'pointer', fontSize: '14px', textAlign: 'left',
+  },
+  input: {
+    width: '100%', padding: '14px 16px', borderRadius: '12px',
+    border: '1.5px solid #E2E8F0', fontSize: '15px', color: '#0D1B2A',
+    backgroundColor: '#F5F7FA', boxSizing: 'border-box',
+  },
+  hint: { fontSize: '12px', color: '#9AA5B4', marginBottom: '16px', lineHeight: '1.6', textAlign: 'left' },
   payBtn: {
     backgroundColor: '#1A73E8', color: '#fff', border: 'none',
     borderRadius: '999px', padding: '16px 32px', fontSize: '16px',
     fontWeight: '800', cursor: 'pointer', width: '100%', marginBottom: '12px',
   },
   securedBy: { fontSize: '12px', color: '#9AA5B4' },
-  hint: { fontSize: '13px', color: '#9AA5B4', marginTop: '16px' },
-  networkHint: {
-    backgroundColor: '#FFF9E6', border: '1px solid #FFE0B2',
-    color: '#B78103', borderRadius: '12px', padding: '14px 16px',
-    fontSize: '13px', lineHeight: '1.5', textAlign: 'left',
-    marginBottom: '20px',
-  },
 }
