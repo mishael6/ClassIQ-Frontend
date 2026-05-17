@@ -48,20 +48,20 @@ export default function SubscribePage() {
   }
 
   const paymentConfig = {
-    apiKey: import.meta.env.VITE_PAYLOQA_API_KEY,
-    platformId: import.meta.env.VITE_PAYLOQA_PLATFORM_ID,
-    amount: 30.00,
-    currency: 'GHS',
-    primaryColor: '#1A73E8',
-    displayMode: 'modal',
-    webhookUrl: `${API_URL}/ai/payment_callback.php`,
-    orderId: `SIX-${studentId}-${Date.now()}`,
-    metadata: {
-      student_id: studentId,
-      type: 'six_subscription',
-      customer_name: studentName,
-    },
-  }
+  apiKey: import.meta.env.VITE_PAYLOQA_API_KEY,
+  platformId: import.meta.env.VITE_PAYLOQA_PLATFORM_ID,
+  amount: 30.00,
+  currency: 'GHS',
+  primaryColor: '#1A73E8',
+  displayMode: 'modal',
+  webhookUrl: `${API_URL}/ai/payment_callback.php`,
+  orderId: `SIX-${studentId}-${Date.now()}`,
+  metadata: {
+    student_id: studentId,
+    type: 'six_subscription',
+    customer_name: studentName,
+  },
+}
 
   if (status === 'success') return (
     <div style={styles.page}>
