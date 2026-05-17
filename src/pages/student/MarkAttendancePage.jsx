@@ -99,6 +99,11 @@ export default function MarkAttendancePage() {
           <h2>Attendance Marked!</h2>
           <p>{result.message}</p>
           <p className="close-hint">You can close this tab now.</p>
+          <br></br>
+          <a href="/app/ClassIQ.apk" download>
+            <button>Download APK</button>
+          </a>
+          <p className="close-hint">“After downloading, open the file and allow ‘Install from unknown sources’ if prompted.”</p>
         </div>
       </div>
     </div>
