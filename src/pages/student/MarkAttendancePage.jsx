@@ -100,10 +100,21 @@ export default function MarkAttendancePage() {
           <p>{result.message}</p>
           <p className="close-hint">You can close this tab now.</p>
           <br></br>
-          <a href="/app/ClassIQ.apk" download>
-            <button>Download APK</button>
-          </a>
-          <p className="close-hint">“After downloading, open the file and allow ‘Install from unknown sources’ if prompted.”</p>
+          <div className="download-section">
+            <h3 className="download-title">Download ClassIQ App</h3>
+
+            <a href="/app/ClassIQ.apk" download>
+              <button className="download-btn">
+                ⬇ Download APK
+              </button>
+            </a>
+
+            <p className="close-hint">
+              After downloading, open the file and allow
+              <span> “Install from unknown sources” </span>
+                if prompted.
+            </p>
+          </div>
         </div>
       </div>
     </div>
