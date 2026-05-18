@@ -6,7 +6,7 @@ import { StatCard, Card, PageHeader, Alert, Button, Badge, Modal, Input } from '
 import { Users, CheckCircle, Clock, AlertCircle, QrCode,
          ChevronRight, ChevronLeft, Search, Edit2, Save, X,
          Mail, Phone, Hash, Building, BookOpen, GraduationCap,
-         Calendar, Plus, Trash2 } from 'lucide-react'
+         Calendar, Plus, Trash2, Download } from 'lucide-react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import '../../components/ui/components.css'
 import './dashboard.css'
@@ -67,6 +67,29 @@ export default function DashboardPage() {
   const totalPages   = Math.ceil(filtered.length / PER_PAGE)
   const pageStudents = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE)
   useEffect(() => { setPage(1) }, [search])
+
+  const exportCSV = () => {
+    if (!allStudents.length) return
+    const headers = ['Name', 'Index Number', 'Email', 'Phone', 'Level', 'Present Count']
+    const rows = allStudents.map(s => [
+      `"${(s.name        || '').replace(/"/g, '""')}"`,
+      `"${(s.index_number|| '').replace(/"/g, '""')}"`,
+      `"${(s.email       || '').replace(/"/g, '""')}"`,
+      `"${(s.phone       || '').replace(/"/g, '""')}"`,
+      s.level        || '',
+      s.present_count || 0,
+    ])
+    const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n')
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const url  = URL.createObjectURL(blob)
+    const a    = document.createElement('a')
+    a.href     = url
+    a.download = `classiq-students-${new Date().toISOString().slice(0,10)}.csv`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
 
   const openStudent = async (s) => {
     setSelected(s); setEditing(false); setSaveMsg(''); setDetail(null)
@@ -235,6 +258,7 @@ export default function DashboardPage() {
               <input className="dash-search-input" placeholder="Search name or index…" value={search} onChange={e => setSearch(e.target.value)} />
               {search && <button className="dash-search-clear" onClick={() => setSearch('')}>×</button>}
             </div>
+            <Button size="sm" variant="secondary" icon={<Download size={14}/>} onClick={exportCSV} disabled={!allStudents.length}>Export CSV</Button>
             <Button size="sm" icon={<Plus size={14}/>} onClick={() => setAddModal(true)}>Add Student</Button>
           </div>
         </div>
