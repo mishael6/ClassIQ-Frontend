@@ -160,6 +160,9 @@ export default function DashboardPage() {
         <StatCard label="Pending Issues"   value={stats.pending_issues}   icon={<AlertCircle size={20}/>} color="orange" change="Needs attention" />
       </div>
 
+      {/* App download banner */}
+      <AppDownloadBanner />
+
       {/* Chart + Actions + Reg link */}
       <div className="dash-top-grid">
         <Card className="dash-chart-card">
@@ -444,6 +447,63 @@ export default function DashboardPage() {
           <Button variant="danger"    fullWidth loading={deleting} onClick={deleteStudent}>Yes, Delete</Button>
         </div>
       </Modal>
+    </div>
+  )
+}
+
+function AppDownloadBanner() {
+  // sessionStorage resets on every new login session — banner always shows fresh
+  const [visible, setVisible] = useState(() => {
+    try { return !sessionStorage.getItem('classiq_app_banner_dismissed') }
+    catch { return true }
+  })
+
+  // Auto-dismiss after 20 minutes
+  useEffect(() => {
+    if (!visible) return
+    const timer = setTimeout(() => setVisible(false), 20 * 60 * 1000)
+    return () => clearTimeout(timer)
+  }, [visible])
+
+  const dismiss = () => {
+    try { sessionStorage.setItem('classiq_app_banner_dismissed', '1') } catch {}
+    setVisible(false)
+  }
+
+  if (!visible) return null
+
+  const features = [
+    { icon: '📷', label: 'QR Attendance' },
+    { icon: '🤖', label: 'AI Study' },
+    { icon: '🏆', label: 'Trivia' },
+    { icon: '📊', label: 'Attendance History' },
+  ]
+
+  return (
+    <div className="app-banner">
+      <button className="app-banner-close" onClick={dismiss} aria-label="Dismiss">×</button>
+      <div className="app-banner-left">
+        <div className="app-banner-icon">📱</div>
+        <div>
+          <p className="app-banner-title">Tell your students to download ClassIQ!</p>
+          <p className="app-banner-sub">
+            The free mobile app lets them scan QR codes, study with AI, join trivia challenges and track their attendance — all in one place.
+          </p>
+          <div className="app-banner-pills">
+            {features.map(f => (
+              <span key={f.label} className="app-banner-pill">{f.icon} {f.label}</span>
+            ))}
+          </div>
+        </div>
+      </div>
+      <a
+        href="https://class-iq.netlify.app/#download"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="app-banner-btn"
+      >
+        Get the App →
+      </a>
     </div>
   )
 }
