@@ -301,17 +301,41 @@ export default function LandingPage() {
       </section>
 
       {/* ── Footer ── */}
+
       <footer className="lp-footer">
         <div className="lp-footer-inner">
-          <div className="lp-footer-logo">
-            <img src="/logo.png" alt="ClassIQ" className="lp-footer-logo-img" />
-            <span>ClassIQ</span>
+          <div className="lp-footer-brand">
+            <div className="lp-footer-logo">
+              <img src="/logo.png" alt="ClassIQ" style={{ width: 24, height: 24 }} />
+              <span>ClassIQ</span>
+            </div>
+            <p className="lp-footer-copy">© 2026 ClassIQ · Built for Ghanaian students</p>
           </div>
-          <p className="lp-footer-copy">© 2026 ClassIQ · Built for Ghanaian students</p>
+
+          <div className="lp-footer-contact">
+            <p className="lp-footer-contact-label">Contact us</p>
+            <a href="mailto:classiq660@gmail.com" className="lp-footer-contact-link">
+              ✉️ classiq660@gmail.com
+            </a>
+            <a href="tel:+233502076920" className="lp-footer-contact-link">
+              📞 0502 076 920
+            </a>
+            <a
+              href="https://whatsapp.com/channel/0029VbCbXOOHrDZpFFYw3r0O"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="lp-footer-contact-link lp-footer-whatsapp"
+            >
+              💬 Join our WhatsApp Channel
+            </a>
+          </div>
+
+          {/* Nav */}
           <div className="lp-footer-links">
             <Link to="/login">Class Rep Login</Link>
             <Link to="/admin/login">Admin</Link>
           </div>
+
         </div>
       </footer>
     </div>
