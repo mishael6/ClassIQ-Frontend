@@ -157,6 +157,122 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ── Mobile App Download ── */}
+      <section className="lp-app lp-reveal">
+        <div className="lp-app-inner">
+
+          {/* Left — text */}
+          <div className="lp-app-content">
+            <div className="lp-section-label" style={{ textAlign: 'left' }}>Mobile App</div>
+            <h2 className="lp-h2" style={{ textAlign: 'left' }}>
+              Everything you need,<br />
+              <span className="lp-accent">in your pocket</span>
+            </h2>
+            <p className="lp-app-desc">
+              The ClassIQ student app brings your entire academic experience to your phone.
+              Mark attendance, study with AI, compete in trivia, and track your progress — all in one place.
+            </p>
+
+            {/* Feature list */}
+            <div className="lp-app-features">
+              {[
+                { icon: '📷', title: 'QR Attendance',       desc: 'Scan your class QR code to mark attendance in seconds — GPS verified.' },
+                { icon: '🤖', title: 'AI Study Assistant',  desc: 'Upload notes and let Six explain, generate MCQs, flashcards and fill-in-the-blank questions.' },
+                { icon: '🏆', title: 'Trivia & Rankings',   desc: 'Test your knowledge with AI-generated trivia and climb the global leaderboard.' },
+                { icon: '📊', title: 'Attendance History',  desc: 'Track your attendance rate and see every lecture you\'ve attended.' },
+                { icon: '🌙', title: 'Dark & Light Mode',   desc: 'Switch between beautiful dark and light themes to suit your preference.' },
+                { icon: '🔒', title: 'Secure & Private',    desc: 'Your data is encrypted and stored securely. No personal data is ever sold.' },
+              ].map((f, i) => (
+                <div key={i} className="lp-app-feature-row">
+                  <div className="lp-app-feature-icon">{f.icon}</div>
+                  <div>
+                    <div className="lp-app-feature-title">{f.title}</div>
+                    <div className="lp-app-feature-desc">{f.desc}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Download buttons */}
+            <div className="lp-app-btns">
+              <a
+                href="/app/ClassIQ.apk"
+                download="ClassIQ.apk"
+                className="lp-app-download-btn lp-app-android"
+              >
+                <div className="lp-app-btn-icon">🤖</div>
+                <div className="lp-app-btn-text">
+                  <span className="lp-app-btn-sub">Download for</span>
+                  <span className="lp-app-btn-main">Android</span>
+                </div>
+              </a>
+              <div className="lp-app-download-btn lp-app-ios lp-app-ios-soon">
+                <div className="lp-app-btn-icon">🍎</div>
+                <div className="lp-app-btn-text">
+                  <span className="lp-app-btn-sub">Coming soon</span>
+                  <span className="lp-app-btn-main">iOS / iPhone</span>
+                </div>
+              </div>
+            </div>
+
+            <p className="lp-app-note">
+              📦 Android APK · Free to download · No account needed to install
+            </p>
+          </div>
+
+          {/* Right — phone mockup */}
+          <div className="lp-app-mockup">
+            <div className="lp-phone">
+              <div className="lp-phone-screen">
+                <div className="lp-phone-notch" />
+                <div className="lp-phone-content">
+                  <div className="lp-phone-header">
+                    <div className="lp-phone-avatar">C</div>
+                    <div>
+                      <div className="lp-phone-name">ClassIQ</div>
+                      <div className="lp-phone-sub">Student Dashboard</div>
+                    </div>
+                  </div>
+                  <div className="lp-phone-cards">
+                    {[
+                      { icon: '📷', label: 'Scan QR',     color: '#1A73E8' },
+                      { icon: '🤖', label: 'AI Study',    color: '#6B46C1' },
+                      { icon: '🏆', label: 'Trivia',      color: '#D69E2E' },
+                      { icon: '📊', label: 'Attendance',  color: '#38A169' },
+                    ].map((c, i) => (
+                      <div key={i} className="lp-phone-card" style={{ '--card-color': c.color }}>
+                        <span className="lp-phone-card-icon">{c.icon}</span>
+                        <span className="lp-phone-card-label">{c.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="lp-phone-banner">
+                    <span>🔥 Daily Trivia Challenge</span>
+                    <span className="lp-phone-banner-cta">Play →</span>
+                  </div>
+                  <div className="lp-phone-stat-row">
+                    <div className="lp-phone-stat">
+                      <span className="lp-phone-stat-val" style={{ color: '#1A73E8' }}>12</span>
+                      <span className="lp-phone-stat-lbl">Classes</span>
+                    </div>
+                    <div className="lp-phone-stat">
+                      <span className="lp-phone-stat-val" style={{ color: '#38A169' }}>94%</span>
+                      <span className="lp-phone-stat-lbl">Rate</span>
+                    </div>
+                    <div className="lp-phone-stat">
+                      <span className="lp-phone-stat-val" style={{ color: '#D69E2E' }}>48</span>
+                      <span className="lp-phone-stat-lbl">Points</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="lp-app-glow" aria-hidden />
+          </div>
+
+        </div>
+      </section>
+
       {/* ── CTA ── */}
       <section className="lp-cta lp-reveal">
         <div className="lp-cta-inner">
