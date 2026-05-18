@@ -2,6 +2,21 @@ import { useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import './landing.css'
 
+const API = import.meta.env.VITE_API_URL || '/api'
+
+async function trackAndDownload() {
+  try {
+    await fetch(`${API}/app/download.php`, { method: 'POST' })
+  } catch (_) { /* non-blocking */ }
+  // Trigger the file download
+  const a = document.createElement('a')
+  a.href = '/app/ClassIQ.apk'
+  a.download = 'ClassIQ.apk'
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+}
+
 export default function LandingPage() {
   const navigate = useNavigate()
 
@@ -195,9 +210,8 @@ export default function LandingPage() {
 
             {/* Download buttons */}
             <div className="lp-app-btns">
-              <a
-                href="/app/ClassIQ.apk"
-                download="ClassIQ.apk"
+              <button
+                onClick={trackAndDownload}
                 className="lp-app-download-btn lp-app-android"
               >
                 <div className="lp-app-btn-icon">🤖</div>
@@ -205,7 +219,7 @@ export default function LandingPage() {
                   <span className="lp-app-btn-sub">Download for</span>
                   <span className="lp-app-btn-main">Android</span>
                 </div>
-              </a>
+              </button>
               <div className="lp-app-download-btn lp-app-ios lp-app-ios-soon">
                 <div className="lp-app-btn-icon">🍎</div>
                 <div className="lp-app-btn-text">

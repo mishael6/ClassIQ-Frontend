@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { adminApi } from '../../lib/api'
 import { StatCard, Card, PageHeader, Alert } from '../../components/ui'
-import { Users, GraduationCap, QrCode, ClipboardList, AlertCircle, TrendingUp } from 'lucide-react'
+import { Users, GraduationCap, QrCode, ClipboardList, AlertCircle, TrendingUp, Download } from 'lucide-react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts'
 import '../../components/ui/components.css'
 import '../classrep/dashboard.css'
@@ -34,6 +34,7 @@ export default function AdminDashboardPage() {
         <StatCard label="Total Records"   value={s.total_attendance}icon={<ClipboardList size={20}/>} color="orange" />
         <StatCard label="Pending Issues"  value={s.pending_issues}  icon={<AlertCircle size={20}/>}   color="red"    />
         <StatCard label="Today's Attendance" value={s.today_attendance} icon={<TrendingUp size={20}/>} color="green" />
+        <StatCard label="App Downloads"      value={s.app_downloads}    icon={<Download size={20}/>}    color="blue"  />
       </div>
 
       <div className="dash-grid">
