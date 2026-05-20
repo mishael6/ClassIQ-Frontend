@@ -620,6 +620,161 @@
   pointer-events: none;
 }
 
+/* ── Getting Started Guide ── */
+.lp-guide {
+  padding: 100px 24px;
+  background: var(--bg);
+}
+
+.lp-guide-intro {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 1.05rem;
+  max-width: 600px;
+  margin: 0 auto 56px;
+  line-height: 1.7;
+}
+
+.lp-guide-grid {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-bottom: 40px;
+}
+
+.lp-guide-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.lp-guide-card-header {
+  padding: 24px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.lp-guide-card-emoji {
+  font-size: 32px;
+  width: 52px;
+  height: 52px;
+  background: rgba(255,255,255,0.2);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.lp-guide-card-tag {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: rgba(255,255,255,0.7);
+  margin-bottom: 4px;
+}
+
+.lp-guide-card-title {
+  font-size: 17px;
+  font-weight: 800;
+  color: #fff;
+}
+
+.lp-guide-card-body {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+}
+
+.lp-guide-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.lp-guide-step-num {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 800;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.lp-guide-step-text {
+  font-size: 13.5px;
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.lp-guide-cta {
+  display: inline-block;
+  margin-top: auto;
+  padding: 12px 20px;
+  border-radius: 10px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  text-align: center;
+  transition: opacity 0.2s;
+  cursor: pointer;
+  border: none;
+}
+
+.lp-guide-cta:hover {
+  opacity: 0.85;
+}
+
+.lp-guide-tip {
+  max-width: 700px;
+  margin: 0 auto;
+  background: rgba(255, 196, 0, 0.08);
+  border: 1px solid rgba(255, 196, 0, 0.2);
+  border-radius: 14px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.lp-guide-tip-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.lp-guide-tip p {
+  font-size: 14px;
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.lp-guide-tip strong {
+  color: var(--text);
+}
+
+@media (max-width: 900px) {
+  .lp-guide-grid {
+    grid-template-columns: 1fr;
+    max-width: 480px;
+  }
+}
+
 /* ── Responsive ── */
 @media (max-width: 768px) {
   .lp-app-inner {
