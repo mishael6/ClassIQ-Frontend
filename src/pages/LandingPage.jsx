@@ -7,7 +7,7 @@ const API = import.meta.env.VITE_API_URL || '/api'
 async function trackAndDownload() {
   try {
     await fetch(`${API}/app/download.php`, { method: 'POST' })
-  } catch (_) { /* non-blocking */ }
+  } catch (_) {}
   const a = document.createElement('a')
   a.href = '/app/ClassIQ.apk'
   a.download = 'ClassIQ.apk'
@@ -59,25 +59,28 @@ export default function LandingPage() {
       {/* ── Hero ── */}
       <section className="lp-hero">
         <div className="lp-hero-inner">
-          <div className="lp-badge">✨ Trusted by 100+ institutions in Ghana</div>
+          <div className="lp-badge">🎓 The Academic Ecosystem for Everyone in Education</div>
           <h1 className="lp-h1">
-            Attendance made<br/>
-            <span className="lp-accent">effortless</span>
+            One platform for the<br/>
+            <span className="lp-accent">entire academic journey</span>
           </h1>
           <p className="lp-hero-p">
-            The smartest way to track student attendance — GPS-verified QR codes,
-            real-time records, and instant reports. Built for Ghanaian institutions.
+            ClassIQ brings together smart attendance, AI-powered study tools,
+            competitive learning, and a powerful mobile experience — everything
+            academia needs, unified in one intelligent ecosystem.
           </p>
           <div className="lp-hero-cta">
-            <Link to="/register" className="lp-btn lp-solid lp-lg">Start free →</Link>
-            <Link to="/login"    className="lp-btn lp-outline lp-lg">Sign in</Link>
+            <Link to="/register" className="lp-btn lp-solid lp-lg">Join ClassIQ free →</Link>
+            <button onClick={trackAndDownload} className="lp-btn lp-outline lp-lg" style={{ cursor: 'pointer', border: 'none' }}>
+              📱 Download App
+            </button>
           </div>
           <div className="lp-stats-row">
             {[
               { value: '100+', label: 'Institutions' },
-              { value: '10K+', label: 'Students tracked' },
+              { value: '10K+', label: 'Students' },
+              { value: '4',    label: 'Core products' },
               { value: '99%',  label: 'Accuracy rate' },
-              { value: '0',    label: 'Paper used' },
             ].map((s, i) => (
               <div key={i} className="lp-stat-pill">
                 <span className="lp-stat-val">{s.value}</span>
@@ -91,7 +94,7 @@ export default function LandingPage() {
 
       {/* ── Trust bar ── */}
       <section className="lp-trust">
-        <p className="lp-trust-label">Trusted by leading institutions</p>
+        <p className="lp-trust-label">Trusted across Ghanaian institutions</p>
         <div className="lp-trust-scroll">
           {['Kumasi Technical University', 'AAMUSTED', 'KNUST', 'University of Mines', 'Garden City University'].map((n, i) => (
             <span key={i} className="lp-trust-item">{n}</span>
@@ -99,15 +102,84 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ── Ecosystem Overview ── */}
+      <section className="lp-ecosystem lp-reveal">
+        <div className="lp-section-label">The Ecosystem</div>
+        <h2 className="lp-h2">Four pillars of academic excellence</h2>
+        <p className="lp-ecosystem-intro">
+          ClassIQ is not just an attendance tool. It is a complete academic operating system
+          designed to help institutions, class representatives, and students thrive together.
+        </p>
+        <div className="lp-ecosystem-grid">
+          {[
+            {
+              icon: '📍',
+              color: '#1A73E8',
+              bg: '#1A73E815',
+              title: 'Smart Attendance',
+              tag: 'For Class Reps & Students',
+              desc: 'GPS-verified QR code attendance that eliminates proxy marking. Generate a session, display the code, and watch attendance mark itself in real time.',
+              points: ['GPS radius verification', 'Live QR sessions', 'Fraud detection & flagging', 'Instant attendance reports'],
+            },
+            {
+              icon: '🤖',
+              color: '#6B46C1',
+              bg: '#6B46C115',
+              title: 'AI Study Assistant',
+              tag: 'Powered by Six',
+              desc: 'Meet Six — your personal AI tutor. Upload lecture notes or paste text and Six breaks it down, generates quizzes, flashcards, and study guides in seconds.',
+              points: ['Explain complex topics simply', 'Generate MCQ questions', 'Create flashcard sets', 'Fill-in-the-blank exercises'],
+            },
+            {
+              icon: '🏆',
+              color: '#D69E2E',
+              bg: '#D69E2E15',
+              title: 'Trivia & Leaderboard',
+              tag: 'Gamified Learning',
+              desc: 'Turn studying into competition. AI-generated trivia challenges test students on their courses, award points, and rank them on a global leaderboard.',
+              points: ['AI-generated course questions', '15-second timed challenges', 'Mixed question types', 'Global student rankings'],
+            },
+            {
+              icon: '📱',
+              color: '#38A169',
+              bg: '#38A16915',
+              title: 'Mobile App',
+              tag: 'Android · iOS coming soon',
+              desc: 'The ClassIQ mobile app puts the entire ecosystem in your pocket. Scan QR codes, study with Six, play trivia, and track attendance — anywhere, anytime.',
+              points: ['QR code scanner', 'Full AI study access', 'Real-time trivia', 'Attendance history'],
+            },
+          ].map((p, i) => (
+            <div key={i} className="lp-eco-card" style={{ '--eco-color': p.color, '--eco-bg': p.bg }}>
+              <div className="lp-eco-card-top">
+                <div className="lp-eco-icon" style={{ background: p.bg, color: p.color }}>
+                  {p.icon}
+                </div>
+                <div className="lp-eco-tag">{p.tag}</div>
+              </div>
+              <h3 className="lp-eco-title" style={{ color: p.color }}>{p.title}</h3>
+              <p className="lp-eco-desc">{p.desc}</p>
+              <ul className="lp-eco-points">
+                {p.points.map((pt, j) => (
+                  <li key={j} className="lp-eco-point">
+                    <span className="lp-eco-point-dot" style={{ background: p.color }} />
+                    {pt}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* ── How it works ── */}
       <section className="lp-how lp-reveal">
         <div className="lp-section-label">How it works</div>
-        <h2 className="lp-h2">Three steps to perfect attendance</h2>
+        <h2 className="lp-h2">From registration to results</h2>
         <div className="lp-steps">
           {[
-            { n: '01', color: '#0066ff', title: 'Pin your classroom',   icon: '📍', desc: 'Open ClassIQ, drop a pin on the map where your lecture is held and choose the allowed GPS radius.' },
-            { n: '02', color: '#00b57a', title: 'Generate the QR code', icon: '⚡', desc: 'Tap Generate — a unique QR code appears instantly. Display it on your screen or projector.' },
-            { n: '03', color: '#7c3aed', title: 'Students scan & done', icon: '✅', desc: 'Students scan with their phone. The system verifies their GPS, records attendance, and flags anything unusual.' },
+            { n: '01', color: '#0066ff', title: 'Register & get approved', icon: '✍️', desc: 'Class reps register on the web app. Once approved by admin, they get access to the full dashboard and a unique student registration link.' },
+            { n: '02', color: '#00b57a', title: 'Onboard your students',   icon: '👥', desc: 'Share your registration link with students. They sign up and download the ClassIQ mobile app — ready to go in minutes.' },
+            { n: '03', color: '#7c3aed', title: 'Run your class',          icon: '🚀', desc: 'Generate QR codes for attendance, let students study with Six, challenge them with trivia, and monitor everything from your dashboard.' },
           ].map((s, i) => (
             <div key={i} className="lp-step" style={{ '--accent': s.color }}>
               <div className="lp-step-icon">{s.icon}</div>
@@ -119,37 +191,15 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ── Features ── */}
-      <section className="lp-features lp-reveal">
-        <div className="lp-section-label">Features</div>
-        <h2 className="lp-h2">Built for the real classroom</h2>
-        <div className="lp-features-grid">
-          {[
-            { icon: '📍', title: 'GPS verification',  desc: 'Students must be physically inside the classroom radius to mark attendance. No proxy marking.' },
-            { icon: '🔲', title: 'Live QR sessions',  desc: 'Generate session QR codes that expire when you end the session. Full control in your hands.' },
-            { icon: '🚩', title: 'Smart fraud flags', desc: 'Automatic device-sharing detection flags suspicious activity for your review.' },
-            { icon: '📊', title: 'Instant analytics', desc: 'See attendance trends, per-student records, and lecture summaries at a glance.' },
-            { icon: '💬', title: 'In-app messaging',  desc: 'Report issues and get admin responses directly in the app — no email needed.' },
-            { icon: '📱', title: 'SMS notifications', desc: 'Admins can send SMS alerts to class reps directly from the dashboard via Payloqa.' },
-          ].map((f, i) => (
-            <div key={i} className="lp-feat-card">
-              <div className="lp-feat-icon">{f.icon}</div>
-              <h3 className="lp-feat-title">{f.title}</h3>
-              <p className="lp-feat-desc">{f.desc}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
       {/* ── Who it's for ── */}
       <section className="lp-who lp-reveal">
         <div className="lp-section-label">Who it's for</div>
-        <h2 className="lp-h2">Everyone in the classroom</h2>
+        <h2 className="lp-h2">Built for everyone in academia</h2>
         <div className="lp-who-grid">
           <div className="lp-who-card lp-who-classrep">
             <div className="lp-who-icon">🎓</div>
             <h3>Class Representatives</h3>
-            <p>Generate QR codes, manage your student list, view attendance history, and report issues — all from one clean dashboard.</p>
+            <p>Manage your class end-to-end. Generate QR attendance, track your students, view detailed reports, and communicate with your admin — all from one dashboard.</p>
             <Link to="/register" className="lp-btn lp-solid lp-sm" style={{ marginTop: 'auto', paddingTop: 20, alignSelf: 'flex-start' }}>
               Register as Class Rep →
             </Link>
@@ -157,13 +207,15 @@ export default function LandingPage() {
           <div className="lp-who-card lp-who-student">
             <div className="lp-who-icon">📚</div>
             <h3>Students</h3>
-            <p>Register once via your class rep's link. Then just scan the QR code each lecture — your phone's GPS does the rest.</p>
-            <p className="lp-who-hint" style={{ marginTop: 'auto' }}>Ask your class representative for the registration link</p>
+            <p>Mark attendance by scanning a QR code, study smarter with AI, compete in trivia, and track your academic progress — all from the ClassIQ mobile app.</p>
+            <button onClick={trackAndDownload} className="lp-btn lp-solid lp-sm" style={{ marginTop: 'auto', background: '#38A169', border: 'none', cursor: 'pointer' }}>
+              Download the App →
+            </button>
           </div>
           <div className="lp-who-card lp-who-admin">
             <div className="lp-who-icon">🛡️</div>
             <h3>Administrators</h3>
-            <p>Approve class reps, monitor attendance across all classes, manage accounts, and send SMS broadcasts from one admin portal.</p>
+            <p>Oversee your entire institution from one admin portal. Approve class reps, monitor attendance across all classes, send SMS broadcasts, and review analytics.</p>
             <Link to="/admin/login" className="lp-btn lp-outline lp-sm" style={{ marginTop: 'auto', paddingTop: 20, alignSelf: 'flex-start' }}>
               Admin Login →
             </Link>
@@ -178,10 +230,7 @@ export default function LandingPage() {
         <p className="lp-guide-intro">
           Everything you need to know to get ClassIQ working for your class — from registration to marking attendance.
         </p>
-
         <div className="lp-guide-grid">
-
-          {/* Card 1 — Sign up as classrep */}
           <div className="lp-guide-card">
             <div className="lp-guide-card-header" style={{ background: 'linear-gradient(135deg, #0066ff, #0044cc)' }}>
               <span className="lp-guide-card-emoji">🎓</span>
@@ -192,24 +241,21 @@ export default function LandingPage() {
             </div>
             <div className="lp-guide-card-body">
               {[
-                { n: 1, text: 'Click the "Get started" button at the top of this page' },
+                { n: 1, text: 'Click "Get started" at the top of this page' },
                 { n: 2, text: 'Fill in your name, institution, department, program and contact details' },
                 { n: 3, text: 'Click "Create account" to submit your registration' },
-                { n: 4, text: 'Wait for admin approval — this usually takes a few hours' },
-                { n: 5, text: 'Once approved, you\'ll receive a login confirmation. Sign in at the top of this page' },
+                { n: 4, text: 'Wait for admin approval — usually a few hours' },
+                { n: 5, text: 'Once approved, sign in and access your full dashboard' },
               ].map((s, i) => (
                 <div key={i} className="lp-guide-step">
                   <div className="lp-guide-step-num" style={{ background: '#0066ff22', color: '#0066ff' }}>{s.n}</div>
                   <p className="lp-guide-step-text">{s.text}</p>
                 </div>
               ))}
-              <Link to="/register" className="lp-guide-cta" style={{ background: '#0066ff' }}>
-                Register now →
-              </Link>
+              <Link to="/register" className="lp-guide-cta" style={{ background: '#0066ff' }}>Register now →</Link>
             </div>
           </div>
 
-          {/* Card 2 — Set up your class */}
           <div className="lp-guide-card">
             <div className="lp-guide-card-header" style={{ background: 'linear-gradient(135deg, #00b57a, #008f5e)' }}>
               <span className="lp-guide-card-emoji">👥</span>
@@ -221,23 +267,20 @@ export default function LandingPage() {
             <div className="lp-guide-card-body">
               {[
                 { n: 1, text: 'Log into your ClassIQ dashboard after approval' },
-                { n: 2, text: 'Go to your profile and copy your unique student registration link' },
-                { n: 3, text: 'Share the registration link with all your students via WhatsApp, Telegram, or any messaging app' },
-                { n: 4, text: 'Students register using the link — they\'ll appear in your student list automatically' },
-                { n: 5, text: 'Direct your students to download the ClassIQ mobile app from this website' },
+                { n: 2, text: 'Copy your unique student registration link from your profile' },
+                { n: 3, text: 'Share the link with your students via WhatsApp or any messaging app' },
+                { n: 4, text: 'Students register using the link and appear in your student list' },
+                { n: 5, text: 'Direct your students to download the ClassIQ mobile app below' },
               ].map((s, i) => (
                 <div key={i} className="lp-guide-step">
                   <div className="lp-guide-step-num" style={{ background: '#00b57a22', color: '#00b57a' }}>{s.n}</div>
                   <p className="lp-guide-step-text">{s.text}</p>
                 </div>
               ))}
-              <a href="#app-download" className="lp-guide-cta" style={{ background: '#00b57a' }}>
-                Download the app ↓
-              </a>
+              <a href="#app-download" className="lp-guide-cta" style={{ background: '#00b57a' }}>Download the app ↓</a>
             </div>
           </div>
 
-          {/* Card 3 — Mark attendance */}
           <div className="lp-guide-card">
             <div className="lp-guide-card-header" style={{ background: 'linear-gradient(135deg, #7c3aed, #5b21b6)' }}>
               <span className="lp-guide-card-emoji">📷</span>
@@ -248,32 +291,25 @@ export default function LandingPage() {
             </div>
             <div className="lp-guide-card-body">
               {[
-                { n: 1, text: 'At the start of each lecture, go to "Generate QR" in your dashboard' },
+                { n: 1, text: 'Go to "Generate QR" in your dashboard at the start of each lecture' },
                 { n: 2, text: 'Drop a pin on the map at your exact classroom location' },
-                { n: 3, text: 'Set the GPS radius — how far students can be from the pin to mark attendance' },
+                { n: 3, text: 'Set the GPS radius — how far students can be to mark attendance' },
                 { n: 4, text: 'Enter the lecture name or number and click "Generate QR Code"' },
-                { n: 5, text: 'Display the QR code on your screen or projector. Students scan it with the ClassIQ app or their phone camera to mark attendance instantly' },
+                { n: 5, text: 'Display the QR on your screen — students scan with ClassIQ or their camera' },
               ].map((s, i) => (
                 <div key={i} className="lp-guide-step">
                   <div className="lp-guide-step-num" style={{ background: '#7c3aed22', color: '#7c3aed' }}>{s.n}</div>
                   <p className="lp-guide-step-text">{s.text}</p>
                 </div>
               ))}
-              <Link to="/login" className="lp-guide-cta" style={{ background: '#7c3aed' }}>
-                Go to dashboard →
-              </Link>
+              <Link to="/login" className="lp-guide-cta" style={{ background: '#7c3aed' }}>Go to dashboard →</Link>
             </div>
           </div>
-
         </div>
 
-        {/* Bottom tip */}
         <div className="lp-guide-tip">
           <span className="lp-guide-tip-icon">💡</span>
-          <p>
-            <strong>Pro tip:</strong> End your QR session after class to prevent late entries.
-            Go to your dashboard and click "End Session" when the lecture is over.
-          </p>
+          <p><strong>Pro tip:</strong> End your QR session after class to prevent late entries. Go to your dashboard and click "End Session" when the lecture is over.</p>
         </div>
       </section>
 
@@ -283,19 +319,20 @@ export default function LandingPage() {
           <div className="lp-app-content">
             <div className="lp-section-label" style={{ textAlign: 'left' }}>Mobile App</div>
             <h2 className="lp-h2" style={{ textAlign: 'left' }}>
-              Everything you need,<br />
+              The ecosystem,<br />
               <span className="lp-accent">in your pocket</span>
             </h2>
             <p className="lp-app-desc">
-              The ClassIQ student app brings your entire academic experience to your phone.
-              Mark attendance, study with AI, compete in trivia, and track your progress — all in one place.
+              The ClassIQ mobile app is the student's gateway to the entire ecosystem.
+              Mark attendance, study with Six, compete in trivia, and track your academic
+              progress — all from one beautifully designed app.
             </p>
             <div className="lp-app-features">
               {[
                 { icon: '📷', title: 'QR Attendance',      desc: 'Scan your class QR code to mark attendance in seconds — GPS verified.' },
-                { icon: '🤖', title: 'AI Study Assistant', desc: 'Upload notes and let Six explain, generate MCQs, flashcards and fill-in-the-blank questions.' },
+                { icon: '🤖', title: 'AI Study with Six',  desc: 'Upload notes and let Six explain, generate MCQs, flashcards and fill-in-the-blank questions.' },
                 { icon: '🏆', title: 'Trivia & Rankings',  desc: 'Test your knowledge with AI-generated trivia and climb the global leaderboard.' },
-                { icon: '📊', title: 'Attendance History', desc: 'Track your attendance rate and see every lecture you\'ve attended.' },
+                { icon: '📊', title: 'Attendance History', desc: 'Track your attendance rate and see every lecture you have attended.' },
                 { icon: '🌙', title: 'Dark & Light Mode',  desc: 'Switch between beautiful dark and light themes to suit your preference.' },
                 { icon: '🔒', title: 'Secure & Private',   desc: 'Your data is encrypted and stored securely. No personal data is ever sold.' },
               ].map((f, i) => (
@@ -336,7 +373,7 @@ export default function LandingPage() {
                     <div className="lp-phone-avatar">C</div>
                     <div>
                       <div className="lp-phone-name">ClassIQ</div>
-                      <div className="lp-phone-sub">Student Dashboard</div>
+                      <div className="lp-phone-sub">Academic Ecosystem</div>
                     </div>
                   </div>
                   <div className="lp-phone-cards">
@@ -382,11 +419,17 @@ export default function LandingPage() {
       <section className="lp-cta lp-reveal">
         <div className="lp-cta-inner">
           <img src="/logo.png" alt="ClassIQ" className="lp-cta-logo" />
-          <h2 className="lp-cta-h2">Ready to modernise attendance?</h2>
+          <h2 className="lp-cta-h2">Join the academic ecosystem</h2>
           <p className="lp-cta-p">
-            Join hundreds of class representatives already using ClassIQ across Ghana.
+            Thousands of students and class representatives across Ghana are already
+            using ClassIQ to learn smarter, attend better, and compete harder.
           </p>
-          <Link to="/register" className="lp-btn lp-white lp-lg">Get started free →</Link>
+          <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+            <Link to="/register" className="lp-btn lp-white lp-lg">Get started free →</Link>
+            <button onClick={trackAndDownload} className="lp-btn lp-lg" style={{ background: 'rgba(255,255,255,0.15)', color: '#fff', border: '1.5px solid rgba(255,255,255,0.3)', cursor: 'pointer' }}>
+              📱 Download App
+            </button>
+          </div>
         </div>
         <div className="lp-cta-glow" aria-hidden />
       </section>
@@ -399,7 +442,7 @@ export default function LandingPage() {
               <img src="/logo.png" alt="ClassIQ" style={{ width: 24, height: 24 }} />
               <span>ClassIQ</span>
             </div>
-            <p className="lp-footer-copy">© 2026 ClassIQ · Built for Ghanaian students</p>
+            <p className="lp-footer-copy">© 2026 ClassIQ · The Academic Ecosystem</p>
           </div>
           <div className="lp-footer-contact">
             <p className="lp-footer-contact-label">Contact us</p>
