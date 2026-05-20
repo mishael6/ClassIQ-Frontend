@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { classrepApi } from '../../lib/api'
 import { Button, Select, Alert, Card, PageHeader } from '../../components/ui'
-import { MapPin, QrCode, Navigation, Loader2, ArrowLeft, Bookmark, Save, Trash2 } from 'lucide-react'
+import { MapPin, QrCode, Navigation, Loader2, ArrowLeft, Bookmark, Save, Trash2, Search } from 'lucide-react'
 import QRCode from 'qrcode'
 import '../../components/ui/components.css'
 import './generateqr.css'
@@ -27,7 +27,7 @@ function loadLeaflet() {
 }
 
 export default function GenerateQRPage() {
-  const [step,      setStep]      = useState('map')   // map | qr
+  const [step,      setStep]      = useState('map')
   const [lecture,   setLecture]   = useState('Lecture 1')
   const [radius,    setRadius]    = useState(100)
   const [pin,       setPin]       = useState(null)
@@ -38,6 +38,11 @@ export default function GenerateQRPage() {
   const [error,     setError]     = useState('')
   const [mapReady,  setMapReady]  = useState(false)
   const [pinStatus, setPinStatus] = useState('idle')
+
+  // Coordinate input states
+  const [manualLat,  setManualLat]  = useState('')
+  const [manualLng,  setManualLng]  = useState('')
+  const [coordError, setCoordError] = useState('')
 
   // Saved Locations states
   const [savedLocs, setSavedLocs] = useState([])
@@ -51,10 +56,9 @@ export default function GenerateQRPage() {
   const circleRef = useRef(null)
 
   useEffect(() => {
-    // Load saved locations cleanly on mount
     classrepApi.getSavedLocations()
       .then(res => setSavedLocs(res.data.locations || []))
-      .catch(() => {}) // non-fatal
+      .catch(() => {})
 
     let destroyed = false
     loadLeaflet().then(L => {
@@ -104,11 +108,18 @@ export default function GenerateQRPage() {
 
     marker.on('dragend', e => {
       const { lat: la, lng: lo } = e.target.getLatLng()
-      setPin({ lat: la, lng: lo }); circle.setLatLng([la, lo])
+      setPin({ lat: la, lng: lo })
+      setManualLat(la.toFixed(6))
+      setManualLng(lo.toFixed(6))
+      circle.setLatLng([la, lo])
     })
 
-    markerRef.current = marker; circleRef.current = circle
-    setPin({ lat, lng }); setPinStatus('set')
+    markerRef.current = marker
+    circleRef.current = circle
+    setPin({ lat, lng })
+    setManualLat(lat.toFixed(6))
+    setManualLng(lng.toFixed(6))
+    setPinStatus('set')
     map.setView([lat, lng], 18)
   }
 
@@ -118,9 +129,36 @@ export default function GenerateQRPage() {
     const { map, L, pinIcon } = leaflet.current
     navigator.geolocation.getCurrentPosition(
       p => placePin(L, map, pinIcon, p.coords.latitude, p.coords.longitude),
-      () => setError('Could not get your location. Click the map to pin manually.'),
+      () => setError('Could not get your location. Enter coordinates manually or click the map.'),
       { enableHighAccuracy: true, timeout: 10000 }
     )
+  }
+
+  // ── New: Apply manually entered coordinates ──
+  const applyManualCoords = () => {
+    setCoordError('')
+    const lat = parseFloat(manualLat)
+    const lng = parseFloat(manualLng)
+
+    if (isNaN(lat) || isNaN(lng)) {
+      setCoordError('Please enter valid numbers for both latitude and longitude.')
+      return
+    }
+    if (lat < -90 || lat > 90) {
+      setCoordError('Latitude must be between -90 and 90.')
+      return
+    }
+    if (lng < -180 || lng > 180) {
+      setCoordError('Longitude must be between -180 and 180.')
+      return
+    }
+    if (!leaflet.current) {
+      setCoordError('Map not ready yet. Please wait a moment.')
+      return
+    }
+
+    const { map, L, pinIcon } = leaflet.current
+    placePin(L, map, pinIcon, lat, lng)
   }
 
   const applySavedLocation = (id) => {
@@ -133,7 +171,7 @@ export default function GenerateQRPage() {
   }
 
   const savePreset = async () => {
-    if (!locName.trim() || !pin) return;
+    if (!locName.trim() || !pin) return
     setSaving(true)
     try {
       const res = await classrepApi.saveLocation({ name: locName, lat: pin.lat, lng: pin.lng, radius_m: radius })
@@ -172,7 +210,7 @@ export default function GenerateQRPage() {
           { width: 500, margin: 2, color: { dark: '#000000', light: '#ffffff' } }
         )
         setQrUrl(url)
-        setStep('qr')  // ← switch to QR view, hide map
+        setStep('qr')
       } else setError(data.message || 'Failed to generate QR.')
     } catch (err) {
       setError(err?.response?.data?.message || 'Connection error. Please try again.')
@@ -185,6 +223,7 @@ export default function GenerateQRPage() {
     try {
       await classrepApi.endSession({ session_id: session.id })
       setSession(null); setQrUrl(''); setPin(null)
+      setManualLat(''); setManualLng('')
       setPinStatus('idle'); setStep('map')
       if (markerRef.current) leaflet.current?.map?.removeLayer(markerRef.current)
       if (circleRef.current) leaflet.current?.map?.removeLayer(circleRef.current)
@@ -214,17 +253,17 @@ export default function GenerateQRPage() {
                 <div className="step-num">1</div>
                 <div>
                   <p className="step-title">Pin Your Classroom</p>
-                  <p className="step-sub">Click the map or select a saved preset</p>
+                  <p className="step-sub">Click the map, use GPS, enter coordinates, or select a saved preset</p>
                 </div>
               </div>
-              
+
               <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
                 {savedLocs.length > 0 && (
                   <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 4 }}>
                     <Bookmark size={15} style={{ color: 'var(--blue)' }}/>
-                    <select 
-                      onChange={e => applySavedLocation(e.target.value)} 
-                      value="" 
+                    <select
+                      onChange={e => applySavedLocation(e.target.value)}
+                      value=""
                       style={{ padding: '6px 28px 6px 10px', borderRadius: 6, border: '1px solid var(--border)', fontSize: '0.85rem', minWidth: 140, cursor: 'pointer', background: 'var(--surface)' }}
                     >
                       <option value="" disabled>Quick Select...</option>
@@ -240,18 +279,91 @@ export default function GenerateQRPage() {
               </div>
             </div>
 
-            {/* If they want to rapidly delete a location without picking it */}
+            {/* Saved location chips */}
             {savedLocs.length > 0 && (
               <div style={{ padding: '8px 12px', background: 'var(--bg)', borderRadius: 6, marginBottom: 12, display: 'flex', gap: 8, overflowX: 'auto', whiteSpace: 'nowrap' }}>
-                 <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--muted)', display: 'flex', alignItems: 'center', marginRight: 4 }}>Saved:</span>
-                 {savedLocs.map(loc => (
-                   <span key={loc.id} style={{ fontSize: '0.75rem', padding: '4px 10px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                     <span style={{ cursor: 'pointer' }} onClick={() => applySavedLocation(loc.id)}>{loc.name}</span>
-                     <Trash2 size={12} style={{ cursor: 'pointer', color: 'var(--red)', opacity: deleting === loc.id ? 0.5 : 1 }} onClick={(e) => removeSavedLocation(loc.id, e)}/>
-                   </span>
-                 ))}
+                <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--muted)', display: 'flex', alignItems: 'center', marginRight: 4 }}>Saved:</span>
+                {savedLocs.map(loc => (
+                  <span key={loc.id} style={{ fontSize: '0.75rem', padding: '4px 10px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ cursor: 'pointer' }} onClick={() => applySavedLocation(loc.id)}>{loc.name}</span>
+                    <Trash2 size={12} style={{ cursor: 'pointer', color: 'var(--red)', opacity: deleting === loc.id ? 0.5 : 1 }} onClick={(e) => removeSavedLocation(loc.id, e)}/>
+                  </span>
+                ))}
               </div>
             )}
+
+            {/* ── Manual Coordinate Input ── */}
+            <div style={{
+              padding: '14px 16px',
+              background: 'rgba(0,102,255,0.04)',
+              border: '1px solid rgba(0,102,255,0.15)',
+              borderRadius: 10,
+              marginBottom: 14,
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                <MapPin size={15} style={{ color: 'var(--blue)', flexShrink: 0 }} />
+                <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--blue)' }}>
+                  Enter Exact Coordinates
+                </span>
+                <span style={{ fontSize: '0.75rem', color: 'var(--muted)', marginLeft: 4 }}>
+                  — for more precise location than GPS
+                </span>
+              </div>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'flex-end' }}>
+                <div style={{ flex: 1, minWidth: 140 }}>
+                  <label style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--muted)', display: 'block', marginBottom: 4 }}>
+                    Latitude
+                  </label>
+                  <input
+                    type="number"
+                    step="any"
+                    placeholder="e.g. 6.688400"
+                    value={manualLat}
+                    onChange={e => setManualLat(e.target.value)}
+                    style={{
+                      width: '100%', padding: '8px 12px',
+                      border: '1px solid var(--border)', borderRadius: 8,
+                      fontSize: '0.9rem', background: 'var(--surface)',
+                      color: 'var(--text)', boxSizing: 'border-box',
+                    }}
+                  />
+                </div>
+                <div style={{ flex: 1, minWidth: 140 }}>
+                  <label style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--muted)', display: 'block', marginBottom: 4 }}>
+                    Longitude
+                  </label>
+                  <input
+                    type="number"
+                    step="any"
+                    placeholder="e.g. -1.624400"
+                    value={manualLng}
+                    onChange={e => setManualLng(e.target.value)}
+                    style={{
+                      width: '100%', padding: '8px 12px',
+                      border: '1px solid var(--border)', borderRadius: 8,
+                      fontSize: '0.9rem', background: 'var(--surface)',
+                      color: 'var(--text)', boxSizing: 'border-box',
+                    }}
+                  />
+                </div>
+                <Button
+                  size="sm"
+                  onClick={applyManualCoords}
+                  icon={<Search size={14}/>}
+                  style={{ whiteSpace: 'nowrap', height: 38 }}
+                >
+                  Pin Location
+                </Button>
+              </div>
+              {coordError && (
+                <p style={{ fontSize: '0.78rem', color: 'var(--red)', marginTop: 8, margin: '8px 0 0' }}>
+                  ⚠️ {coordError}
+                </p>
+              )}
+              <p style={{ fontSize: '0.73rem', color: 'var(--muted)', marginTop: 8, margin: '8px 0 0' }}>
+                💡 Tip: Open Google Maps, long-press your classroom and copy the coordinates shown at the bottom.
+              </p>
+            </div>
 
             {/* Map */}
             <div className="qr-map-wrap">
@@ -267,7 +379,7 @@ export default function GenerateQRPage() {
             <div className={`pin-status ${pinStatus === 'set' ? 'ps-ok' : 'ps-wait'}`}>
               {pinStatus === 'set'
                 ? `✅ Pinned at ${pin.lat.toFixed(5)}, ${pin.lng.toFixed(5)} — drag marker to adjust`
-                : '🗺️ Click anywhere on the map to drop a pin on your classroom'}
+                : '🗺️ Click the map, use GPS, or enter coordinates above to pin your classroom'}
             </div>
 
             <div className="radius-row">
@@ -285,7 +397,7 @@ export default function GenerateQRPage() {
             {pinStatus === 'set' && (
               <div style={{ marginTop: 12, padding: '12px 16px', background: 'rgba(0,102,255,0.04)', border: '1px solid rgba(0,102,255,0.1)', borderRadius: 8, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
                 <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--blue)' }}>Save this preset for next time:</span>
-                <input 
+                <input
                   placeholder="e.g. Lecture Hall C"
                   value={locName}
                   onChange={e => setLocName(e.target.value)}
@@ -330,7 +442,7 @@ export default function GenerateQRPage() {
 
               <Button fullWidth loading={loading} onClick={generate}
                 icon={<QrCode size={16}/>} style={{ marginTop: 16 }} size="lg">
-                 Generate QR Code
+                Generate QR Code
               </Button>
             </Card>
           )}
@@ -341,7 +453,6 @@ export default function GenerateQRPage() {
       {step === 'qr' && session && qrUrl && (
         <div className="qr-display-step animate-fade-up">
           <Card className="qr-main-card">
-            {/* Live badge */}
             <div className="qr-top-badges">
               <span className="qr-live-badge"><span className="live-dot"/>Live Session</span>
               <span className="qr-badge-item">📚 {session.lecture_name}</span>
@@ -349,12 +460,10 @@ export default function GenerateQRPage() {
               <span className="qr-badge-item">🔑 {session.code}</span>
             </div>
 
-            {/* Big QR code */}
             <div className="qr-frame-big">
               <img src={qrUrl} alt="Attendance QR Code" className="qr-img-big"/>
             </div>
 
-            {/* Info strip */}
             <div className="qr-info-strip">
               <div className="qr-info-item">
                 <span className="qr-info-label">Location</span>
@@ -372,7 +481,6 @@ export default function GenerateQRPage() {
               </div>
             </div>
 
-            {/* Copy link */}
             <div className="qr-link-row">
               <input readOnly value={session.attendance_url || ''} className="qr-link-input"/>
               <Button size="sm" onClick={() => navigator.clipboard.writeText(session.attendance_url || '')}>
@@ -384,7 +492,6 @@ export default function GenerateQRPage() {
               Show this QR to your students — they must be within <strong>{radius}m</strong> of your pinned location to mark attendance
             </p>
 
-            {/* Actions */}
             <div className="qr-actions">
               <Button
                 variant="secondary"
