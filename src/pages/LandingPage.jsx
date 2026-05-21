@@ -70,7 +70,7 @@ export default function LandingPage() {
             academia needs, unified in one intelligent ecosystem.
           </p>
           <div className="lp-hero-cta">
-            <Link to="/register" className="lp-btn lp-solid lp-lg">Join ClassIQ free →</Link>
+            <Link to="/register" className="lp-btn lp-solid lp-lg">Join ClassIQ free (Class Reps) →</Link>
             <button onClick={trackAndDownload} className="lp-btn lp-outline lp-lg" style={{ cursor: 'pointer', border: 'none' }}>
               📱 Download App
             </button>
