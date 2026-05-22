@@ -1,10 +1,31 @@
 import { useState, useEffect } from 'react'
 import { adminApi } from '../../lib/api'
 import { StatCard, Card, PageHeader, Alert } from '../../components/ui'
-import { Users, GraduationCap, QrCode, ClipboardList, AlertCircle, TrendingUp, Download } from 'lucide-react'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line } from 'recharts'
+import {
+  Users, GraduationCap, QrCode, ClipboardList,
+  AlertCircle, TrendingUp, Download, Smartphone,
+  CreditCard, DollarSign, UserPlus,
+} from 'lucide-react'
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid,
+  Tooltip, ResponsiveContainer, LineChart, Line,
+} from 'recharts'
 import '../../components/ui/components.css'
 import '../classrep/dashboard.css'
+
+function DaysRemainingBadge({ days }) {
+  const color = days <= 3 ? '#E53E3E' : days <= 7 ? '#D69E2E' : '#38A169'
+  const bg    = days <= 3 ? '#E53E3E18' : days <= 7 ? '#D69E2E18' : '#38A16918'
+  return (
+    <span style={{
+      padding: '3px 10px', borderRadius: 999,
+      fontSize: '0.78rem', fontWeight: 700,
+      color, background: bg,
+    }}>
+      {days === 0 ? 'Expires today' : `${days}d left`}
+    </span>
+  )
+}
 
 export default function AdminDashboardPage() {
   const [data,    setData]    = useState(null)
@@ -20,31 +41,100 @@ export default function AdminDashboardPage() {
 
   if (loading) return <div className="dash-loading"><div className="spinner" /></div>
 
-  const s = data?.stats || {}
+  const s  = data?.stats         || {}
+  const subs = data?.subscriptions || []
+  const signupChart = data?.signup_chart || []
 
   return (
     <div className="animate-fade-up">
       <PageHeader title="Admin Dashboard" subtitle="System-wide overview of ClassIQ" />
       {error && <Alert variant="error">{error}</Alert>}
 
+      {/* ── Main Stats ── */}
       <div className="stats-grid">
-        <StatCard label="Total Classreps" value={s.total_classreps} icon={<Users size={20}/>}         color="blue"   />
-        <StatCard label="Total Students"  value={s.total_students}  icon={<GraduationCap size={20}/>} color="green"  />
-        <StatCard label="Total Sessions"  value={s.total_sessions}  icon={<QrCode size={20}/>}        color="purple" />
-        <StatCard label="Total Records"   value={s.total_attendance}icon={<ClipboardList size={20}/>} color="orange" />
-        <StatCard label="Pending Issues"  value={s.pending_issues}  icon={<AlertCircle size={20}/>}   color="red"    />
-        <StatCard label="Today's Attendance" value={s.today_attendance} icon={<TrendingUp size={20}/>} color="green" />
-        <StatCard label="App Downloads"      value={s.app_downloads}    icon={<Download size={20}/>}    color="blue"  />
+        <StatCard label="Total Class Reps"   value={s.total_classreps}    icon={<Users size={20}/>}         color="blue"   />
+        <StatCard label="Total Students"     value={s.total_students}     icon={<GraduationCap size={20}/>} color="green"  />
+        <StatCard label="Total Sessions"     value={s.total_sessions}     icon={<QrCode size={20}/>}        color="purple" />
+        <StatCard label="Total Records"      value={s.total_attendance}   icon={<ClipboardList size={20}/>} color="orange" />
+        <StatCard label="Pending Issues"     value={s.pending_issues}     icon={<AlertCircle size={20}/>}   color="red"    />
+        <StatCard label="Today's Attendance" value={s.today_attendance}   icon={<TrendingUp size={20}/>}    color="green"  />
+        <StatCard label="App Downloads"      value={s.app_downloads}      icon={<Download size={20}/>}      color="blue"   />
+        <StatCard label="Mobile Signups"     value={s.mobile_signups}     icon={<Smartphone size={20}/>}    color="purple" />
       </div>
 
-      <div className="dash-grid">
+      {/* ── Mobile & Subscription Stats ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 24 }}>
+
+        {/* Mobile signups card */}
         <Card>
-          <div className="card-head"><h2 className="card-title">Attendance — Last 14 Days</h2></div>
-          <ResponsiveContainer width="100%" height={260}>
+          <div className="card-head">
+            <h2 className="card-title">📱 Mobile App Signups</h2>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {[
+              { label: 'Total Mobile Signups', value: s.mobile_signups    || 0, color: 'var(--blue)'   },
+              { label: 'New This Week',         value: s.new_students_week  || 0, color: 'var(--green)'  },
+              { label: 'New This Month',        value: s.new_students_month || 0, color: 'var(--purple)' },
+              { label: 'Total Students',        value: s.total_students     || 0, color: 'var(--muted)'  },
+            ].map(item => (
+              <div key={item.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid var(--border)' }}>
+                <span style={{ fontSize: '0.85rem', color: 'var(--txt2)' }}>{item.label}</span>
+                <span style={{ fontSize: '1.15rem', fontWeight: 800, color: item.color }}>{item.value}</span>
+              </div>
+            ))}
+          </div>
+        </Card>
+
+        {/* Subscription stats card */}
+        <Card>
+          <div className="card-head">
+            <h2 className="card-title">✨ Six AI Subscriptions</h2>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {[
+              { label: 'Active Subscribers', value: s.active_subscriptions || 0,                         color: 'var(--green)'  },
+              { label: 'Total Revenue',      value: `GHS ${Number(s.subscription_revenue || 0).toFixed(2)}`, color: 'var(--blue)'   },
+              { label: 'Expiring in 3 days', value: subs.filter(s => s.days_remaining <= 3).length,      color: 'var(--red)'    },
+              { label: 'Expiring in 7 days', value: subs.filter(s => s.days_remaining <= 7).length,      color: 'var(--orange)' },
+            ].map(item => (
+              <div key={item.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid var(--border)' }}>
+                <span style={{ fontSize: '0.85rem', color: 'var(--txt2)' }}>{item.label}</span>
+                <span style={{ fontSize: '1.15rem', fontWeight: 800, color: item.color }}>{item.value}</span>
+              </div>
+            ))}
+          </div>
+        </Card>
+
+        {/* System summary card */}
+        <Card>
+          <div className="card-head">
+            <h2 className="card-title">⚙️ System Summary</h2>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {[
+              { label: 'Flagged Records',  value: s.flagged_total   || 0, color: 'var(--red)'    },
+              { label: 'Outside Records',  value: s.outside_total   || 0, color: 'var(--orange)'  },
+              { label: 'Active Sessions',  value: s.active_sessions || 0, color: 'var(--green)'   },
+              { label: 'Issues Resolved',  value: s.resolved_issues || 0, color: 'var(--blue)'    },
+            ].map(item => (
+              <div key={item.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid var(--border)' }}>
+                <span style={{ fontSize: '0.85rem', color: 'var(--txt2)' }}>{item.label}</span>
+                <span style={{ fontSize: '1.15rem', fontWeight: 800, color: item.color }}>{item.value}</span>
+              </div>
+            ))}
+          </div>
+        </Card>
+      </div>
+
+      {/* ── Charts ── */}
+      <div className="dash-grid" style={{ marginBottom: 24 }}>
+        <Card>
+          <div className="card-head"><h2 className="card-title">📊 Attendance — Last 14 Days</h2></div>
+          <ResponsiveContainer width="100%" height={240}>
             <BarChart data={data?.chart || []}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-              <XAxis dataKey="day" tick={{ fontSize: 11, fill: 'var(--muted)' }} />
-              <YAxis tick={{ fontSize: 11, fill: 'var(--muted)' }} allowDecimals={false} />
+              <XAxis dataKey="day" tick={{ fontSize: 10, fill: 'var(--muted)' }} />
+              <YAxis tick={{ fontSize: 10, fill: 'var(--muted)' }} allowDecimals={false} />
               <Tooltip contentStyle={{ borderRadius: 8, border: '1px solid var(--border)', fontSize: 12 }} />
               <Bar dataKey="count" fill="var(--blue)" radius={[4,4,0,0]} name="Students" />
             </BarChart>
@@ -52,22 +142,65 @@ export default function AdminDashboardPage() {
         </Card>
 
         <Card>
-          <div className="card-head"><h2 className="card-title">System Summary</h2></div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            {[
-              { label: 'Flagged Records',  value: s.flagged_total || 0,  color: 'var(--red)' },
-              { label: 'Outside Records',  value: s.outside_total || 0,  color: 'var(--orange)' },
-              { label: 'Active Sessions',  value: s.active_sessions || 0, color: 'var(--green)' },
-              { label: 'Issues Resolved',  value: s.resolved_issues || 0, color: 'var(--blue)' },
-            ].map(item => (
-              <div key={item.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid var(--border)' }}>
-                <span style={{ fontSize: '0.88rem', color: 'var(--txt2)' }}>{item.label}</span>
-                <span style={{ fontSize: '1.2rem', fontWeight: 700, color: item.color }}>{item.value}</span>
-              </div>
-            ))}
-          </div>
+          <div className="card-head"><h2 className="card-title">👥 Student Signups — Last 14 Days</h2></div>
+          <ResponsiveContainer width="100%" height={240}>
+            <LineChart data={signupChart}>
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+              <XAxis dataKey="day" tick={{ fontSize: 10, fill: 'var(--muted)' }} />
+              <YAxis tick={{ fontSize: 10, fill: 'var(--muted)' }} allowDecimals={false} />
+              <Tooltip contentStyle={{ borderRadius: 8, border: '1px solid var(--border)', fontSize: 12 }} />
+              <Line type="monotone" dataKey="count" stroke="var(--green)" strokeWidth={2} dot={{ r: 3 }} name="Signups" />
+            </LineChart>
+          </ResponsiveContainer>
         </Card>
       </div>
+
+      {/* ── Active Subscriptions Table ── */}
+      <Card>
+        <div className="card-head">
+          <h2 className="card-title">✨ Active Six Subscriptions</h2>
+          <span style={{ fontSize: '0.82rem', color: 'var(--muted)' }}>
+            {subs.length} active subscriber{subs.length !== 1 ? 's' : ''}
+          </span>
+        </div>
+
+        {subs.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--muted)' }}>
+            <CreditCard size={40} style={{ margin: '0 auto 12px', opacity: 0.4 }} />
+            <p style={{ fontSize: '0.9rem' }}>No active subscriptions yet</p>
+          </div>
+        ) : (
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+              <thead>
+                <tr style={{ borderBottom: '2px solid var(--border)' }}>
+                  {['Student', 'Index No.', 'Institution', 'Amount', 'Start Date', 'End Date', 'Time Left'].map(h => (
+                    <th key={h} style={{ padding: '10px 12px', textAlign: 'left', color: 'var(--muted)', fontWeight: 700, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {subs.map((sub, i) => (
+                  <tr key={i} style={{ borderBottom: '1px solid var(--border)', background: sub.days_remaining <= 3 ? 'rgba(229,62,62,0.04)' : 'transparent' }}>
+                    <td style={{ padding: '12px', fontWeight: 600, color: 'var(--text)' }}>{sub.student_name}</td>
+                    <td style={{ padding: '12px', color: 'var(--txt2)', fontFamily: 'monospace' }}>{sub.index_number}</td>
+                    <td style={{ padding: '12px', color: 'var(--txt2)' }}>{sub.institution || '—'}</td>
+                    <td style={{ padding: '12px', color: 'var(--green)', fontWeight: 700 }}>GHS {Number(sub.amount).toFixed(2)}</td>
+                    <td style={{ padding: '12px', color: 'var(--txt2)' }}>{sub.start_date}</td>
+                    <td style={{ padding: '12px', color: 'var(--txt2)' }}>{sub.end_date}</td>
+                    <td style={{ padding: '12px' }}>
+                      <DaysRemainingBadge days={sub.days_remaining} />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Card>
+
     </div>
   )
 }
