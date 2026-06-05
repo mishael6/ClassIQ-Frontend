@@ -29,12 +29,19 @@ function DaysRemainingBadge({ days }) {
 
 export default function AdminDashboardPage() {
   const [data,    setData]    = useState(null)
+  const [trivia,  setTrivia]  = useState([])
   const [loading, setLoading] = useState(true)
   const [error,   setError]   = useState('')
 
   useEffect(() => {
-    adminApi.getDashboard()
-      .then(r => setData(r.data))
+    Promise.all([
+      adminApi.getDashboard(),
+      adminApi.getTriviaLeaderboard(5)
+    ])
+      .then(([r1, r2]) => {
+        setData(r1.data)
+        setTrivia(r2.data.leaderboard || [])
+      })
       .catch(() => setError('Failed to load dashboard.'))
       .finally(() => setLoading(false))
   }, [])
@@ -49,6 +56,31 @@ export default function AdminDashboardPage() {
     <div className="animate-fade-up">
       <PageHeader title="Admin Dashboard" subtitle="System-wide overview of ClassIQ" />
       {error && <Alert variant="error">{error}</Alert>}
+
+      {/* ── Trivia Leaderboard ── */}
+      <Card style={{ marginBottom: 24 }}>
+        <div className="card-head">
+          <h2 className="card-title">🏆 Top 5 Trivia Students</h2>
+        </div>
+        {trivia.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '20px', color: 'var(--muted)' }}>No trivia data available</div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {trivia.map((student, i) => (
+              <div key={student.student_id} style={{ display: 'flex', alignItems: 'center', padding: '10px', background: 'var(--bg-card-hover)', borderRadius: 8 }}>
+                <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--blue)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', marginRight: 12 }}>
+                  {i + 1}
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontWeight: 600 }}>{student.name}</div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--muted)' }}>{student.institution}</div>
+                </div>
+                <div style={{ fontWeight: 700, color: 'var(--blue)', fontSize: '1.1rem' }}>{student.total_points} pts</div>
+              </div>
+            ))}
+          </div>
+        )}
+      </Card>
 
       {/* ── Main Stats ── */}
       <div className="stats-grid">
