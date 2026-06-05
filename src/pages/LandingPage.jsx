@@ -2,19 +2,7 @@ import { useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import './landing.css'
 
-const API = import.meta.env.VITE_API_URL || '/api'
-
-async function trackAndDownload() {
-  try {
-    await fetch(`${API}/app/download.php`, { method: 'POST' })
-  } catch (_) {}
-  const a = document.createElement('a')
-  a.href = '/app/ClassIQ.apk'
-  a.download = 'ClassIQ.apk'
-  document.body.appendChild(a)
-  a.click()
-  document.body.removeChild(a)
-}
+const PWA_URL = 'https://mobile-classiq.netlify.app/'
 
 export default function LandingPage() {
   const navigate = useNavigate()
@@ -71,9 +59,9 @@ export default function LandingPage() {
           </p>
           <div className="lp-hero-cta">
             <Link to="/register" className="lp-btn lp-solid lp-lg">Join ClassIQ free (Class Reps) →</Link>
-            <button onClick={trackAndDownload} className="lp-btn lp-outline lp-lg" style={{ cursor: 'pointer', border: 'none' }}>
+            <a href={PWA_URL} target="_blank" rel="noopener noreferrer" className="lp-btn lp-outline lp-lg" style={{ textDecoration: 'none' }}>
               📱 Download App
-            </button>
+            </a>
           </div>
           <div className="lp-stats-row">
             {[
@@ -144,7 +132,7 @@ export default function LandingPage() {
               color: '#38A169',
               bg: '#38A16915',
               title: 'Mobile App',
-              tag: 'Android · iOS coming soon',
+              tag: 'Android & iOS',
               desc: 'The ClassIQ mobile app puts the entire ecosystem in your pocket. Scan QR codes, study with Six, play trivia, and track attendance — anywhere, anytime.',
               points: ['QR code scanner', 'Full AI study access', 'Real-time trivia', 'Attendance history'],
             },
@@ -178,7 +166,7 @@ export default function LandingPage() {
         <div className="lp-steps">
           {[
             { n: '01', color: '#0066ff', title: 'Register & get approved', icon: '✍️', desc: 'Class reps register on the web app. Once approved by admin, they get access to the full dashboard and a unique student registration link.' },
-            { n: '02', color: '#00b57a', title: 'Onboard your students',   icon: '👥', desc: 'Share your registration link with students. They sign up and download the ClassIQ mobile app — ready to go in minutes.' },
+            { n: '02', color: '#00b57a', title: 'Onboard your students',   icon: '👥', desc: 'Share your registration link with students. They sign up and install the ClassIQ PWA — ready to go in minutes.' },
             { n: '03', color: '#7c3aed', title: 'Run your class',          icon: '🚀', desc: 'Generate QR codes for attendance, let students study with Six, challenge them with trivia, and monitor everything from your dashboard.' },
           ].map((s, i) => (
             <div key={i} className="lp-step" style={{ '--accent': s.color }}>
@@ -208,9 +196,9 @@ export default function LandingPage() {
             <div className="lp-who-icon">📚</div>
             <h3>Students</h3>
             <p>Mark attendance by scanning a QR code, study smarter with AI, compete in trivia, and track your academic progress — all from the ClassIQ mobile app.</p>
-            <button onClick={trackAndDownload} className="lp-btn lp-solid lp-sm" style={{ marginTop: 'auto', background: '#38A169', border: 'none', cursor: 'pointer' }}>
+            <a href={PWA_URL} target="_blank" rel="noopener noreferrer" className="lp-btn lp-solid lp-sm" style={{ marginTop: 'auto', background: '#38A169', textDecoration: 'none' }}>
               Download the App →
-            </button>
+            </a>
           </div>
           <div className="lp-who-card lp-who-admin">
             <div className="lp-who-icon">🛡️</div>
@@ -270,7 +258,7 @@ export default function LandingPage() {
                 { n: 2, text: 'Copy your unique student registration link from your profile' },
                 { n: 3, text: 'Share the link with your students via WhatsApp or any messaging app' },
                 { n: 4, text: 'Students register using the link and appear in your student list' },
-                { n: 5, text: 'Direct your students to download the ClassIQ mobile app below' },
+                { n: 5, text: 'Direct your students to install the ClassIQ mobile app below' },
               ].map((s, i) => (
                 <div key={i} className="lp-guide-step">
                   <div className="lp-guide-step-num" style={{ background: '#00b57a22', color: '#00b57a' }}>{s.n}</div>
@@ -346,22 +334,22 @@ export default function LandingPage() {
               ))}
             </div>
             <div className="lp-app-btns">
-              <button onClick={trackAndDownload} className="lp-app-download-btn lp-app-android">
+              <a href={PWA_URL} target="_blank" rel="noopener noreferrer" className="lp-app-download-btn lp-app-android" style={{ textDecoration: 'none', cursor: 'pointer' }}>
                 <div className="lp-app-btn-icon">🤖</div>
                 <div className="lp-app-btn-text">
-                  <span className="lp-app-btn-sub">Download for</span>
+                  <span className="lp-app-btn-sub">Install for</span>
                   <span className="lp-app-btn-main">Android</span>
                 </div>
-              </button>
-              <div className="lp-app-download-btn lp-app-ios lp-app-ios-soon">
+              </a>
+              <a href={PWA_URL} target="_blank" rel="noopener noreferrer" className="lp-app-download-btn lp-app-ios" style={{ textDecoration: 'none', cursor: 'pointer' }}>
                 <div className="lp-app-btn-icon">🍎</div>
                 <div className="lp-app-btn-text">
-                  <span className="lp-app-btn-sub">Coming soon</span>
+                  <span className="lp-app-btn-sub">Install for</span>
                   <span className="lp-app-btn-main">iOS / iPhone</span>
                 </div>
-              </div>
+              </a>
             </div>
-            <p className="lp-app-note">📦 Android APK · Free to download · No account needed to install</p>
+            <p className="lp-app-note">📱 PWA · Free to use · Works on Android & iOS · No installation needed</p>
           </div>
 
           <div className="lp-app-mockup">
@@ -426,9 +414,9 @@ export default function LandingPage() {
           </p>
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
             <Link to="/register" className="lp-btn lp-white lp-lg">Get started free →</Link>
-            <button onClick={trackAndDownload} className="lp-btn lp-lg" style={{ background: 'rgba(255,255,255,0.15)', color: '#fff', border: '1.5px solid rgba(255,255,255,0.3)', cursor: 'pointer' }}>
+            <a href={PWA_URL} target="_blank" rel="noopener noreferrer" className="lp-btn lp-lg" style={{ background: 'rgba(255,255,255,0.15)', color: '#fff', border: '1.5px solid rgba(255,255,255,0.3)', textDecoration: 'none' }}>
               📱 Download App
-            </button>
+            </a>
           </div>
         </div>
         <div className="lp-cta-glow" aria-hidden />
