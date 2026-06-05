@@ -97,6 +97,7 @@ export default function AdminDashboardPage() {
         <StatCard label="Total Class Reps"   value={s.total_classreps}    icon={<Users size={20}/>}         color="blue"   />
         <StatCard label="Total Students"     value={s.total_students}     icon={<GraduationCap size={20}/>} color="green"  />
         <StatCard label="Total Sessions"     value={s.total_sessions}     icon={<QrCode size={20}/>}        color="purple" />
+        <StatCard label="Students Online"    value={s.students_online}    icon={<Smartphone size={20}/>}    color="green"  />
         <StatCard label="Total Records"      value={s.total_attendance}   icon={<ClipboardList size={20}/>} color="orange" />
         <StatCard label="Pending Issues"     value={s.pending_issues}     icon={<AlertCircle size={20}/>}   color="red"    />
         <StatCard label="Today's Attendance" value={s.today_attendance}   icon={<TrendingUp size={20}/>}    color="green"  />
