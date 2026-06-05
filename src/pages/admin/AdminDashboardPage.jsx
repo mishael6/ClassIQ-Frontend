@@ -58,24 +58,34 @@ export default function AdminDashboardPage() {
       {error && <Alert variant="error">{error}</Alert>}
 
       {/* ── Trivia Leaderboard ── */}
-      <Card style={{ marginBottom: 24 }}>
-        <div className="card-head">
-          <h2 className="card-title">🏆 Top 5 Trivia Students</h2>
+      <Card style={{ marginBottom: 24, boxShadow: '0 4px 6px rgba(0,0,0,0.1)', borderRadius: 12, overflow: 'hidden' }}>
+        <div className="card-head" style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', padding: '16px' }}>
+          <h2 className="card-title" style={{ color: 'white', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '1.4rem' }}>🏆</span> Top 5 Trivia Students
+          </h2>
         </div>
         {trivia.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '20px', color: 'var(--muted)' }}>No trivia data available</div>
+          <div style={{ textAlign: 'center', padding: '40px', color: 'var(--muted)', fontStyle: 'italic' }}>No trivia data available at the moment.</div>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
             {trivia.map((student, i) => (
-              <div key={student.student_id} style={{ display: 'flex', alignItems: 'center', padding: '10px', background: 'var(--bg-card-hover)', borderRadius: 8 }}>
-                <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'var(--blue)', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', marginRight: 12 }}>
+              <div key={student.student_id} style={{ display: 'flex', alignItems: 'center', padding: '16px', borderBottom: i !== trivia.length - 1 ? '1px solid var(--border)' : 'none', transition: 'background 0.2s' }}>
+                <div style={{ 
+                  width: 36, height: 36, borderRadius: '50%', 
+                  background: i === 0 ? '#FFD700' : i === 1 ? '#C0C0C0' : i === 2 ? '#CD7F32' : 'var(--blue)', 
+                  color: i < 3 ? 'black' : 'white', 
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', marginRight: 16, fontSize: '0.9rem' 
+                }}>
                   {i + 1}
                 </div>
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 600 }}>{student.name}</div>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--muted)' }}>{student.institution}</div>
+                  <div style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--text)' }}>{student.name}</div>
+                  <div style={{ fontSize: '0.85rem', color: 'var(--muted)' }}>{student.institution} • {student.program}</div>
                 </div>
-                <div style={{ fontWeight: 700, color: 'var(--blue)', fontSize: '1.1rem' }}>{student.total_points} pts</div>
+                <div style={{ textAlign: 'right' }}>
+                  <div style={{ fontWeight: 800, color: 'var(--blue)', fontSize: '1.2rem' }}>{student.total_points}</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Points</div>
+                </div>
               </div>
             ))}
           </div>
