@@ -52,6 +52,17 @@ export default function AdminDashboardPage() {
   const subs = data?.subscriptions || []
   const signupChart = data?.signup_chart || []
 
+  const handleResetTrivia = () => {
+    if (confirm('Are you sure you want to reset the trivia leaderboard? This cannot be undone.')) {
+      adminApi.resetTriviaLeaderboard()
+        .then(() => {
+          alert('Leaderboard reset successfully!');
+          window.location.reload();
+        })
+        .catch(() => alert('Failed to reset leaderboard.'));
+    }
+  }
+
   return (
     <div className="animate-fade-up">
       <PageHeader title="Admin Dashboard" subtitle="System-wide overview of ClassIQ" />
@@ -59,10 +70,13 @@ export default function AdminDashboardPage() {
 
       {/* ── Trivia Leaderboard ── */}
       <Card style={{ marginBottom: 24, boxShadow: '0 4px 6px rgba(0,0,0,0.1)', borderRadius: 12, overflow: 'hidden' }}>
-        <div className="card-head" style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', padding: '16px' }}>
+        <div className="card-head" style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', padding: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h2 className="card-title" style={{ color: 'white', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span style={{ fontSize: '1.4rem' }}>🏆</span> Top 5 Trivia Students
           </h2>
+          <button onClick={handleResetTrivia} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', padding: '6px 12px', borderRadius: 6, cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 }}>
+            Reset Leaderboard
+          </button>
         </div>
         {trivia.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '40px', color: 'var(--muted)', fontStyle: 'italic' }}>No trivia data available at the moment.</div>

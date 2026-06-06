@@ -105,6 +105,7 @@ export const adminApi = {
   updateIssue:        (data) => api.put('/admin/issues.php', data),
   getErrorLogs:       ()     => api.get('/admin/error_logs.php'),
   getTriviaLeaderboard: (limit = 5) => api.get('/ai/trivia_leaderboard.php', { params: { limit } }),
+  resetTriviaLeaderboard: () => api.post('/ai/trivia_reset.php'),
   sendMessage:        (data) => api.post('/admin/send_message.php', data),
   searchStudents:     (p)    => api.get('/admin/search_students.php', { params: p }),
 }
