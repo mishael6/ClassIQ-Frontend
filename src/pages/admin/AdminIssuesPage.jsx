@@ -100,7 +100,7 @@ export default function AdminIssuesPage() {
     <div className="animate-fade-up">
       <PageHeader
         title="Reported Issues"
-        subtitle="View and respond to issues from class representatives"
+        subtitle="View and respond to issues from class representatives & students"
         actions={
           <Button size="sm" variant="secondary" icon={<RefreshCw size={14}/>} onClick={load}>
             Refresh
@@ -143,10 +143,15 @@ export default function AdminIssuesPage() {
                   className={`issue-item ${selected?.id === issue.id ? 'issue-item-active' : ''} ${issue.unread_count > 0 ? 'issue-item-unread' : ''}`}
                   onClick={() => openIssue(issue)}
                 >
-                  <div className="issue-item-avatar">{initials(issue.classrep_name)}</div>
+                  <div className={`issue-item-avatar ${issue.user_type === 'student' ? 'issue-avatar-student' : ''}`}>{initials(issue.classrep_name)}</div>
                   <div className="issue-item-content">
                     <div className="issue-item-top">
-                      <span className="issue-item-name">{issue.classrep_name || 'Unknown'}</span>
+                      <span className="issue-item-name">
+                        {issue.classrep_name || 'Unknown'}
+                        <span className={`issue-type-tag ${issue.user_type === 'student' ? 'issue-type-student' : 'issue-type-classrep'}`}>
+                          {issue.user_type === 'student' ? '📱 Student' : '👤 Classrep'}
+                        </span>
+                      </span>
                       <span className="issue-item-time">{timeAgo(issue.created_at)}</span>
                     </div>
                     <p className="issue-item-subject">{issue.subject}</p>
@@ -216,9 +221,11 @@ export default function AdminIssuesPage() {
               {/* Messages */}
               <div className="chat-messages">
                 {/* Original issue message as first bubble */}
-                <div className="chat-bubble chat-bubble-classrep">
+                <div className={`chat-bubble ${selected.user_type === 'student' ? 'chat-bubble-student' : 'chat-bubble-classrep'}`}>
                   <div className="chat-bubble-meta">
-                    <span className="chat-bubble-sender">{selected.classrep_name}</span>
+                    <span className="chat-bubble-sender">
+                      {selected.user_type === 'student' ? '📱 ' : ''}{selected.classrep_name}
+                    </span>
                     <span className="chat-bubble-time">{timeAgo(selected.created_at)}</span>
                   </div>
                   <div className="chat-bubble-text">{selected.body || selected.message}</div>
@@ -231,14 +238,16 @@ export default function AdminIssuesPage() {
                 ) : (
                   thread.map((msg, i) => {
                     const isAdmin = msg.sender_role === 'admin'
+                    const isStudent = msg.sender_role === 'student'
+                    const senderLabel = isAdmin ? '🛡️ Admin' : isStudent ? '📱 ' + (selected.classrep_name || 'Student') : selected.classrep_name
                     return (
                       <div
                         key={i}
-                        className={`chat-bubble ${isAdmin ? 'chat-bubble-admin' : 'chat-bubble-classrep'}`}
+                        className={`chat-bubble ${isAdmin ? 'chat-bubble-admin' : isStudent ? 'chat-bubble-student' : 'chat-bubble-classrep'}`}
                       >
                         <div className="chat-bubble-meta">
                           <span className="chat-bubble-sender">
-                            {isAdmin ? '🛡️ Admin' : selected.classrep_name}
+                            {senderLabel}
                           </span>
                           <span className="chat-bubble-time">{timeAgo(msg.created_at)}</span>
                         </div>

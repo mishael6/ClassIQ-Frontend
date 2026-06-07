@@ -319,6 +319,40 @@
 .chat-reply-input:focus { outline: none; border-color: var(--blue); background: var(--surface); }
 .chat-reply-input:disabled { opacity: 0.5; cursor: not-allowed; }
 
+/* ── User type tags ── */
+.issue-type-tag {
+  display: inline-block;
+  font-size: 0.6rem;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 4px;
+  margin-left: 6px;
+  vertical-align: middle;
+  letter-spacing: 0.02em;
+}
+.issue-type-classrep {
+  background: #3b82f615;
+  color: #3b82f6;
+}
+.issue-type-student {
+  background: #8b5cf615;
+  color: #8b5cf6;
+}
+.issue-avatar-student {
+  background: linear-gradient(135deg, #8b5cf6, #a78bfa) !important;
+}
+
+/* ── Student chat bubble ── */
+.chat-bubble-student {
+  align-self: flex-start;
+}
+.chat-bubble-student .chat-bubble-text {
+  background: linear-gradient(135deg, #8b5cf610, #a78bfa10);
+  border: 1px solid #8b5cf630;
+  color: var(--txt);
+  border-radius: 4px 12px 12px 12px;
+}
+
 /* ── Responsive ── */
 @media (max-width: 768px) {
   .issues-layout {
