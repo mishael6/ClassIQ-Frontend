@@ -63,10 +63,25 @@ export default function AdminDashboardPage() {
     }
   }
 
+  const handleSendBulkSms = () => {
+    const msg = prompt('Enter message to send to all students:');
+    if (msg) {
+        adminApi.sendBulkSms(msg)
+            .then(r => alert(r.data.message))
+            .catch(() => alert('Failed to send bulk SMS.'));
+    }
+  }
+
   return (
     <div className="animate-fade-up">
       <PageHeader title="Admin Dashboard" subtitle="System-wide overview of ClassIQ" />
       {error && <Alert variant="error">{error}</Alert>}
+
+      <div style={{ marginBottom: 20 }}>
+        <button onClick={handleSendBulkSms} style={{ background: 'var(--blue)', color: 'white', border: 'none', padding: '10px 20px', borderRadius: 8, cursor: 'pointer', fontWeight: 600 }}>
+            📢 Send Bulk SMS to All Students
+        </button>
+      </div>
 
       {/* ── Trivia Leaderboard ── */}
       <Card style={{ marginBottom: 24, boxShadow: '0 4px 6px rgba(0,0,0,0.1)', borderRadius: 12, overflow: 'hidden' }}>
