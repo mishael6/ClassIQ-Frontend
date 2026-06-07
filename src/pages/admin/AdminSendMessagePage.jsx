@@ -10,49 +10,70 @@ import './adminmessage.css'
 const PER_PAGE = 15
 
 export default function AdminSendMessagePage() {
-  const [tab, setTab] = useState('compose') // 'compose' | 'history'
+  const [tab,      setTab]      = useState('compose')
+  const [form,     setForm]     = useState({ recipient_type: 'classrep', recipient_id: '', message: '' })
+  const [classreps,setClassreps]= useState([])
+  const [students, setStudents] = useState([])
+  const [search,   setSearch]   = useState('')
+  const [success,  setSuccess]  = useState('')
+  const [error,    setError]    = useState('')
+  const [loading,  setLoading]  = useState(false)
+  const [result,   setResult]   = useState(null)
 
-  // Compose state
-  const [form, setForm] = useState({ recipient_type: 'classrep', recipient_id: '', message: '' })
-  const [classreps, setClassreps] = useState([])
-  const [students,  setStudents]  = useState([])
-  const [search,    setSearch]    = useState('')
-  const [success,   setSuccess]   = useState('')
-  const [error,     setError]     = useState('')
-  const [loading,   setLoading]   = useState(false)
-  const [result,    setResult]    = useState(null)
+  // History
+  const [logs,        setLogs]        = useState([])
+  const [logsTotal,   setLogsTotal]   = useState(0)
+  const [logsPage,    setLogsPage]    = useState(1)
+  const [logsLoading, setLogsLoading] = useState(false)
 
-  // History state
-  const [logs,       setLogs]       = useState([])
-  const [logsTotal,  setLogsTotal]  = useState(0)
-  const [logsPage,   setLogsPage]   = useState(1)
-  const [logsLoading,setLogsLoading]= useState(false)
-  const logsTotalPages = Math.ceil(logsTotal / PER_PAGE)
+  // Derived — declared early so useEffects can use them
+  const isClassrep    = form.recipient_type === 'classrep'
+  const isStudent     = form.recipient_type === 'student'
+  const isAllClassreps= form.recipient_type === 'all'
+  const isAllStudents = form.recipient_type === 'all_students'
+  const charCount     = form.message.length
+  const overLimit     = charCount > 155
+  const logsTotalPages= Math.ceil(logsTotal / PER_PAGE)
 
+  // Load classreps once
   useEffect(() => {
     adminApi.getClassreps({ status: 'approved' })
       .then(r => setClassreps(r.data.classreps || []))
       .catch(() => {})
-    adminApi.getStudents({ limit: 10000 })
-      .then(r => setStudents(r.data.students || []))
-      .catch(() => {})
   }, [])
 
-  const loadLogs = useCallback((p = logsPage) => {
+  // Load initial students when switching to student mode
+  useEffect(() => {
+    if (isStudent) {
+      adminApi.getStudents({ limit: 50 })
+        .then(r => setStudents(r.data.students || []))
+        .catch(() => {})
+    }
+  }, [form.recipient_type])
+
+  // Live search students as user types — debounced
+  useEffect(() => {
+    if (!isStudent) return
+    const timer = setTimeout(() => {
+      adminApi.getStudents({ search, limit: 50 })
+        .then(r => setStudents(r.data.students || []))
+        .catch(() => {})
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [search])
+
+  // Load history
+  const loadLogs = useCallback((p) => {
     setLogsLoading(true)
     api.get('/admin/send_message.php', { params: { limit: PER_PAGE, offset: (p - 1) * PER_PAGE } })
       .then(r => { setLogs(r.data.logs || []); setLogsTotal(r.data.total || 0) })
       .catch(() => {})
       .finally(() => setLogsLoading(false))
-  }, [logsPage])
+  }, [])
 
-  useEffect(() => { if (tab === 'history') loadLogs(logsPage) }, [tab, logsPage])
-
-  const filteredStudents = students.filter(s =>
-    !search ||
-    s.name?.toLowerCase().includes(search.toLowerCase()) ||
-    s.index_number?.toLowerCase().includes(search.toLowerCase())
-  )
+  useEffect(() => {
+    if (tab === 'history') loadLogs(logsPage)
+  }, [tab, logsPage])
 
   const handle = e => setForm(f => ({ ...f, [e.target.name]: e.target.value }))
 
@@ -67,15 +88,6 @@ export default function AdminSendMessagePage() {
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to send SMS.')
     } finally { setLoading(false) }
-  }
-
-
-
-  const recipientLabel = {
-    classrep: 'Specific Class Rep',
-    all: 'All Class Reps',
-    student: 'Specific Student',
-    all_students: 'All Students',
   }
 
   return (
@@ -98,7 +110,6 @@ export default function AdminSendMessagePage() {
 
       {tab === 'compose' ? (
         <div className="msg-layout">
-          {/* ── Compose ── */}
           <Card className="msg-compose-card">
             <div className="msg-sms-header">
               <div className="msg-sms-icon"><MessageSquare size={20}/></div>
@@ -112,7 +123,6 @@ export default function AdminSendMessagePage() {
             {success && <Alert variant="success" onClose={() => setSuccess('')} style={{ marginBottom: 16 }}>{success}</Alert>}
 
             <form onSubmit={submit} className="msg-form">
-
               {/* Recipient toggle */}
               <div>
                 <label className="field-label" style={{ marginBottom: 8, display: 'block' }}>Send To</label>
@@ -126,7 +136,7 @@ export default function AdminSendMessagePage() {
                     <button
                       key={type} type="button"
                       className={`msg-toggle-btn ${form.recipient_type === type ? 'active' : ''}`}
-                      onClick={() => setForm(f => ({ ...f, recipient_type: type, recipient_id: '' }))}
+                      onClick={() => { setForm(f => ({ ...f, recipient_type: type, recipient_id: '' })); setSearch('') }}
                     >
                       {icon} {label}
                     </button>
@@ -134,12 +144,13 @@ export default function AdminSendMessagePage() {
                 </div>
               </div>
 
-              {/* Recipient selector */}
+              {/* Specific recipient selector */}
               {(isClassrep || isStudent) && (
                 <div className="field">
                   <label className="field-label">
                     Select {isClassrep ? 'Class Rep' : 'Student'}
                   </label>
+
                   {isStudent && (
                     <div className="msg-search-wrap" style={{ marginBottom: 8 }}>
                       <input
@@ -147,7 +158,7 @@ export default function AdminSendMessagePage() {
                         placeholder="Search by name or index number…"
                         className="field-input"
                         value={search}
-                        onChange={e => setSearch(e.target.value)}
+                        onChange={e => { setSearch(e.target.value); setForm(f => ({...f, recipient_id: ''})) }}
                       />
                       {search && (
                         <button type="button" className="msg-search-clear" onClick={() => setSearch('')}>
@@ -156,25 +167,27 @@ export default function AdminSendMessagePage() {
                       )}
                     </div>
                   )}
+
                   <select
                     name="recipient_id"
                     className="field-select"
                     value={form.recipient_id}
                     onChange={handle}
                     required
-                    size={isStudent ? 5 : 1}
+                    size={isStudent ? 6 : 1}
                     style={isStudent ? { height: 'auto' } : {}}
                   >
                     <option value="">— Choose a {isClassrep ? 'class rep' : 'student'} —</option>
-                    {(isClassrep ? classreps : filteredStudents).map(c => (
+                    {(isClassrep ? classreps : students).map(c => (
                       <option key={c.id} value={c.id}>
-                        {c.name}{c.index_number ? ` (${c.index_number})` : ''} {c.phone ? `· ${c.phone}` : '· no phone'}
+                        {c.name}{c.index_number ? ` (${c.index_number})` : ''} · {c.phone || 'no phone'}
                       </option>
                     ))}
                   </select>
+
                   {isStudent && (
                     <p style={{ fontSize: '0.72rem', color: 'var(--muted)', marginTop: 4 }}>
-                      {students.length} student{students.length !== 1 ? 's' : ''} shown · type to search more
+                      {students.length} result{students.length !== 1 ? 's' : ''} · type to search all students
                     </p>
                   )}
                 </div>
@@ -188,16 +201,8 @@ export default function AdminSendMessagePage() {
                     Sending to <strong>
                       {isAllClassreps
                         ? classreps.filter(c => c.phone).length
-                        : students.filter(s => s.phone).length}
+                        : 'all'}
                     </strong> {isAllClassreps ? 'class reps' : 'students'} with phone numbers
-                    {(() => {
-                      const skipped = isAllClassreps
-                        ? classreps.filter(c => !c.phone).length
-                        : students.filter(s => !s.phone).length
-                      return skipped > 0
-                        ? <span className="msg-all-warn"> · {skipped} skipped (no phone)</span>
-                        : null
-                    })()}
                   </span>
                 </div>
               )}
@@ -237,16 +242,12 @@ export default function AdminSendMessagePage() {
                 icon={<Send size={16}/>}
                 disabled={!form.message.trim() || ((isClassrep || isStudent) && !form.recipient_id)}
               >
-                Send SMS {(isAllClassreps || isAllStudents) ? `to ${
-                  isAllClassreps
-                    ? classreps.filter(c => c.phone).length
-                    : students.filter(s => s.phone).length
-                } recipients` : ''}
+                Send SMS
               </Button>
             </form>
           </Card>
 
-          {/* ── Right panel ── */}
+          {/* Right panel */}
           <div className="msg-result-panel">
             {result && (
               <Card style={{ marginBottom: 16 }}>
@@ -272,9 +273,9 @@ export default function AdminSendMessagePage() {
                 <div className="msg-setup-icon sms-icon"><MessageSquare size={16}/></div>
                 <div style={{ flex: 1 }}>
                   <p className="msg-setup-title">Payloqa SMS</p>
-                  <p className="msg-setup-desc">Add to Render environment variables:</p>
+                  <p className="msg-setup-desc">Render environment variables:</p>
                   <div className="msg-env-list">
-                    <code>PAYLOQA_API_KEY=your-api-key</code>
+                    <code>PAYLOQA_API_KEY=your-key</code>
                     <code>PAYLOQA_SENDER=ClassIQ</code>
                   </div>
                 </div>
@@ -285,8 +286,7 @@ export default function AdminSendMessagePage() {
                 <div style={{ flex: 1 }}>
                   <p className="msg-setup-title">Phone Numbers</p>
                   <p className="msg-setup-desc">
-                    Ghana numbers are automatically converted to international format (233XXXXXXXXX).
-                    Recipients must have a phone number in their profile.
+                    Ghana numbers auto-converted to international format (233XXXXXXXXX).
                   </p>
                 </div>
               </div>
@@ -294,7 +294,7 @@ export default function AdminSendMessagePage() {
           </div>
         </div>
       ) : (
-        /* ── History Tab ── */
+        /* History Tab */
         <Card>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
             <h2 className="msg-card-title" style={{ margin: 0 }}>SMS History</h2>
