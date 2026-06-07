@@ -139,7 +139,6 @@ export default function AdminSendMessagePage() {
               </div>
             )}
 
-
             {(isAllClassreps || isAllStudents) && (
               <div className="msg-all-banner">
                 <Users size={16}/>
@@ -194,11 +193,9 @@ export default function AdminSendMessagePage() {
               loading={loading}
               size="lg"
               icon={<Send size={16}/>}
-              disabled={!form.message.trim() || (!isAll && !form.recipient_id)}
+              disabled={!form.message.trim() || ((isClassrep || isStudent) && !form.recipient_id)}
             >
-              {isAll
-                ? `Send SMS to All (${classreps.filter(c => c.phone).length})`
-                : 'Send SMS'}
+              Send SMS
             </Button>
           </form>
         </Card>
@@ -252,7 +249,7 @@ export default function AdminSendMessagePage() {
               <div style={{ flex: 1 }}>
                 <p className="msg-setup-title">Phone Numbers</p>
                 <p className="msg-setup-desc">
-                  Classreps must have a phone number in their profile.<br/>
+                  Classreps/Students must have a phone number in their profile.<br/>
                   Ghana numbers are automatically converted to international format (233XXXXXXXXX).
                 </p>
               </div>
