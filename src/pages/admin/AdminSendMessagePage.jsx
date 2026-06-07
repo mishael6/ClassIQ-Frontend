@@ -25,7 +25,7 @@ export default function AdminSendMessagePage() {
       .then(r => setClassreps(r.data.classreps || []))
       .catch(() => {})
     
-    adminApi.getStudents({ limit: 50000 })
+    adminApi.getStudents({ limit: 100000 })
       .then(r => setStudents(r.data.students || []))
       .catch(() => {})
   }, [])
