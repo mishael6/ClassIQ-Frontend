@@ -18,15 +18,22 @@ export default function AdminSendMessagePage() {
   const [loading,   setLoading]   = useState(false)
   const [result,    setResult]    = useState(null)
 
+  const [search, setSearch] = useState('')
+
   useEffect(() => {
     adminApi.getClassreps({ status: 'approved' })
       .then(r => setClassreps(r.data.classreps || []))
       .catch(() => {})
     
-    adminApi.getStudents({ limit: 10000 })
+    adminApi.getStudents({ limit: 50000 })
       .then(r => setStudents(r.data.students || []))
       .catch(() => {})
   }, [])
+
+  const filteredStudents = students.filter(s => 
+      s.name.toLowerCase().includes(search.toLowerCase()) || 
+      s.index_number.toLowerCase().includes(search.toLowerCase())
+  )
 
   const handle = e => setForm(f => ({ ...f, [e.target.name]: e.target.value }))
 
@@ -41,7 +48,7 @@ export default function AdminSendMessagePage() {
       } else {
         const payload = {
           ...form,
-          recipient_id: form.recipient_type === 'classrep' ? parseInt(form.recipient_id) : 0,
+          recipient_id: form.recipient_type === 'classrep' ? parseInt(form.recipient_id) : parseInt(form.recipient_id),
         }
         const { data } = await adminApi.sendMessage(payload)
         setResult(data)
@@ -122,6 +129,16 @@ export default function AdminSendMessagePage() {
             {(isClassrep || isStudent) && (
               <div className="field">
                 <label className="field-label">Select Recipient</label>
+                {isStudent && (
+                    <input 
+                        type="text" 
+                        placeholder="Search student by name or index..."
+                        className="field-input"
+                        value={search}
+                        onChange={e => setSearch(e.target.value)}
+                        style={{ marginBottom: 8 }}
+                    />
+                )}
                 <select
                   name="recipient_id"
                   className="field-select"
@@ -130,9 +147,9 @@ export default function AdminSendMessagePage() {
                   required
                 >
                   <option value="">— Choose a {isClassrep ? 'class rep' : 'student'} —</option>
-                  {(isClassrep ? classreps : students).map(c => (
+                  {(isClassrep ? classreps : filteredStudents).map(c => (
                     <option key={c.id} value={c.id}>
-                      {c.name} {c.phone ? `(${c.phone})` : '(no phone)'}
+                      {c.name} {c.index_number ? `(${c.index_number})` : ''} {c.phone ? `(${c.phone})` : '(no phone)'}
                     </option>
                   ))}
                 </select>
