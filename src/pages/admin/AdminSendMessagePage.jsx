@@ -69,12 +69,7 @@ export default function AdminSendMessagePage() {
     } finally { setLoading(false) }
   }
 
-  const isAllClassreps = form.recipient_type === 'all'
-  const isAllStudents  = form.recipient_type === 'all_students'
-  const isClassrep     = form.recipient_type === 'classrep'
-  const isStudent      = form.recipient_type === 'student'
-  const charCount      = form.message.length
-  const overLimit      = charCount > 155
+
 
   const recipientLabel = {
     classrep: 'Specific Class Rep',
@@ -179,7 +174,7 @@ export default function AdminSendMessagePage() {
                   </select>
                   {isStudent && (
                     <p style={{ fontSize: '0.72rem', color: 'var(--muted)', marginTop: 4 }}>
-                      {filteredStudents.length} student{filteredStudents.length !== 1 ? 's' : ''} shown
+                      {students.length} student{students.length !== 1 ? 's' : ''} shown · type to search more
                     </p>
                   )}
                 </div>
