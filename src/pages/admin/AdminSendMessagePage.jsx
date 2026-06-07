@@ -12,6 +12,7 @@ export default function AdminSendMessagePage() {
     message:        '',
   })
   const [classreps, setClassreps] = useState([])
+  const [students, setStudents]   = useState([])
   const [success,   setSuccess]   = useState('')
   const [error,     setError]     = useState('')
   const [loading,   setLoading]   = useState(false)
@@ -20,6 +21,10 @@ export default function AdminSendMessagePage() {
   useEffect(() => {
     adminApi.getClassreps({ status: 'approved' })
       .then(r => setClassreps(r.data.classreps || []))
+      .catch(() => {})
+    
+    adminApi.getStudents({ limit: 10000 })
+      .then(r => setStudents(r.data.students || []))
       .catch(() => {})
   }, [])
 
@@ -30,13 +35,18 @@ export default function AdminSendMessagePage() {
     setError(''); setSuccess(''); setResult(null)
     setLoading(true)
     try {
-      const payload = {
-        ...form,
-        recipient_id: form.recipient_type === 'classrep' ? parseInt(form.recipient_id) : 0,
+      if (form.recipient_type === 'all_students') {
+        const { data } = await adminApi.sendBulkSms(form.message)
+        setSuccess(data.message)
+      } else {
+        const payload = {
+          ...form,
+          recipient_id: form.recipient_type === 'classrep' ? parseInt(form.recipient_id) : 0,
+        }
+        const { data } = await adminApi.sendMessage(payload)
+        setResult(data)
+        setSuccess(data.message)
       }
-      const { data } = await adminApi.sendMessage(payload)
-      setResult(data)
-      setSuccess(data.message)
       setForm(f => ({ ...f, message: '' }))
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to send SMS.')
@@ -45,7 +55,11 @@ export default function AdminSendMessagePage() {
     }
   }
 
-  const isAll      = form.recipient_type === 'all'
+  const isAllClassreps = form.recipient_type === 'all'
+  const isAllStudents  = form.recipient_type === 'all_students'
+  const isClassrep     = form.recipient_type === 'classrep'
+  const isStudent      = form.recipient_type === 'student'
+  
   const charCount  = form.message.length
   const overLimit  = charCount > 155
 
@@ -53,7 +67,7 @@ export default function AdminSendMessagePage() {
     <div className="animate-fade-up">
       <PageHeader
         title="Send SMS"
-        subtitle="Send SMS messages to class representatives via Payloqa"
+        subtitle="Send SMS messages to class representatives or students via Payloqa"
       />
 
       <div className="msg-layout">
@@ -63,7 +77,7 @@ export default function AdminSendMessagePage() {
             <div className="msg-sms-icon"><MessageSquare size={20}/></div>
             <div>
               <p className="msg-card-title">Compose SMS</p>
-              <p className="msg-card-sub">Messages sent via Payloqa to classrep phone numbers</p>
+              <p className="msg-card-sub">Messages sent via Payloqa</p>
             </div>
           </div>
 
@@ -73,27 +87,41 @@ export default function AdminSendMessagePage() {
           <form onSubmit={submit} className="msg-form">
 
             {/* Recipient toggle */}
-            <div className="msg-recipient-toggle">
+            <div className="msg-recipient-toggle" style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
               <button
                 type="button"
-                className={`msg-toggle-btn ${!isAll ? 'active' : ''}`}
+                className={`msg-toggle-btn ${isClassrep ? 'active' : ''}`}
                 onClick={() => setForm(f => ({ ...f, recipient_type: 'classrep', recipient_id: '' }))}
               >
                 <User size={15}/> Specific Classrep
               </button>
               <button
                 type="button"
-                className={`msg-toggle-btn ${isAll ? 'active' : ''}`}
+                className={`msg-toggle-btn ${isAllClassreps ? 'active' : ''}`}
                 onClick={() => setForm(f => ({ ...f, recipient_type: 'all', recipient_id: '' }))}
               >
                 <Users size={15}/> All Classreps
               </button>
+              <button
+                type="button"
+                className={`msg-toggle-btn ${isStudent ? 'active' : ''}`}
+                onClick={() => setForm(f => ({ ...f, recipient_type: 'student', recipient_id: '' }))}
+              >
+                <User size={15}/> Specific Student
+              </button>
+              <button
+                type="button"
+                className={`msg-toggle-btn ${isAllStudents ? 'active' : ''}`}
+                onClick={() => setForm(f => ({ ...f, recipient_type: 'all_students', recipient_id: '' }))}
+              >
+                <Users size={15}/> All Students
+              </button>
             </div>
 
             {/* Recipient selector */}
-            {!isAll && (
+            {(isClassrep || isStudent) && (
               <div className="field">
-                <label className="field-label">Select Class Rep</label>
+                <label className="field-label">Select Recipient</label>
                 <select
                   name="recipient_id"
                   className="field-select"
@@ -101,8 +129,8 @@ export default function AdminSendMessagePage() {
                   onChange={handle}
                   required
                 >
-                  <option value="">— Choose a class rep —</option>
-                  {classreps.map(c => (
+                  <option value="">— Choose a {isClassrep ? 'class rep' : 'student'} —</option>
+                  {(isClassrep ? classreps : students).map(c => (
                     <option key={c.id} value={c.id}>
                       {c.name} {c.phone ? `(${c.phone})` : '(no phone)'}
                     </option>
@@ -111,13 +139,14 @@ export default function AdminSendMessagePage() {
               </div>
             )}
 
-            {isAll && (
+
+            {(isAllClassreps || isAllStudents) && (
               <div className="msg-all-banner">
                 <Users size={16}/>
-                Sending to <strong>{classreps.filter(c => c.phone).length}</strong> classreps with phone numbers
-                {classreps.filter(c => !c.phone).length > 0 && (
+                Sending to <strong>{isAllClassreps ? classreps.filter(c => c.phone).length : students.filter(s => s.phone).length}</strong> {isAllClassreps ? 'classreps' : 'students'} with phone numbers
+                {(isAllClassreps ? classreps.filter(c => !c.phone).length : students.filter(s => !s.phone).length) > 0 && (
                   <span className="msg-all-warn">
-                    ({classreps.filter(c => !c.phone).length} skipped — no phone)
+                    ({(isAllClassreps ? classreps.filter(c => !c.phone).length : students.filter(s => !s.phone).length)} skipped — no phone)
                   </span>
                 )}
               </div>
