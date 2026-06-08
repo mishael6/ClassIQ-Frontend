@@ -103,20 +103,32 @@ export default function MarkAttendancePage() {
           <p className="close-hint">Download the mobile app to avoid GPS headaches.</p>
           <br></br>
           <div className="download-section">
-            <h3 className="download-title">ClassIQ App Now Available For iOS and Android</h3>
+  <h3 className="download-title">ClassIQ App Now Available</h3>
 
-            <a href="https://mobile-classiq.netlify.app" target="_blank" rel="noopener noreferrer">
-              <button className="download-btn">
-                ⬇ Download 
-              </button>
-            </a>
+  <a href="https://mobile-classiq.netlify.app" target="_blank" rel="noopener noreferrer">
+    <button className="download-btn">
+      ⬇ Install Web App / Download APK
+    </button>
+  </a>
 
-            <p className="close-hint">
-              After downloading, open the file and allow
-              <span> “Install from unknown sources” </span>
-                if prompted.
-            </p>
-          </div>
+  <div className="social-links" style={{ marginTop: '20px' }}>
+    <p className="close-hint" style={{ marginBottom: '8px' }}>Stay updated on new features:</p>
+    <a 
+      href="https://whatsapp.com/channel/0029VbCX86d7j6g2szbCas0P" 
+      target="_blank" 
+      rel="noopener noreferrer"
+      className="whatsapp-link"
+      style={{ color: '#25D366', fontWeight: 'bold', textDecoration: 'none' }}
+    >
+      Join our WhatsApp Channel
+    </a>
+  </div>
+
+  <p className="close-hint" style={{ marginTop: '20px', fontSize: '0.85em' }}>
+    <strong>Pro-tip:</strong> On iOS, tap the <strong>Share</strong> button and select 
+    <strong> "Add to Home Screen"</strong> for a native experience.
+  </p>
+</div>
         </div>
       </div>
     </div>
