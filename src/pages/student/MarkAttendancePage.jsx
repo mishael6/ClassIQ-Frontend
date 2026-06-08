@@ -84,6 +84,7 @@ export default function MarkAttendancePage() {
           <div className="error-icon">⛔</div>
           <h2>Session Closed</h2>
           <p>This attendance session is no longer active or the link is invalid.</p>
+          <p>Download the mobile app to track your attendance seamlessly.</p>
         </div>
       </div>
     </div>
