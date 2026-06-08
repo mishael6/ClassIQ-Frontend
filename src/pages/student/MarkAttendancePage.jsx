@@ -99,6 +99,7 @@ export default function MarkAttendancePage() {
           <h2>Attendance Marked!</h2>
           <p>{result.message}</p>
           <p className="close-hint">You can close this tab now.</p>
+          <p className="close-hint">Download the mobile app to avoid GPS headaches.</p>
           <br></br>
           <div className="download-section">
             <h3 className="download-title">ClassIQ App Now Available For iOS and Android</h3>
