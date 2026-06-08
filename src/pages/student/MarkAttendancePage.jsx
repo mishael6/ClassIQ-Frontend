@@ -101,11 +101,11 @@ export default function MarkAttendancePage() {
           <p className="close-hint">You can close this tab now.</p>
           <br></br>
           <div className="download-section">
-            <h3 className="download-title">Download ClassIQ App</h3>
+            <h3 className="download-title">ClassIQ App Now Available For iOS and Android</h3>
 
-            <a href="/app/ClassIQ.apk" download>
+            <a href="https://mobile-classiq.netlify.app" target="_blank" rel="noopener noreferrer">
               <button className="download-btn">
-                ⬇ Download APK
+                ⬇ Download 
               </button>
             </a>
 
@@ -207,8 +207,8 @@ export default function MarkAttendancePage() {
         </div>
 
         <div style={{ textAlign: 'center', marginTop: 16 }}>
-          <a href="https://luckytriplegame.com">
-            <Button variant="secondary" size="sm">🎮 Play Lucky Triple</Button>
+          <a href="https://mobile-classiq.netlify.app">
+            <Button variant="secondary" size="sm">Download the Mobile App for free</Button>
           </a>
         </div>
       </div>
