@@ -28,6 +28,8 @@ export default function AdminPushPage() {
   const [vapidKeys, setVapidKeys] = useState(null)
   const [vapidLoading, setVapidLoading] = useState(false)
   const [vapidError, setVapidError] = useState('')
+  const [vapidStatus, setVapidStatus] = useState(null)
+  const [vapidStatusLoading, setVapidStatusLoading] = useState(false)
 
   const logsTotalPages = Math.ceil(logsTotal / PER_PAGE)
 
@@ -35,7 +37,16 @@ export default function AdminPushPage() {
     adminApi.getPushHistory({ limit: 1 })
       .then(r => setSubs(r.data.active_subscriptions || 0))
       .catch(() => {})
+    checkVapidStatus()
   }, [])
+
+  const checkVapidStatus = () => {
+    setVapidStatusLoading(true)
+    adminApi.getVapidStatus()
+      .then(r => setVapidStatus(r.data))
+      .catch(() => setVapidStatus(null))
+      .finally(() => setVapidStatusLoading(false))
+  }
 
   const loadLogs = useCallback((p) => {
     setLogsLoading(true)
@@ -73,6 +84,9 @@ export default function AdminPushPage() {
     try {
       const { data } = await adminApi.generateVapidKeys()
       setVapidKeys(data)
+      if (data.sign_test !== 'ok') {
+        setVapidError('Keys generated but signing test failed on server.')
+      }
     } catch (err) {
       setVapidError(err.response?.data?.message || 'Failed to generate keys.')
     } finally { setVapidLoading(false) }
@@ -174,13 +188,36 @@ export default function AdminPushPage() {
 
             <Card>
               <h2 className="msg-card-title">VAPID Setup</h2>
-              <p className="msg-setup-desc">Required for push to work. Generate keys, paste into Render env vars.</p>
-              <Button size="sm" variant="secondary" loading={vapidLoading} onClick={generateVapidKeys} style={{ marginTop: 8 }}>
-                Generate VAPID Keys
-              </Button>
+              <p className="msg-setup-desc">
+                Required for push to work. Generate keys, paste <strong>values only</strong> into Render (no quotes, no spaces).
+              </p>
+              {vapidStatus && (
+                <div style={{ marginTop: 10, marginBottom: 8 }}>
+                  {vapidStatus.can_sign ? (
+                    <p className="msg-setup-desc" style={{ color: 'var(--green)' }}>
+                      ✓ Server can sign VAPID tokens
+                      {vapidStatus.using_defaults ? ' (using default keys — set Render env vars!)' : ''}
+                      {!vapidStatus.env_pair_valid && vapidStatus.env_keys_set ? ' — but your Render keys do NOT match each other!' : ''}
+                    </p>
+                  ) : (
+                    <p className="msg-over-warn">{vapidStatus.message || 'VAPID signing failed on server.'}</p>
+                  )}
+                </div>
+              )}
+              <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
+                <Button size="sm" variant="secondary" loading={vapidLoading} onClick={generateVapidKeys}>
+                  Generate VAPID Keys
+                </Button>
+                <Button size="sm" variant="secondary" loading={vapidStatusLoading} onClick={checkVapidStatus}>
+                  Test Render Keys
+                </Button>
+              </div>
               {vapidError && <p className="msg-over-warn" style={{ marginTop: 8 }}>{vapidError}</p>}
               {vapidKeys && (
                 <div className="msg-env-list" style={{ marginTop: 10 }}>
+                  {vapidKeys.sign_test === 'ok' && (
+                    <p className="msg-setup-desc" style={{ color: 'var(--green)', marginBottom: 8 }}>✓ Signing test passed — safe to paste into Render</p>
+                  )}
                   {[
                     ['VAPID_PUBLIC_KEY', vapidKeys.VAPID_PUBLIC_KEY],
                     ['VAPID_PRIVATE_KEY', vapidKeys.VAPID_PRIVATE_KEY],
@@ -188,7 +225,7 @@ export default function AdminPushPage() {
                   ].map(([label, val]) => (
                     <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
                       <code style={{ flex: 1, wordBreak: 'break-all' }}>{label}={val}</code>
-                      <button type="button" className="msg-search-clear" onClick={() => copyText(val)}><Copy size={13}/></button>
+                      <button type="button" className="msg-search-clear" onClick={() => copyText(val)} title="Copy value only"><Copy size={13}/></button>
                     </div>
                   ))}
                 </div>

@@ -111,5 +111,6 @@ export const adminApi = {
   sendPush:           (data)    => api.post('/push/send.php', data),
   getPushHistory:     (p)       => api.get('/push/history.php', { params: p }),
   generateVapidKeys:  ()        => api.get('/push/generate_vapid_keys.php'),
+  getVapidStatus:     ()        => api.get('/push/vapid_status.php'),
   searchStudents:     (p)    => api.get('/admin/search_students.php', { params: p }),
 }
