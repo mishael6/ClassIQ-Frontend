@@ -109,6 +109,7 @@ export const adminApi = {
   sendMessage:        (data) => api.post('/admin/send_message.php', data),
   sendBulkSms:        (message) => api.post('/admin/send_bulk_sms.php', { message }),
   sendPush:           (data)    => api.post('/push/send.php', data),
+  getPushHistory:     (p)       => api.get('/push/history.php', { params: p }),
   generateVapidKeys:  ()        => api.get('/push/generate_vapid_keys.php'),
   searchStudents:     (p)    => api.get('/admin/search_students.php', { params: p }),
 }

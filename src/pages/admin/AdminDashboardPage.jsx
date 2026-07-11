@@ -2,10 +2,11 @@ import { useState, useEffect } from 'react'
 import { adminApi } from '../../lib/api'
 import { StatCard, Card, PageHeader, Alert, Button } from '../../components/ui'
 import { SmsBatchBadges } from '../../components/admin/SmsBatchBadges'
+import { useNavigate } from 'react-router-dom'
 import {
   Users, GraduationCap, QrCode, ClipboardList,
   AlertCircle, TrendingUp, Download, Smartphone,
-  CreditCard, UserPlus, Send, X,
+  CreditCard, UserPlus, Send, X, MessageSquare, Bell,
 } from 'lucide-react'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid,
@@ -29,6 +30,7 @@ function DaysRemainingBadge({ days }) {
 }
 
 export default function AdminDashboardPage() {
+  const navigate = useNavigate()
   const [data,    setData]    = useState(null)
   const [trivia,  setTrivia]  = useState([])
   const [loading, setLoading] = useState(true)
@@ -96,9 +98,12 @@ export default function AdminDashboardPage() {
       <PageHeader title="Admin Dashboard" subtitle="System-wide overview of ClassIQ" />
       {error && <Alert variant="error">{error}</Alert>}
 
-      <div style={{ marginBottom: 20 }}>
-        <Button onClick={() => setBulkOpen(true)} icon={<Send size={16}/>}>
-          Send Bulk SMS + Push to All Students
+      <div style={{ marginBottom: 20, display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+        <Button onClick={() => setBulkOpen(true)} icon={<MessageSquare size={16}/>} variant="secondary">
+          Bulk SMS to Students
+        </Button>
+        <Button onClick={() => navigate('/admin/push')} icon={<Bell size={16}/>}>
+          Push Notifications
         </Button>
       </div>
 
@@ -106,16 +111,13 @@ export default function AdminDashboardPage() {
         <div className="bulk-modal-overlay" onClick={closeBulkModal}>
           <div className="bulk-modal" onClick={e => e.stopPropagation()}>
             <div className="bulk-modal-head">
-              <h3>Bulk SMS & Push Notification</h3>
+              <h3>Bulk SMS to All Students</h3>
               <button className="bulk-modal-close" onClick={closeBulkModal}><X size={18}/></button>
             </div>
 
             {bulkError && <Alert variant="error" onClose={() => setBulkError('')}>{bulkError}</Alert>}
             {bulkResult && (
-              <Alert variant="success">
-                {bulkResult.message}
-                {bulkResult.push_sent > 0 && ` · Push: ${bulkResult.push_sent} devices`}
-              </Alert>
+              <Alert variant="success">{bulkResult.message}</Alert>
             )}
 
             <textarea

@@ -211,4 +211,18 @@
 .bulk-modal-head { display: flex; justify-content: space-between; align-items: center; }
 .bulk-modal-head h3 { margin: 0; font-size: 1.1rem; font-weight: 700; }
 .bulk-modal-close { background: none; border: none; cursor: pointer; color: var(--muted); display: flex; }
+.push-icon { background: #ede9fe; color: #7c3aed; }
+.auto-push-list { display: flex; flex-direction: column; gap: 16px; }
+.auto-push-item {
+  display: flex; gap: 14px; padding: 16px;
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.auto-push-icon {
+  width: 40px; height: 40px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.auto-push-icon.present { background: var(--green-lt); color: var(--green); }
+.auto-push-icon.morning { background: #fef3c7; color: #d97706; }
+.auto-push-icon.feature { background: #ede9fe; color: #7c3aed; }
 .bulk-modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 4px; }

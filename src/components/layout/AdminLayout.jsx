@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext'
 import {
   LayoutDashboard, Users, GraduationCap, QrCode,
   ClipboardList, FileText, AlertCircle, Bug,
-  Mail, LogOut, Menu, Shield
+  LogOut, Menu, Shield, Bell, MessageSquare
 } from 'lucide-react'
 import './layout.css'
 
@@ -17,7 +17,8 @@ const nav = [
   { to: '/admin/logs',           label: 'Logs',           icon: FileText },
   { to: '/admin/issues',         label: 'Reported Issues',icon: AlertCircle },
   { to: '/admin/error-logs',     label: 'Error Logs',     icon: Bug },
-  { to: '/admin/send-message',   label: 'Send Message',   icon: Mail },
+  { to: '/admin/send-message',   label: 'SMS Messages',   icon: MessageSquare },
+  { to: '/admin/push',           label: 'Push Notifications', icon: Bell },
 ]
 
 export default function AdminLayout() {

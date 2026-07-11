@@ -30,6 +30,7 @@ import AdminLogsPage         from './pages/admin/AdminLogsPage'
 import AdminIssuesPage       from './pages/admin/AdminIssuesPage'
 import AdminErrorLogsPage    from './pages/admin/AdminErrorLogsPage'
 import AdminSendMessagePage  from './pages/admin/AdminSendMessagePage'
+import AdminPushPage         from './pages/admin/AdminPushPage'
 
 // Layouts
 import ClassrepLayout        from './components/layout/ClassrepLayout'
@@ -114,6 +115,7 @@ export default function App() {
             <Route path="issues"        element={<AdminIssuesPage />} />
             <Route path="error-logs"    element={<AdminErrorLogsPage />} />
             <Route path="send-message"  element={<AdminSendMessagePage />} />
+            <Route path="push"          element={<AdminPushPage />} />
           </Route>
 
           {/* ── 404 — back to root ── */}
