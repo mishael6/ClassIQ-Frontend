@@ -55,7 +55,13 @@ export default function AdminPushPage() {
     try {
       const { data } = await adminApi.sendPush(form)
       setResult(data)
-      setSuccess(data.message)
+      if (data.failed > 0) {
+        setError(data.errors?.[0] || data.message)
+        setSuccess('')
+      } else {
+        setSuccess(data.message)
+        setError('')
+      }
       setForm(f => ({ ...f, body: '' }))
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to send push notification.')
