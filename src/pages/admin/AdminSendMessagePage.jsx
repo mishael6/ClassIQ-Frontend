@@ -2,8 +2,9 @@ import { useState, useEffect, useCallback } from 'react'
 import { adminApi } from '../../lib/api'
 import api from '../../lib/api'
 import { Card, PageHeader, Button, Alert, Badge } from '../../components/ui'
+import { SmsBatchBadges } from '../../components/admin/SmsBatchBadges'
 import { Send, MessageSquare, Users, User, CheckCircle,
-         Phone, History, ChevronLeft, ChevronRight, RefreshCw, X } from 'lucide-react'
+         Phone, History, ChevronLeft, ChevronRight, RefreshCw, X, Bell, Copy } from 'lucide-react'
 import '../../components/ui/components.css'
 import './adminmessage.css'
 
@@ -25,6 +26,11 @@ export default function AdminSendMessagePage() {
   const [logsTotal,   setLogsTotal]   = useState(0)
   const [logsPage,    setLogsPage]    = useState(1)
   const [logsLoading, setLogsLoading] = useState(false)
+
+  // VAPID keys for push setup
+  const [vapidKeys, setVapidKeys]   = useState(null)
+  const [vapidLoading, setVapidLoading] = useState(false)
+  const [vapidError, setVapidError] = useState('')
 
   // Derived — declared early so useEffects can use them
   const isClassrep    = form.recipient_type === 'classrep'
@@ -88,6 +94,24 @@ export default function AdminSendMessagePage() {
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to send SMS.')
     } finally { setLoading(false) }
+  }
+
+  const generateVapidKeys = async () => {
+    setVapidLoading(true)
+    setVapidError('')
+    setVapidKeys(null)
+    try {
+      const { data } = await adminApi.generateVapidKeys()
+      setVapidKeys(data)
+    } catch (err) {
+      setVapidError(err.response?.data?.message || 'Failed to generate keys. Make sure you are logged in as admin.')
+    } finally {
+      setVapidLoading(false)
+    }
+  }
+
+  const copyText = (text) => {
+    navigator.clipboard.writeText(text).then(() => alert('Copied!'))
   }
 
   return (
@@ -263,6 +287,9 @@ export default function AdminSendMessagePage() {
                       {result.errors.map((e, i) => <p key={i} className="msg-err-item">{e}</p>)}
                     </div>
                   )}
+                  {result.batches?.length > 0 && (
+                    <SmsBatchBadges batches={result.batches} />
+                  )}
                 </div>
               </Card>
             )}
@@ -288,6 +315,42 @@ export default function AdminSendMessagePage() {
                   <p className="msg-setup-desc">
                     Ghana numbers auto-converted to international format (233XXXXXXXXX).
                   </p>
+                </div>
+              </div>
+              <div className="msg-setup-divider" />
+              <div className="msg-setup-section">
+                <div className="msg-setup-icon sms-icon"><Bell size={16}/></div>
+                <div style={{ flex: 1 }}>
+                  <p className="msg-setup-title">Push Notifications (VAPID)</p>
+                  <p className="msg-setup-desc">
+                    Generate keys while logged in as admin, then paste into Render environment variables.
+                  </p>
+                  <Button
+                    size="sm" variant="secondary"
+                    loading={vapidLoading}
+                    onClick={generateVapidKeys}
+                    style={{ marginTop: 8 }}
+                  >
+                    Generate VAPID Keys
+                  </Button>
+                  {vapidError && <p className="msg-over-warn" style={{ marginTop: 8 }}>{vapidError}</p>}
+                  {vapidKeys && (
+                    <div className="msg-env-list" style={{ marginTop: 10 }}>
+                      <p className="msg-setup-desc">{vapidKeys.message}</p>
+                      {[
+                        ['VAPID_PUBLIC_KEY', vapidKeys.VAPID_PUBLIC_KEY],
+                        ['VAPID_PRIVATE_KEY', vapidKeys.VAPID_PRIVATE_KEY],
+                        ['VAPID_SUBJECT', vapidKeys.VAPID_SUBJECT],
+                      ].map(([label, val]) => (
+                        <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
+                          <code style={{ flex: 1, wordBreak: 'break-all' }}>{label}={val}</code>
+                          <button type="button" className="msg-search-clear" onClick={() => copyText(val)} title="Copy value">
+                            <Copy size={13}/>
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             </Card>

@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
 import { adminApi } from '../../lib/api'
-import { StatCard, Card, PageHeader, Alert } from '../../components/ui'
+import { StatCard, Card, PageHeader, Alert, Button } from '../../components/ui'
+import { SmsBatchBadges } from '../../components/admin/SmsBatchBadges'
 import {
   Users, GraduationCap, QrCode, ClipboardList,
   AlertCircle, TrendingUp, Download, Smartphone,
-  CreditCard, DollarSign, UserPlus,
+  CreditCard, UserPlus, Send, X,
 } from 'lucide-react'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid,
@@ -32,6 +33,11 @@ export default function AdminDashboardPage() {
   const [trivia,  setTrivia]  = useState([])
   const [loading, setLoading] = useState(true)
   const [error,   setError]   = useState('')
+  const [bulkOpen, setBulkOpen] = useState(false)
+  const [bulkMsg,  setBulkMsg]  = useState('')
+  const [bulkLoading, setBulkLoading] = useState(false)
+  const [bulkResult, setBulkResult] = useState(null)
+  const [bulkError, setBulkError] = useState('')
 
   useEffect(() => {
     Promise.all([
@@ -63,13 +69,26 @@ export default function AdminDashboardPage() {
     }
   }
 
-  const handleSendBulkSms = () => {
-    const msg = prompt('Enter message to send to all students:');
-    if (msg) {
-        adminApi.sendBulkSms(msg)
-            .then(r => alert(r.data.message))
-            .catch(() => alert('Failed to send bulk SMS.'));
+  const handleSendBulkSms = async () => {
+    if (!bulkMsg.trim()) return
+    setBulkLoading(true)
+    setBulkError('')
+    setBulkResult(null)
+    try {
+      const { data } = await adminApi.sendBulkSms(bulkMsg.trim())
+      setBulkResult(data)
+    } catch (err) {
+      setBulkError(err.response?.data?.message || 'Failed to send bulk SMS.')
+    } finally {
+      setBulkLoading(false)
     }
+  }
+
+  const closeBulkModal = () => {
+    setBulkOpen(false)
+    setBulkMsg('')
+    setBulkResult(null)
+    setBulkError('')
   }
 
   return (
@@ -78,10 +97,55 @@ export default function AdminDashboardPage() {
       {error && <Alert variant="error">{error}</Alert>}
 
       <div style={{ marginBottom: 20 }}>
-        <button onClick={handleSendBulkSms} style={{ background: 'var(--blue)', color: 'white', border: 'none', padding: '10px 20px', borderRadius: 8, cursor: 'pointer', fontWeight: 600 }}>
-            📢 Send Bulk SMS to All Students
-        </button>
+        <Button onClick={() => setBulkOpen(true)} icon={<Send size={16}/>}>
+          Send Bulk SMS + Push to All Students
+        </Button>
       </div>
+
+      {bulkOpen && (
+        <div className="bulk-modal-overlay" onClick={closeBulkModal}>
+          <div className="bulk-modal" onClick={e => e.stopPropagation()}>
+            <div className="bulk-modal-head">
+              <h3>Bulk SMS & Push Notification</h3>
+              <button className="bulk-modal-close" onClick={closeBulkModal}><X size={18}/></button>
+            </div>
+
+            {bulkError && <Alert variant="error" onClose={() => setBulkError('')}>{bulkError}</Alert>}
+            {bulkResult && (
+              <Alert variant="success">
+                {bulkResult.message}
+                {bulkResult.push_sent > 0 && ` · Push: ${bulkResult.push_sent} devices`}
+              </Alert>
+            )}
+
+            <textarea
+              className="field-textarea"
+              placeholder="Type your message (max 155 chars for SMS)…"
+              rows={4}
+              value={bulkMsg}
+              onChange={e => setBulkMsg(e.target.value)}
+              disabled={bulkLoading}
+            />
+            <p className={`msg-char-count ${bulkMsg.length > 155 ? 'over' : ''}`} style={{ textAlign: 'right', marginTop: 4 }}>
+              {bulkMsg.length}/155
+            </p>
+
+            {bulkResult?.batches && <SmsBatchBadges batches={bulkResult.batches} />}
+
+            <div className="bulk-modal-actions">
+              <Button variant="secondary" onClick={closeBulkModal}>Close</Button>
+              <Button
+                onClick={handleSendBulkSms}
+                loading={bulkLoading}
+                disabled={!bulkMsg.trim() || bulkLoading}
+                icon={<Send size={15}/>}
+              >
+                Send to All Students
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Trivia Leaderboard ── */}
       <Card style={{ marginBottom: 24, boxShadow: '0 4px 6px rgba(0,0,0,0.1)', borderRadius: 12, overflow: 'hidden' }}>

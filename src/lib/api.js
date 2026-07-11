@@ -108,5 +108,7 @@ export const adminApi = {
   resetTriviaLeaderboard: () => api.post('/ai/trivia_reset.php'),
   sendMessage:        (data) => api.post('/admin/send_message.php', data),
   sendBulkSms:        (message) => api.post('/admin/send_bulk_sms.php', { message }),
+  sendPush:           (data)    => api.post('/push/send.php', data),
+  generateVapidKeys:  ()        => api.get('/push/generate_vapid_keys.php'),
   searchStudents:     (p)    => api.get('/admin/search_students.php', { params: p }),
 }

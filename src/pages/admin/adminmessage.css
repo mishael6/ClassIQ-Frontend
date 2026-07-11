@@ -178,3 +178,37 @@
   .msg-history-msg { max-width: 200px; }
   .msg-toggle-btn { font-size: 0.75rem; padding: 8px 8px; }
 }
+
+/* ── SMS Batch Badges ── */
+.sms-batch-wrap { margin-top: 14px; }
+.sms-batch-title { font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 10px; }
+.sms-batch-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+.sms-batch-card {
+  flex: 1 1 140px; max-width: 200px;
+  padding: 10px 12px; border-radius: var(--radius);
+  border: 1px solid var(--border); background: var(--bg);
+}
+.sms-batch-card.sms-batch-success { border-color: rgba(16,185,129,0.3); background: var(--green-lt); }
+.sms-batch-card.sms-batch-partial { border-color: rgba(245,158,11,0.3); background: #fffbeb; }
+.sms-batch-card.sms-batch-failed  { border-color: rgba(239,68,68,0.3);  background: var(--red-lt); }
+.sms-batch-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.sms-batch-num { font-size: 0.78rem; font-weight: 700; color: var(--txt); }
+.sms-batch-stats { font-size: 0.75rem; color: var(--txt2); margin: 0; }
+.sms-batch-err { font-size: 0.68rem; color: var(--red); margin: 4px 0 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ── Bulk SMS Modal ── */
+.bulk-modal-overlay {
+  position: fixed; inset: 0; z-index: 1000;
+  background: rgba(0,0,0,0.5); display: flex;
+  align-items: center; justify-content: center; padding: 20px;
+}
+.bulk-modal {
+  background: var(--surface); border-radius: 16px; padding: 24px;
+  width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  display: flex; flex-direction: column; gap: 14px;
+}
+.bulk-modal-head { display: flex; justify-content: space-between; align-items: center; }
+.bulk-modal-head h3 { margin: 0; font-size: 1.1rem; font-weight: 700; }
+.bulk-modal-close { background: none; border: none; cursor: pointer; color: var(--muted); display: flex; }
+.bulk-modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 4px; }
