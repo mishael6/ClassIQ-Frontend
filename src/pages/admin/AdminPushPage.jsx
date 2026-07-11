@@ -115,6 +115,11 @@ export default function AdminPushPage() {
               </div>
             </div>
 
+            {subs === 0 && (
+              <Alert variant="error" style={{ marginBottom: 16 }}>
+                <strong>0 devices registered.</strong> Push cannot be sent until at least one student enables notifications in the ClassIQ PWA (Settings → Enable Push → Allow). On iPhone they must open the app from the Home Screen icon, not Safari.
+              </Alert>
+            )}
             {error   && <Alert variant="error"   onClose={() => setError('')}   style={{ marginBottom: 16 }}>{error}</Alert>}
             {success && <Alert variant="success" onClose={() => setSuccess('')} style={{ marginBottom: 16 }}>{success}</Alert>}
 
@@ -143,7 +148,7 @@ export default function AdminPushPage() {
               </div>
 
               <Button type="submit" fullWidth loading={loading} size="lg" icon={<Send size={16}/>}
-                disabled={!form.body.trim()}>
+                disabled={!form.body.trim() || subs === 0}>
                 Send Push Notification
               </Button>
             </form>
