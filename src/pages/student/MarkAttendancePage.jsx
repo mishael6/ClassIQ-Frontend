@@ -9,10 +9,17 @@ import './student.css'
 export default function MarkAttendancePage() {
   const [params]       = useSearchParams()
   const classrep_id    = params.get('classrep_id')
+  const lecturer_id    = params.get('lecturer_id')
   const code           = params.get('code')
   const lecture        = params.get('lecture')
+  const week           = params.get('week')
+  const topic          = params.get('topic')
+  const isLecturer     = !!lecturer_id
+  const sessionLabel   = isLecturer
+    ? (week ? `Week ${week}${topic ? `: ${decodeURIComponent(topic)}` : ''}` : decodeURIComponent(topic || ''))
+    : lecture
 
-  const [sessionValid, setSessionValid] = useState(null)  // null=loading, true, false
+  const [sessionValid, setSessionValid] = useState(null)
   const [gpsStatus,    setGpsStatus]    = useState('waiting')  // waiting|ok|denied
   const [coords,       setCoords]       = useState(null)
   const [indexNumber,  setIndexNumber]  = useState('')
@@ -22,11 +29,14 @@ export default function MarkAttendancePage() {
 
   // Verify session
   useEffect(() => {
-    if (!classrep_id || !code) { setSessionValid(false); return }
-    studentApi.verifySession({ classrep_id, code })
+    if (!code || (!classrep_id && !lecturer_id)) { setSessionValid(false); return }
+    const verifyParams = lecturer_id
+      ? { lecturer_id, code }
+      : { classrep_id, code }
+    studentApi.verifySession(verifyParams)
       .then(r => setSessionValid(r.data.valid))
       .catch(() => setSessionValid(false))
-  }, [classrep_id, code])
+  }, [classrep_id, lecturer_id, code])
 
   // Request GPS
   useEffect(() => {
@@ -48,12 +58,24 @@ export default function MarkAttendancePage() {
     if (!coords) return
     setSubmitting(true)
     try {
-      const { data } = await studentApi.markAttendance({
-        classrep_id, code, lecture_name: lecture,
+      const payload = {
+        code,
         index_number: indexNumber,
-        student_lat: coords.lat, student_lng: coords.lng,
-        device_id: getDeviceId()
-      })
+        student_lat: coords.lat,
+        student_lng: coords.lng,
+        device_id: getDeviceId(),
+      }
+      if (isLecturer) {
+        Object.assign(payload, {
+          lecturer_id,
+          week_number: parseInt(week, 10),
+          topic: topic ? decodeURIComponent(topic) : '',
+          lecture_name: topic ? decodeURIComponent(topic) : '',
+        })
+      } else {
+        Object.assign(payload, { classrep_id, lecture_name: lecture })
+      }
+      const { data } = await studentApi.markAttendance(payload)
       setResult(data)
     } catch (err) {
       setResult({ success: false, message: err.response?.data?.message || 'Connection error.' })
@@ -143,7 +165,7 @@ export default function MarkAttendancePage() {
         </div>
 
         <h1 className="student-title">📚 Mark Attendance</h1>
-        {lecture && <p className="student-sub">{lecture}</p>}
+        {sessionLabel && <p className="student-sub">{sessionLabel}</p>}
 
         {/* Instructions toggle */}
         <button className="instructions-toggle" onClick={() => setShowInstructions(v => !v)}>
@@ -217,7 +239,7 @@ export default function MarkAttendancePage() {
           >
             📝 Having problems? Report an Issue
           </button>
-          <IssueForm classrepId={classrep_id} lecture={lecture} />
+          <IssueForm classrepId={classrep_id} lecturerId={lecturer_id} lecture={lecture} topic={topic} week={week} />
         </div>
 
         <div style={{ textAlign: 'center', marginTop: 16 }}>
@@ -230,7 +252,7 @@ export default function MarkAttendancePage() {
   )
 }
 
-function IssueForm({ classrepId, lecture }) {
+function IssueForm({ classrepId, lecturerId, lecture, topic, week }) {
   const [form, setForm]     = useState({ index_number: '', message: '' })
   const [sent, setSent]     = useState(false)
   const [loading, setLoading] = useState(false)
@@ -239,7 +261,13 @@ function IssueForm({ classrepId, lecture }) {
     e.preventDefault()
     setLoading(true)
     try {
-      await studentApi.markAttendance({ ...form, report_issue: true, classrep_id: classrepId, lecture_name: lecture })
+      const payload = { ...form, report_issue: true, lecture_name: lecture || (topic ? decodeURIComponent(topic) : '') }
+      if (lecturerId) {
+        Object.assign(payload, { lecturer_id: lecturerId, week_number: parseInt(week, 10) || 0 })
+      } else {
+        Object.assign(payload, { classrep_id: classrepId })
+      }
+      await studentApi.markAttendance(payload)
       setSent(true)
     } catch {} finally { setLoading(false) }
   }

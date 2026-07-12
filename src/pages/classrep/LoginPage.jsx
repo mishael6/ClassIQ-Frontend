@@ -43,7 +43,7 @@ export default function LoginPage() {
         <div className="auth-logo">
           <div className="logo-mark" style={{ width:48, height:48, fontSize:'1.1rem' }}>CQ</div>
           <h1 className="auth-title">ClassIQ</h1>
-          <p className="auth-sub">Class Representative Portal</p>
+          <p className="auth-sub">Class Rep & Lecturer Portal</p>
         </div>
 
         {error && <Alert variant="error" onClose={() => setError('')}>{error}</Alert>}
@@ -67,7 +67,7 @@ export default function LoginPage() {
         </form>
 
         <p className="auth-foot">
-          Don't have an account? <Link to="/register" className="auth-link">Register here</Link>
+          Don't have an account? <Link to="/get-started" className="auth-link">Get started</Link>
         </p>
       </div>
     </div>

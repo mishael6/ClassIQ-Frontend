@@ -87,3 +87,18 @@
 @media (max-width: 500px) {
   .auth-grid { grid-template-columns: 1fr; }
 }
+
+.role-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 18px 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.role-card:hover {
+  border-color: var(--blue);
+  box-shadow: var(--shadow-md);
+}

@@ -12,7 +12,7 @@ export default function LandingPage() {
     if (user) {
       try {
         const p = JSON.parse(user)
-        navigate(p.role === 'admin' ? '/admin' : '/dashboard', { replace: true })
+        navigate(p.role === 'admin' ? '/admin' : p.role === 'lecturer' ? '/lecturer' : '/dashboard', { replace: true })
       } catch {}
     }
   }, [])
@@ -39,7 +39,7 @@ export default function LandingPage() {
           </div>
           <div className="lp-nav-btns">
             <Link to="/login"    className="lp-btn lp-ghost">Log in</Link>
-            <Link to="/register" className="lp-btn lp-solid">Get started</Link>
+            <Link to="/get-started" className="lp-btn lp-solid">Get started</Link>
           </div>
         </div>
       </header>
@@ -58,7 +58,7 @@ export default function LandingPage() {
             academia needs, unified in one intelligent ecosystem.
           </p>
           <div className="lp-hero-cta">
-            <Link to="/register" className="lp-btn lp-solid lp-lg">Join ClassIQ free (Class Reps) →</Link>
+            <Link to="/get-started" className="lp-btn lp-solid lp-lg">Join ClassIQ free →</Link>
             <a href={PWA_URL} target="_blank" rel="noopener noreferrer" className="lp-btn lp-outline lp-lg" style={{ textDecoration: 'none' }}>
               📱 Download App
             </a>
@@ -188,7 +188,7 @@ export default function LandingPage() {
             <div className="lp-who-icon">🎓</div>
             <h3>Class Representatives</h3>
             <p>Manage your class end-to-end. Generate QR attendance, track your students, view detailed reports, and communicate with your admin — all from one dashboard.</p>
-            <Link to="/register" className="lp-btn lp-solid lp-sm" style={{ marginTop: 'auto', paddingTop: 20, alignSelf: 'flex-start' }}>
+            <Link to="/get-started" className="lp-btn lp-solid lp-sm" style={{ marginTop: 'auto', paddingTop: 20, alignSelf: 'flex-start' }}>
               Register as Class Rep →
             </Link>
           </div>
@@ -240,7 +240,7 @@ export default function LandingPage() {
                   <p className="lp-guide-step-text">{s.text}</p>
                 </div>
               ))}
-              <Link to="/register" className="lp-guide-cta" style={{ background: '#0066ff' }}>Register now →</Link>
+              <Link to="/get-started" className="lp-guide-cta" style={{ background: '#0066ff' }}>Get started →</Link>
             </div>
           </div>
 
@@ -413,7 +413,7 @@ export default function LandingPage() {
             using ClassIQ to learn smarter, attend better, and compete harder.
           </p>
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Link to="/register" className="lp-btn lp-white lp-lg">Get started free →</Link>
+            <Link to="/get-started" className="lp-btn lp-white lp-lg">Get started free →</Link>
             <a href={PWA_URL} target="_blank" rel="noopener noreferrer" className="lp-btn lp-lg" style={{ background: 'rgba(255,255,255,0.15)', color: '#fff', border: '1.5px solid rgba(255,255,255,0.3)', textDecoration: 'none' }}>
               📱 Download App
             </a>

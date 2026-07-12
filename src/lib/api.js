@@ -40,10 +40,11 @@ export default api
 
 // ── Auth ──────────────────────────────────────────────────────
 export const authApi = {
-  login:      data => api.post('/auth/login.php', data),
-  register:   data => api.post('/auth/register.php', data),
-  logout:     ()   => api.post('/auth/logout.php'),
-  adminLogin: data => api.post('/auth/admin_login.php', data),
+  login:            data => api.post('/auth/login.php', data),
+  register:         data => api.post('/auth/register.php', data),
+  registerLecturer: data => api.post('/auth/register_lecturer.php', data),
+  logout:           ()   => api.post('/auth/logout.php'),
+  adminLogin:       data => api.post('/auth/admin_login.php', data),
 }
 
 // ── Classrep ──────────────────────────────────────────────────
@@ -68,12 +69,25 @@ export const classrepApi = {
   deleteSavedLocation: (id) => api.post('/classrep/saved_locations.php', { _method: 'DELETE', id }),
 }
 
+// ── Lecturer ──────────────────────────────────────────────────
+export const lecturerApi = {
+  getDashboard:  ()   => api.get('/lecturer/dashboard.php'),
+  getWeeks:      ()   => api.get('/lecturer/weeks.php'),
+  addWeek:       data => api.post('/lecturer/weeks.php', data),
+  updateWeek:    data => api.put('/lecturer/weeks.php', data),
+  deleteWeek:    id   => api.delete('/lecturer/weeks.php', { data: { id } }),
+  generateQR:    data => api.post('/lecturer/generate_qr.php', data),
+  endSession:    data => api.post('/lecturer/end_session.php', data),
+  getAttendance: ()   => api.get('/lecturer/attendance.php'),
+}
+
 // ── Student ───────────────────────────────────────────────────
 export const studentApi = {
   markAttendance:  data => api.post('/student/mark_attendance.php', data),
   register:        data => api.post('/student/register.php', data),
   verifySession:   (p)  => api.get('/student/verify_session.php', { params: p }),
   getClassrepInfo: (id) => api.get('/student/get_classrep_info.php', { params: { classrep_id: id } }),
+  getLecturerInfo: (id) => api.get('/student/get_lecturer_info.php', { params: { lecturer_id: id } }),
 }
 
 // ── Messages ──────────────────────────────────────────────────
@@ -92,6 +106,11 @@ export const adminApi = {
   rejectClassrep:     (id)   => api.put('/admin/classreps.php', { id, action: 'reject' }),
   updateClassrep:     (data) => api.put('/admin/classreps.php', { ...data, action: 'update' }),
   deleteClassrep:     (id)   => api.delete('/admin/classreps.php', { data: { id } }),
+  getLecturers:       (p)    => api.get('/admin/lecturers.php', { params: p }),
+  approveLecturer:    (id)   => api.put('/admin/lecturers.php', { id, action: 'approve' }),
+  rejectLecturer:     (id)   => api.put('/admin/lecturers.php', { id, action: 'reject' }),
+  updateLecturer:     (data) => api.put('/admin/lecturers.php', { ...data, action: 'update' }),
+  deleteLecturer:     (id)   => api.delete('/admin/lecturers.php', { data: { id } }),
   getStudents:        (p)    => api.get('/admin/students.php', { params: p }),
   getStudentDetail:   (id)   => api.get('/admin/student_detail.php', { params: { id } }),
   updateStudent:      (data) => api.put('/admin/students.php', data),

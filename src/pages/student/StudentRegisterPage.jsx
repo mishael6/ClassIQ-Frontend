@@ -8,31 +8,34 @@ import './student.css'
 import './studentregister.css'
 
 export default function StudentRegisterPage() {
-  const [params]     = useSearchParams()
-  const classrep_id  = params.get('classrep_id')
+  const [params]      = useSearchParams()
+  const classrep_id   = params.get('classrep_id')
+  const lecturer_id   = params.get('lecturer_id')
+  const isLecturer    = !!lecturer_id
 
-  const [classrep,  setClassrep]  = useState(null)   // classrep info
-  const [loadingCR, setLoadingCR] = useState(true)
-  const [notFound,  setNotFound]  = useState(false)
+  const [owner, setOwner]       = useState(null)
+  const [loadingOwner, setLoadingOwner] = useState(true)
+  const [notFound, setNotFound] = useState(false)
 
-  const [form, setForm] = useState({
-    name: '', index_number: '', email: '', phone: ''
-  })
-  const [success,  setSuccess]  = useState(false)
-  const [error,    setError]    = useState('')
-  const [loading,  setLoading]  = useState(false)
+  const [form, setForm] = useState({ name: '', index_number: '', email: '', phone: '' })
+  const [success, setSuccess] = useState(false)
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
 
-  // Load classrep info on mount
   useEffect(() => {
-    if (!classrep_id) { setNotFound(true); setLoadingCR(false); return }
-    studentApi.getClassrepInfo(classrep_id)
+    if (!classrep_id && !lecturer_id) { setNotFound(true); setLoadingOwner(false); return }
+    const req = isLecturer
+      ? studentApi.getLecturerInfo(lecturer_id)
+      : studentApi.getClassrepInfo(classrep_id)
+    req
       .then(r => {
-        if (r.data.success) setClassrep(r.data.classrep)
+        const info = isLecturer ? r.data.lecturer : r.data.classrep
+        if (info) setOwner(info)
         else setNotFound(true)
       })
       .catch(() => setNotFound(true))
-      .finally(() => setLoadingCR(false))
-  }, [classrep_id])
+      .finally(() => setLoadingOwner(false))
+  }, [classrep_id, lecturer_id, isLecturer])
 
   const handle = e => {
     let val = e.target.value
@@ -45,7 +48,10 @@ export default function StudentRegisterPage() {
     setError('')
     setLoading(true)
     try {
-      const { data } = await studentApi.register({ ...form, classrep_id })
+      const payload = isLecturer
+        ? { ...form, lecturer_id }
+        : { ...form, classrep_id }
+      const { data } = await studentApi.register(payload)
       if (data.success) setSuccess(true)
       else setError(data.message || 'Registration failed')
     } catch (err) {
@@ -55,8 +61,7 @@ export default function StudentRegisterPage() {
     }
   }
 
-  // ── Loading classrep info ──
-  if (loadingCR) return (
+  if (loadingOwner) return (
     <div className="sreg-page">
       <div className="sreg-card">
         <div className="sreg-logo">
@@ -71,7 +76,6 @@ export default function StudentRegisterPage() {
     </div>
   )
 
-  // ── Invalid link ──
   if (notFound) return (
     <div className="sreg-page">
       <div className="sreg-card">
@@ -84,14 +88,13 @@ export default function StudentRegisterPage() {
           <h2 style={{ fontFamily: 'var(--font-head)', marginBottom: 8 }}>Invalid Link</h2>
           <p style={{ color: 'var(--muted)', fontSize: '0.88rem' }}>
             This registration link is invalid or has expired.<br />
-            Please ask your class representative for a new link.
+            Please ask your {isLecturer ? 'lecturer' : 'class representative'} for a new link.
           </p>
         </div>
       </div>
     </div>
   )
 
-  // ── Success ──
   if (success) return (
     <div className="sreg-page">
       <div className="sreg-card">
@@ -103,135 +106,97 @@ export default function StudentRegisterPage() {
           <CheckCircle size={56} style={{ color: 'var(--green)', marginBottom: 16 }} />
           <h2 style={{ fontFamily: 'var(--font-head)', marginBottom: 8 }}>You're Registered!</h2>
           <p style={{ color: 'var(--muted)', fontSize: '0.88rem', lineHeight: 1.7 }}>
-            Welcome to <strong>{classrep?.name}'s</strong> class.<br />
-            Your class representative can now mark your attendance.
+            Welcome to <strong>{owner?.name}'s</strong> {isLecturer ? 'course' : 'class'}.<br />
+            Your attendance can now be tracked on ClassIQ.
           </p>
           <div className="sreg-success-info">
             <div className="sreg-info-row">
-              <span>Institution</span><strong>{classrep?.institution}</strong>
+              <span>Institution</span><strong>{owner?.institution}</strong>
             </div>
-            <div className="sreg-info-row">
-              <span>Program</span><strong>{classrep?.program}</strong>
-            </div>
-            <div className="sreg-info-row">
-              <span>Department</span><strong>{classrep?.department}</strong>
-            </div>
+            {isLecturer ? (
+              <div className="sreg-info-row">
+                <span>Course</span><strong>{owner?.course}</strong>
+              </div>
+            ) : (
+              <>
+                <div className="sreg-info-row">
+                  <span>Program</span><strong>{owner?.program}</strong>
+                </div>
+                <div className="sreg-info-row">
+                  <span>Department</span><strong>{owner?.department}</strong>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
     </div>
   )
 
-  // ── Registration form ──
   return (
     <div className="sreg-page">
       <div className="sreg-card">
-
-        {/* Header */}
         <div className="sreg-header">
           <div className="sreg-logo">
             <div className="logo-mark">CQ</div>
             <span className="s-logo-text">ClassIQ</span>
           </div>
           <h1 className="sreg-title">Student Registration</h1>
-          <p className="sreg-subtitle">Fill in your personal details to join the class</p>
+          <p className="sreg-subtitle">Fill in your personal details to join {isLecturer ? 'the course' : 'the class'}</p>
         </div>
 
-        {/* Classrep info banner */}
-        {classrep && (
+        {owner && (
           <div className="sreg-classrep-banner">
             <div className="sreg-cr-avatar">
-              {classrep.name?.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()}
+              {owner.name?.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()}
             </div>
             <div className="sreg-cr-info">
-              <p className="sreg-cr-name">Registering under {classrep.name}</p>
-              <p className="sreg-cr-meta">{classrep.institution} · {classrep.program}</p>
+              <p className="sreg-cr-name">Registering under {owner.name}</p>
+              <p className="sreg-cr-meta">
+                {owner.institution}
+                {isLecturer ? ` · ${owner.course}` : ` · ${owner.program}`}
+              </p>
             </div>
           </div>
         )}
 
-        {/* Pre-filled class info */}
-        {classrep && (
+        {owner && (
           <div className="sreg-class-info">
-            <div className="sreg-ci-title">Class Information <span>(auto-filled)</span></div>
+            <div className="sreg-ci-title">{isLecturer ? 'Course Information' : 'Class Information'} <span>(auto-filled)</span></div>
             <div className="sreg-ci-grid">
               <div className="sreg-ci-item">
                 <span className="sreg-ci-label">Institution</span>
-                <span className="sreg-ci-value">{classrep.institution || '—'}</span>
+                <span className="sreg-ci-value">{owner.institution || '—'}</span>
               </div>
-              <div className="sreg-ci-item">
-                <span className="sreg-ci-label">Department</span>
-                <span className="sreg-ci-value">{classrep.department || '—'}</span>
-              </div>
-              <div className="sreg-ci-item">
-                <span className="sreg-ci-label">Program</span>
-                <span className="sreg-ci-value">{classrep.program || '—'}</span>
-              </div>
+              {isLecturer ? (
+                <div className="sreg-ci-item">
+                  <span className="sreg-ci-label">Course</span>
+                  <span className="sreg-ci-value">{owner.course || '—'}</span>
+                </div>
+              ) : (
+                <>
+                  <div className="sreg-ci-item">
+                    <span className="sreg-ci-label">Department</span>
+                    <span className="sreg-ci-value">{owner.department || '—'}</span>
+                  </div>
+                  <div className="sreg-ci-item">
+                    <span className="sreg-ci-label">Program</span>
+                    <span className="sreg-ci-value">{owner.program || '—'}</span>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         )}
 
-        {error && (
-          <Alert variant="error" onClose={() => setError('')} style={{ marginBottom: 4 }}>
-            {error}
-          </Alert>
-        )}
+        {error && <Alert variant="error" onClose={() => setError('')} style={{ marginBottom: 4 }}>{error}</Alert>}
 
-        {/* Form — only personal details */}
         <form onSubmit={submit} className="sreg-form">
-          <Input
-            label="Full Name"
-            id="name"
-            name="name"
-            value={form.name}
-            onChange={handle}
-            placeholder="e.g. Kofi Mensah"
-            icon={<User size={15}/>}
-            required
-          />
-          <Input
-            label="Index Number"
-            id="index_number"
-            name="index_number"
-            value={form.index_number}
-            onChange={handle}
-            placeholder="e.g. 20240001"
-            icon={<Hash size={15}/>}
-            required
-            style={{ textTransform: 'uppercase' }}
-          />
-          <Input
-            label="Phone Number"
-            id="phone"
-            name="phone"
-            type="tel"
-            value={form.phone}
-            onChange={handle}
-            placeholder="e.g. 0240000000"
-            icon={<Phone size={15}/>}
-            required
-          />
-          <Input
-            label="Email Address"
-            id="email"
-            name="email"
-            type="email"
-            value={form.email}
-            onChange={handle}
-            placeholder="e.g. kofi@example.com"
-            icon={<Mail size={15}/>}
-            required
-          />
-
-          <Button
-            type="submit"
-            fullWidth
-            loading={loading}
-            size="lg"
-            style={{ marginTop: 8 }}
-          >
-            Register
-          </Button>
+          <Input label="Full Name" id="name" name="name" value={form.name} onChange={handle} placeholder="e.g. Kofi Mensah" icon={<User size={15}/>} required />
+          <Input label="Index Number" id="index_number" name="index_number" value={form.index_number} onChange={handle} placeholder="e.g. 20240001" icon={<Hash size={15}/>} required style={{ textTransform: 'uppercase' }} />
+          <Input label="Phone Number" id="phone" name="phone" type="tel" value={form.phone} onChange={handle} placeholder="e.g. 0240000000" icon={<Phone size={15}/>} required />
+          <Input label="Email Address" id="email" name="email" type="email" value={form.email} onChange={handle} placeholder="e.g. kofi@example.com" icon={<Mail size={15}/>} required />
+          <Button type="submit" fullWidth loading={loading} size="lg" style={{ marginTop: 8 }}>Register</Button>
         </form>
 
         <p style={{ textAlign: 'center', fontSize: '0.75rem', color: 'var(--muted)', marginTop: 16 }}>

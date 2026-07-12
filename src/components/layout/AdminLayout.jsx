@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext'
 import {
   LayoutDashboard, Users, GraduationCap, QrCode,
   ClipboardList, FileText, AlertCircle, Bug,
-  LogOut, Menu, Shield, Bell, MessageSquare
+  LogOut, Menu, Shield, Bell, MessageSquare, BookOpen
 } from 'lucide-react'
 import './layout.css'
 
@@ -12,6 +12,7 @@ const nav = [
   { to: '/admin',                label: 'Overview',       icon: LayoutDashboard },
   { to: '/admin/attendance',     label: 'Attendance',     icon: ClipboardList },
   { to: '/admin/classreps',      label: 'Class Reps',     icon: Users },
+  { to: '/admin/lecturers',      label: 'Lecturers',      icon: BookOpen },
   { to: '/admin/students',       label: 'Students',       icon: GraduationCap },
   { to: '/admin/qr-sessions',    label: 'QR Sessions',    icon: QrCode },
   { to: '/admin/logs',           label: 'Logs',           icon: FileText },
