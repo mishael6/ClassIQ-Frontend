@@ -21,7 +21,7 @@ export default function AdminLoginPage() {
     setLoading(true)
     try {
       const data = await adminLogin(form)
-      if (data.success) navigate('/admin')
+      if (data.success && data.token) navigate('/admin', { replace: true })
       else setError(data.message || 'Login failed. Please try again.')
     } catch (err) {
       const msg = err?.response?.data?.message

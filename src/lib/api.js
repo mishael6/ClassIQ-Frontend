@@ -18,9 +18,16 @@ api.interceptors.response.use(
   res => res,
   err => {
     if (err.response?.status === 401) {
+      let redirect = '/login'
+      try {
+        const stored = JSON.parse(localStorage.getItem('classiq_user') || 'null')
+        if (stored?.role === 'admin' || window.location.pathname.startsWith('/admin')) {
+          redirect = '/admin/login'
+        }
+      } catch { /* ignore */ }
       localStorage.removeItem('classiq_token')
       localStorage.removeItem('classiq_user')
-      window.location.href = '/login'
+      window.location.href = redirect
     } else if (err.response && err.response.status >= 500) {
       fetch('https://api-classiq.onrender.com/system_ping.php', {
          method: 'POST',

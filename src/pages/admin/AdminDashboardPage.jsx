@@ -47,19 +47,25 @@ export default function AdminDashboardPage() {
   const [promptLimitErr, setPromptLimitErr] = useState('')
 
   useEffect(() => {
-    Promise.all([
+    Promise.allSettled([
       adminApi.getDashboard(),
       adminApi.getTriviaLeaderboard(5),
       adminApi.getAiSettings(),
     ])
-      .then(([r1, r2, r3]) => {
-        setData(r1.data)
-        setTrivia(r2.data.leaderboard || [])
-        const limit = Number(r3.data.free_prompt_limit) || 30
-        setPromptLimit(limit)
-        setPromptLimitInput(String(limit))
+      .then(([dash, triviaRes, aiRes]) => {
+        if (dash.status === 'fulfilled') setData(dash.value.data)
+        else setError('Failed to load dashboard.')
+
+        if (triviaRes.status === 'fulfilled') {
+          setTrivia(triviaRes.value.data.leaderboard || [])
+        }
+
+        if (aiRes.status === 'fulfilled') {
+          const limit = Number(aiRes.value.data.free_prompt_limit) || 30
+          setPromptLimit(limit)
+          setPromptLimitInput(String(limit))
+        }
       })
-      .catch(() => setError('Failed to load dashboard.'))
       .finally(() => setLoading(false))
   }, [])
 
