@@ -87,6 +87,9 @@ export const lecturerApi = {
   endSession:    data => api.post('/lecturer/end_session.php', data),
   getAttendance: ()   => api.get('/lecturer/attendance.php'),
   getStudentDetail: (id) => api.get('/lecturer/student_detail.php', { params: { id } }),
+  getSavedLocations: () => api.get('/lecturer/saved_locations.php'),
+  saveLocation:      data => api.post('/lecturer/saved_locations.php', data),
+  deleteSavedLocation: (id) => api.post('/lecturer/saved_locations.php', { _method: 'DELETE', id }),
 }
 
 // ── Student ───────────────────────────────────────────────────
