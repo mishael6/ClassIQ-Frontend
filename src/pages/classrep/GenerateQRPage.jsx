@@ -1,30 +1,13 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { classrepApi } from '../../lib/api'
+import { L, ensureLeafletIcons } from '../../lib/leafletSetup'
 import { Button, Select, Alert, Card, PageHeader } from '../../components/ui'
 import { MapPin, QrCode, Navigation, Loader2, ArrowLeft, Bookmark, Save, Trash2, Search } from 'lucide-react'
 import QRCode from 'qrcode'
 import '../../components/ui/components.css'
 import './generateqr.css'
 
-const LEAFLET_CSS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'
-const LEAFLET_JS  = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'
 const RADII       = [10, 20, 30, 50, 100, 150, 200]
-
-function loadLeaflet() {
-  return new Promise((resolve, reject) => {
-    if (window.L) { resolve(window.L); return }
-    if (!document.getElementById('leaflet-css')) {
-      const link = document.createElement('link')
-      link.id = 'leaflet-css'; link.rel = 'stylesheet'; link.href = LEAFLET_CSS
-      document.head.appendChild(link)
-    }
-    const script = document.createElement('script')
-    script.src = LEAFLET_JS
-    script.onload  = () => resolve(window.L)
-    script.onerror = () => reject(new Error('Failed to load Leaflet'))
-    document.head.appendChild(script)
-  })
-}
 
 export default function GenerateQRPage() {
   const [step,      setStep]      = useState('map')
@@ -54,56 +37,24 @@ export default function GenerateQRPage() {
   const leaflet   = useRef(null)
   const markerRef = useRef(null)
   const circleRef = useRef(null)
+  const radiusRef = useRef(radius)
+
+  useEffect(() => { radiusRef.current = radius }, [radius])
 
   useEffect(() => {
     classrepApi.getSavedLocations()
       .then(res => setSavedLocs(res.data.locations || []))
       .catch(() => {})
-
-    let destroyed = false
-    loadLeaflet().then(L => {
-      if (destroyed || !mapRef.current || leaflet.current) return
-
-      delete L.Icon.Default.prototype._getIconUrl
-      L.Icon.Default.mergeOptions({
-        iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-        iconUrl:       'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-        shadowUrl:     'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-      })
-
-      const map = L.map(mapRef.current, { zoomControl: true }).setView([6.6884, -1.6244], 16)
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap', maxZoom: 19,
-      }).addTo(map)
-
-      const pinIcon = L.divIcon({
-        className: '', html: `<div class="map-pin-icon"></div>`,
-        iconSize: [28, 28], iconAnchor: [14, 28],
-      })
-
-      map.on('click', e => placePin(L, map, pinIcon, e.latlng.lat, e.latlng.lng))
-      leaflet.current = { map, L, pinIcon }
-      setMapReady(true)
-      setTimeout(() => map.invalidateSize(), 200)
-    }).catch(() => setError('Failed to load map. Please check your internet connection.'))
-
-    return () => {
-      destroyed = true
-      if (leaflet.current?.map) { leaflet.current.map.remove(); leaflet.current = null }
-    }
   }, [])
 
-  useEffect(() => {
-    if (circleRef.current) circleRef.current.setRadius(radius)
-  }, [radius])
-
-  const placePin = (L, map, pinIcon, lat, lng) => {
+  const placePin = useCallback((map, pinIcon, lat, lng) => {
     if (markerRef.current) map.removeLayer(markerRef.current)
     if (circleRef.current) map.removeLayer(circleRef.current)
 
+    const r = radiusRef.current
     const marker = L.marker([lat, lng], { icon: pinIcon, draggable: true }).addTo(map)
     const circle = L.circle([lat, lng], {
-      radius, color: '#0066ff', fillColor: '#0066ff', fillOpacity: 0.1, weight: 2, dashArray: '6 4',
+      radius: r, color: '#0066ff', fillColor: '#0066ff', fillOpacity: 0.1, weight: 2, dashArray: '6 4',
     }).addTo(map)
 
     marker.on('dragend', e => {
@@ -121,14 +72,59 @@ export default function GenerateQRPage() {
     setManualLng(lng.toFixed(6))
     setPinStatus('set')
     map.setView([lat, lng], 18)
+  }, [])
+
+  useEffect(() => {
+    if (step !== 'map' || !mapRef.current) return
+
+    ensureLeafletIcons()
+    setMapReady(false)
+
+    const pinIcon = L.divIcon({
+      className: '', html: `<div class="map-pin-icon"></div>`,
+      iconSize: [28, 28], iconAnchor: [14, 28],
+    })
+
+    const map = L.map(mapRef.current, { zoomControl: true }).setView([6.6884, -1.6244], 16)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap', maxZoom: 19,
+    }).addTo(map)
+
+    map.on('click', e => placePin(map, pinIcon, e.latlng.lat, e.latlng.lng))
+    leaflet.current = { map, L, pinIcon }
+
+    const refresh = () => map.invalidateSize()
+    const t1 = setTimeout(refresh, 100)
+    const t2 = setTimeout(refresh, 400)
+    const t3 = setTimeout(() => { refresh(); setMapReady(true) }, 600)
+
+    return () => {
+      clearTimeout(t1)
+      clearTimeout(t2)
+      clearTimeout(t3)
+      map.remove()
+      leaflet.current = null
+      markerRef.current = null
+      circleRef.current = null
+      setMapReady(false)
+    }
+  }, [step, placePin])
+
+  useEffect(() => {
+    if (circleRef.current) circleRef.current.setRadius(radius)
+  }, [radius])
+
+  const placePinOnMap = (lat, lng) => {
+    if (!leaflet.current) return
+    const { map, pinIcon } = leaflet.current
+    placePin(map, pinIcon, lat, lng)
   }
 
   const autoLocate = () => {
     if (!navigator.geolocation) { setError('GPS not supported.'); return }
     if (!leaflet.current) { setError('Map not ready yet.'); return }
-    const { map, L, pinIcon } = leaflet.current
     navigator.geolocation.getCurrentPosition(
-      p => placePin(L, map, pinIcon, p.coords.latitude, p.coords.longitude),
+      p => placePinOnMap(p.coords.latitude, p.coords.longitude),
       () => setError('Could not get your location. Enter coordinates manually or click the map.'),
       { enableHighAccuracy: true, timeout: 10000 }
     )
@@ -157,8 +153,8 @@ export default function GenerateQRPage() {
       return
     }
 
-    const { map, L, pinIcon } = leaflet.current
-    placePin(L, map, pinIcon, lat, lng)
+    const { map, pinIcon } = leaflet.current
+    placePin(map, pinIcon, lat, lng)
   }
 
   const applySavedLocation = (id) => {
@@ -167,7 +163,7 @@ export default function GenerateQRPage() {
     const lat = parseFloat(loc.lat)
     const lng = parseFloat(loc.lng)
     setRadius(parseInt(loc.radius_m))
-    placePin(leaflet.current.L, leaflet.current.map, leaflet.current.pinIcon, lat, lng)
+    placePin(leaflet.current.map, leaflet.current.pinIcon, lat, lng)
   }
 
   const savePreset = async () => {
@@ -225,10 +221,6 @@ export default function GenerateQRPage() {
       setSession(null); setQrUrl(''); setPin(null)
       setManualLat(''); setManualLng('')
       setPinStatus('idle'); setStep('map')
-      if (markerRef.current) leaflet.current?.map?.removeLayer(markerRef.current)
-      if (circleRef.current) leaflet.current?.map?.removeLayer(circleRef.current)
-      markerRef.current = null; circleRef.current = null
-      setTimeout(() => leaflet.current?.map?.invalidateSize(), 200)
     } catch { setError('Failed to end session.') }
     finally { setEnding(false) }
   }

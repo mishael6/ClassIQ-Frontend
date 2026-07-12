@@ -1,50 +1,37 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { lecturerApi } from '../../lib/api'
+import { L, ensureLeafletIcons } from '../../lib/leafletSetup'
 import { Button, Select, Alert, Card, PageHeader } from '../../components/ui'
 import { QrCode, Navigation, Loader2, ArrowLeft } from 'lucide-react'
 import QRCode from 'qrcode'
 import '../../components/ui/components.css'
 import '../classrep/generateqr.css'
 
-const LEAFLET_CSS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'
-const LEAFLET_JS  = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'
-const RADII       = [10, 20, 30, 50, 100, 150, 200]
-
-function loadLeaflet() {
-  return new Promise((resolve, reject) => {
-    if (window.L) { resolve(window.L); return }
-    if (!document.getElementById('leaflet-css')) {
-      const link = document.createElement('link')
-      link.id = 'leaflet-css'; link.rel = 'stylesheet'; link.href = LEAFLET_CSS
-      document.head.appendChild(link)
-    }
-    const script = document.createElement('script')
-    script.src = LEAFLET_JS
-    script.onload  = () => resolve(window.L)
-    script.onerror = () => reject(new Error('Failed to load Leaflet'))
-    document.head.appendChild(script)
-  })
-}
+const RADII = [10, 20, 30, 50, 100, 150, 200]
 
 export default function LecturerGenerateQRPage() {
-  const [step, setStep]       = useState('map')
-  const [weeks, setWeeks]     = useState([])
+  const [step, setStep] = useState('map')
+  const [weeks, setWeeks] = useState([])
+  const [weeksLoading, setWeeksLoading] = useState(true)
   const [weekNumber, setWeekNumber] = useState('')
-  const [radius, setRadius]   = useState(100)
-  const [pin, setPin]         = useState(null)
+  const [radius, setRadius] = useState(100)
+  const [pin, setPin] = useState(null)
   const [session, setSession] = useState(null)
-  const [qrUrl, setQrUrl]     = useState('')
+  const [qrUrl, setQrUrl] = useState('')
   const [loading, setLoading] = useState(false)
-  const [ending, setEnding]   = useState(false)
-  const [error, setError]     = useState('')
+  const [ending, setEnding] = useState(false)
+  const [error, setError] = useState('')
   const [mapReady, setMapReady] = useState(false)
   const [pinStatus, setPinStatus] = useState('idle')
 
-  const mapRef    = useRef(null)
-  const leaflet   = useRef(null)
+  const mapRef = useRef(null)
+  const leaflet = useRef(null)
   const markerRef = useRef(null)
   const circleRef = useRef(null)
+  const radiusRef = useRef(radius)
+
+  useEffect(() => { radiusRef.current = radius }, [radius])
 
   useEffect(() => {
     lecturerApi.getWeeks()
@@ -54,60 +41,79 @@ export default function LecturerGenerateQRPage() {
         if (list.length) setWeekNumber(String(list[0].week_number))
       })
       .catch(() => setError('Failed to load weeks. Add weeks first.'))
+      .finally(() => setWeeksLoading(false))
   }, [])
 
-  useEffect(() => {
-    let destroyed = false
-    loadLeaflet().then(L => {
-      if (destroyed || !mapRef.current || leaflet.current) return
-      delete L.Icon.Default.prototype._getIconUrl
-      L.Icon.Default.mergeOptions({
-        iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-        iconUrl:       'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-        shadowUrl:     'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-      })
-      const map = L.map(mapRef.current, { zoomControl: true }).setView([6.6884, -1.6244], 16)
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap', maxZoom: 19,
-      }).addTo(map)
-      const pinIcon = L.divIcon({ className: '', html: `<div class="map-pin-icon"></div>`, iconSize: [28, 28], iconAnchor: [14, 28] })
-      map.on('click', e => placePin(L, map, pinIcon, e.latlng.lat, e.latlng.lng))
-      leaflet.current = { map, L, pinIcon }
-      setMapReady(true)
-      setTimeout(() => map.invalidateSize(), 200)
-    }).catch(() => setError('Failed to load map.'))
-    return () => {
-      destroyed = true
-      if (leaflet.current?.map) { leaflet.current.map.remove(); leaflet.current = null }
-    }
-  }, [])
-
-  useEffect(() => {
-    if (circleRef.current) circleRef.current.setRadius(radius)
-  }, [radius])
-
-  const placePin = (L, map, pinIcon, lat, lng) => {
+  const placePin = useCallback((map, pinIcon, lat, lng) => {
     if (markerRef.current) map.removeLayer(markerRef.current)
     if (circleRef.current) map.removeLayer(circleRef.current)
+
+    const r = radiusRef.current
     const marker = L.marker([lat, lng], { icon: pinIcon, draggable: true }).addTo(map)
-    const circle = L.circle([lat, lng], { radius, color: '#0066ff', fillColor: '#0066ff', fillOpacity: 0.1, weight: 2, dashArray: '6 4' }).addTo(map)
+    const circle = L.circle([lat, lng], {
+      radius: r, color: '#0066ff', fillColor: '#0066ff', fillOpacity: 0.1, weight: 2, dashArray: '6 4',
+    }).addTo(map)
+
     marker.on('dragend', e => {
       const { lat: la, lng: lo } = e.target.getLatLng()
       setPin({ lat: la, lng: lo })
       circle.setLatLng([la, lo])
     })
+
     markerRef.current = marker
     circleRef.current = circle
     setPin({ lat, lng })
     setPinStatus('set')
     map.setView([lat, lng], 18)
-  }
+  }, [])
+
+  const mapActive = step === 'map' && !weeksLoading && weeks.length > 0
+
+  useEffect(() => {
+    if (!mapActive || !mapRef.current) return
+
+    ensureLeafletIcons()
+    setMapReady(false)
+
+    const pinIcon = L.divIcon({
+      className: '', html: '<div class="map-pin-icon"></div>',
+      iconSize: [28, 28], iconAnchor: [14, 28],
+    })
+
+    const map = L.map(mapRef.current, { zoomControl: true }).setView([6.6884, -1.6244], 16)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap', maxZoom: 19,
+    }).addTo(map)
+
+    map.on('click', e => placePin(map, pinIcon, e.latlng.lat, e.latlng.lng))
+    leaflet.current = { map, pinIcon }
+
+    const refresh = () => map.invalidateSize()
+    const t1 = setTimeout(refresh, 100)
+    const t2 = setTimeout(refresh, 400)
+    const t3 = setTimeout(() => { refresh(); setMapReady(true) }, 600)
+
+    return () => {
+      clearTimeout(t1)
+      clearTimeout(t2)
+      clearTimeout(t3)
+      map.remove()
+      leaflet.current = null
+      markerRef.current = null
+      circleRef.current = null
+      setMapReady(false)
+    }
+  }, [mapActive, placePin])
+
+  useEffect(() => {
+    if (circleRef.current) circleRef.current.setRadius(radius)
+  }, [radius])
 
   const autoLocate = () => {
     if (!navigator.geolocation || !leaflet.current) return
-    const { map, L, pinIcon } = leaflet.current
+    const { map, pinIcon } = leaflet.current
     navigator.geolocation.getCurrentPosition(
-      p => placePin(L, map, pinIcon, p.coords.latitude, p.coords.longitude),
+      p => placePin(map, pinIcon, p.coords.latitude, p.coords.longitude),
       () => setError('Could not get your location.'),
       { enableHighAccuracy: true, timeout: 10000 }
     )
@@ -140,14 +146,22 @@ export default function LecturerGenerateQRPage() {
     try {
       await lecturerApi.endSession({ session_id: session.id })
       setSession(null); setQrUrl(''); setPin(null); setPinStatus('idle'); setStep('map')
-      if (markerRef.current) leaflet.current?.map?.removeLayer(markerRef.current)
-      if (circleRef.current) leaflet.current?.map?.removeLayer(circleRef.current)
-      markerRef.current = null; circleRef.current = null
     } catch { setError('Failed to end session.') }
     finally { setEnding(false) }
   }
 
-  if (!weeks.length && !error) {
+  if (weeksLoading) {
+    return (
+      <div className="animate-fade-up">
+        <PageHeader title="Generate Attendance QR" subtitle="Loading your weeks…" />
+        <Card style={{ padding: 40, textAlign: 'center' }}>
+          <Loader2 size={32} className="animate-spin" style={{ color: 'var(--blue)', margin: '0 auto' }} />
+        </Card>
+      </div>
+    )
+  }
+
+  if (!weeks.length) {
     return (
       <div className="animate-fade-up">
         <PageHeader title="Generate Attendance QR" subtitle="Set up weeks before taking attendance" />
@@ -179,7 +193,12 @@ export default function LecturerGenerateQRPage() {
               <Button variant="ghost" size="sm" icon={<Navigation size={14}/>} onClick={autoLocate} style={{ marginLeft: 'auto' }}>Use GPS</Button>
             </div>
             <div className="qr-map-wrap">
-              {!mapReady && <div className="qr-map-loading"><Loader2 size={28} className="animate-spin" style={{ color: 'var(--blue)' }}/><p>Loading map…</p></div>}
+              {!mapReady && (
+                <div className="qr-map-loading">
+                  <Loader2 size={28} className="animate-spin" style={{ color: 'var(--blue)' }}/>
+                  <p>Loading map…</p>
+                </div>
+              )}
               <div ref={mapRef} className="qr-map" style={{ opacity: mapReady ? 1 : 0 }} />
             </div>
             <div className={`pin-status ${pinStatus === 'set' ? 'ps-ok' : 'ps-wait'}`}>
