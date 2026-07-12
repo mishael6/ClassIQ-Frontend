@@ -114,7 +114,10 @@ export default function AdminIssuesPage() {
       setReply('')
       await refreshThread(selected.id)
       load(true)
-    } catch { setError('Failed to send message.') }
+    } catch (err) {
+      const msg = err?.response?.data?.message || 'Failed to send message.'
+      setError(msg)
+    }
     finally { setSending(false) }
   }
 

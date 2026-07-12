@@ -105,8 +105,10 @@ export default function ReportIssuePage() {
       setReply('')
       await refreshThread(selected.id)
       loadIssues(true)
-    } catch { setError('Failed to send.') }
-    finally { setSending(false) }
+    } catch (err) {
+      const msg = err?.response?.data?.message || 'Failed to send.'
+      setError(msg)
+    } finally { setSending(false) }
   }
 
   const submitNew = async e => {
