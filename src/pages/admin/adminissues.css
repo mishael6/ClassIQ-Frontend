@@ -224,7 +224,19 @@
   flex-shrink: 0;
 }
 .chat-subject-label { color: var(--muted); font-weight: 700; flex-shrink: 0; }
-.chat-subject-text  { color: var(--txt2); }
+.chat-subject-text  { color: var(--txt2); flex: 1; min-width: 0; }
+
+.chat-live-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #10b981;
+  letter-spacing: 0.02em;
+  flex-shrink: 0;
+}
 
 /* Messages area */
 .chat-messages {

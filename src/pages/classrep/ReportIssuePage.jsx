@@ -1,10 +1,13 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { classrepApi } from '../../lib/api'
 import { messagesApi } from '../../lib/api'
 import { Card, PageHeader, Button, Alert } from '../../components/ui'
 import { Send, Plus, MessageSquare, ChevronLeft } from 'lucide-react'
 import '../../components/ui/components.css'
 import './reportissue.css'
+
+const POLL_THREAD_MS = 3000
+const POLL_LIST_MS = 10000
 
 const timeAgo = (dt) => {
   if (!dt) return ''
@@ -15,6 +18,11 @@ const timeAgo = (dt) => {
   const h = Math.floor(m / 60)
   if (h < 24) return `${h}h ago`
   return new Date(dt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+}
+
+const messagesChanged = (prev, next) => {
+  if (prev.length !== next.length) return true
+  return prev.some((m, i) => (m.id ?? i) !== (next[i]?.id ?? i) || m.message !== next[i]?.message)
 }
 
 export default function ReportIssuePage() {
@@ -30,17 +38,48 @@ export default function ReportIssuePage() {
   const [success,   setSuccess]   = useState('')
   const [newForm,   setNewForm]   = useState({ subject: '', message: '' })
   const [submitting, setSubmitting] = useState(false)
+  const [live, setLive] = useState(false)
   const bottomRef = useRef(null)
 
-  const loadIssues = () => {
-    setLoading(true)
+  const loadIssues = useCallback((silent = false) => {
+    if (!silent) setLoading(true)
     classrepApi.getMyIssues()
       .then(r => setIssues(r.data.issues || []))
-      .catch(() => setError('Failed to load issues.'))
-      .finally(() => setLoading(false))
-  }
+      .catch(() => { if (!silent) setError('Failed to load issues.') })
+      .finally(() => { if (!silent) setLoading(false) })
+  }, [])
 
-  useEffect(() => { loadIssues() }, [])
+  useEffect(() => { loadIssues() }, [loadIssues])
+
+  useEffect(() => {
+    if (view !== 'list') return undefined
+    const id = setInterval(() => loadIssues(true), POLL_LIST_MS)
+    return () => clearInterval(id)
+  }, [view, loadIssues])
+
+  const refreshThread = useCallback(async (issueId, silent = true) => {
+    try {
+      const r = await messagesApi.getThread(issueId)
+      const next = r.data.messages || []
+      setThread(prev => messagesChanged(prev, next) ? next : prev)
+      if (r.data.issue) {
+        setSelected(prev => prev ? { ...prev, ...r.data.issue } : prev)
+      }
+    } catch {
+      if (!silent) setError('Failed to refresh conversation.')
+    }
+  }, [])
+
+  useEffect(() => {
+    if (view !== 'thread' || !selected?.id) {
+      setLive(false)
+      return undefined
+    }
+    setLive(true)
+    refreshThread(selected.id)
+    const id = setInterval(() => refreshThread(selected.id), POLL_THREAD_MS)
+    return () => { clearInterval(id); setLive(false) }
+  }, [view, selected?.id, refreshThread])
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -55,7 +94,7 @@ export default function ReportIssuePage() {
       setThread(r.data.messages || [])
     } catch { setThread([]) }
     finally { setLoadingThread(false) }
-    loadIssues() // refresh to clear unread badge
+    loadIssues(true)
   }
 
   const sendReply = async () => {
@@ -64,8 +103,8 @@ export default function ReportIssuePage() {
     try {
       await messagesApi.sendMessage({ issue_id: selected.id, message: reply.trim() })
       setReply('')
-      const r = await messagesApi.getThread(selected.id)
-      setThread(r.data.messages || [])
+      await refreshThread(selected.id)
+      loadIssues(true)
     } catch { setError('Failed to send.') }
     finally { setSending(false) }
   }
@@ -204,9 +243,12 @@ export default function ReportIssuePage() {
             </button>
             <div>
               <p className="ri-thread-subject">{selected.subject}</p>
-              <span className={`ri-status ri-status-${selected.status}`}>
-                {selected.status === 'resolved' ? '✅ Resolved' : '🕐 Pending'}
-              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
+                <span className={`ri-status ri-status-${selected.status}`}>
+                  {selected.status === 'resolved' ? '✅ Resolved' : '🕐 Pending'}
+                </span>
+                {live && <span className="ri-live-badge">● Live</span>}
+              </div>
             </div>
           </div>
 
@@ -249,10 +291,9 @@ export default function ReportIssuePage() {
           <div className="chat-reply-box">
             <textarea
               className="chat-reply-input"
-              placeholder={selected.status === 'resolved' ? 'This issue is resolved.' : 'Type your reply… (Enter to send)'}
+              placeholder={selected.status === 'resolved' ? 'Reply to reopen this issue…' : 'Type your reply… (Enter to send)'}
               value={reply}
               onChange={e => setReply(e.target.value)}
-              disabled={selected.status === 'resolved'}
               onKeyDown={e => {
                 if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendReply() }
               }}
@@ -262,7 +303,7 @@ export default function ReportIssuePage() {
               variant="primary"
               icon={<Send size={15}/>}
               loading={sending}
-              disabled={!reply.trim() || selected.status === 'resolved'}
+              disabled={!reply.trim()}
               onClick={sendReply}
             >
               Send

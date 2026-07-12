@@ -121,6 +121,17 @@
   margin-bottom: 3px;
 }
 
+.ri-live-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 8px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #10b981;
+  letter-spacing: 0.02em;
+}
+
 /* Chat messages for classrep view */
 .ri-chat-messages {
   padding: 20px;

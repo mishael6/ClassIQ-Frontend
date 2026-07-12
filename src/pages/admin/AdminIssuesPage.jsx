@@ -7,6 +7,9 @@ import { Send, RefreshCw, CheckCircle, Clock, RotateCcw, MessageSquare } from 'l
 import '../../components/ui/components.css'
 import './adminissues.css'
 
+const POLL_THREAD_MS = 3000
+const POLL_LIST_MS = 10000
+
 const initials = (name = '') =>
   name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
 
@@ -21,6 +24,11 @@ const timeAgo = (dt) => {
   return new Date(dt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
 }
 
+const messagesChanged = (prev, next) => {
+  if (prev.length !== next.length) return true
+  return prev.some((m, i) => (m.id ?? i) !== (next[i]?.id ?? i) || m.message !== next[i]?.message)
+}
+
 export default function AdminIssuesPage() {
   const [issues,   setIssues]   = useState([])
   const [filter,   setFilter]   = useState('all')
@@ -31,17 +39,55 @@ export default function AdminIssuesPage() {
   const [loadingThread, setLoadingThread] = useState(false)
   const [reply,    setReply]    = useState('')
   const [sending,  setSending]  = useState(false)
+  const [live,     setLive]     = useState(false)
   const bottomRef = useRef(null)
 
-  const load = useCallback(() => {
-    setLoading(true)
+  const load = useCallback((silent = false) => {
+    if (!silent) setLoading(true)
     adminApi.getIssues({ status: filter === 'all' ? '' : filter })
-      .then(r => setIssues(r.data.issues || []))
-      .catch(() => setError('Failed to load issues.'))
-      .finally(() => setLoading(false))
+      .then(r => {
+        const next = r.data.issues || []
+        setIssues(next)
+        setSelected(prev => {
+          if (!prev) return prev
+          const updated = next.find(i => i.id === prev.id)
+          return updated ? { ...prev, ...updated } : prev
+        })
+      })
+      .catch(() => { if (!silent) setError('Failed to load issues.') })
+      .finally(() => { if (!silent) setLoading(false) })
   }, [filter])
 
-  useEffect(() => { load() }, [filter])
+  useEffect(() => { load() }, [load])
+
+  useEffect(() => {
+    const id = setInterval(() => load(true), POLL_LIST_MS)
+    return () => clearInterval(id)
+  }, [load])
+
+  const refreshThread = useCallback(async (issueId, silent = true) => {
+    try {
+      const r = await messagesApi.getThread(issueId)
+      const next = r.data.messages || []
+      setThread(prev => messagesChanged(prev, next) ? next : prev)
+      if (r.data.issue) {
+        setSelected(prev => prev ? { ...prev, ...r.data.issue } : prev)
+      }
+    } catch {
+      if (!silent) setError('Failed to refresh conversation.')
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!selected?.id) {
+      setLive(false)
+      return undefined
+    }
+    setLive(true)
+    refreshThread(selected.id)
+    const id = setInterval(() => refreshThread(selected.id), POLL_THREAD_MS)
+    return () => { clearInterval(id); setLive(false) }
+  }, [selected?.id, refreshThread])
 
   const openIssue = async (issue) => {
     setSelected(issue)
@@ -52,8 +98,7 @@ export default function AdminIssuesPage() {
       setThread(r.data.messages || [])
     } catch { setThread([]) }
     finally { setLoadingThread(false) }
-    // Refresh list to clear unread badge
-    load()
+    load(true)
   }
 
   // Scroll to bottom when thread updates
@@ -67,9 +112,8 @@ export default function AdminIssuesPage() {
     try {
       await messagesApi.sendMessage({ issue_id: selected.id, message: reply.trim() })
       setReply('')
-      // Refresh thread
-      const r = await messagesApi.getThread(selected.id)
-      setThread(r.data.messages || [])
+      await refreshThread(selected.id)
+      load(true)
     } catch { setError('Failed to send message.') }
     finally { setSending(false) }
   }
@@ -102,7 +146,7 @@ export default function AdminIssuesPage() {
         title="Reported Issues"
         subtitle="View and respond to issues from class representatives & students"
         actions={
-          <Button size="sm" variant="secondary" icon={<RefreshCw size={14}/>} onClick={load}>
+          <Button size="sm" variant="secondary" icon={<RefreshCw size={14}/>} onClick={() => load()}>
             Refresh
           </Button>
         }
@@ -216,6 +260,7 @@ export default function AdminIssuesPage() {
               <div className="chat-subject">
                 <span className="chat-subject-label">Subject:</span>
                 <span className="chat-subject-text">{selected.subject}</span>
+                {live && <span className="chat-live-badge">● Live</span>}
               </div>
 
               {/* Messages */}
@@ -263,10 +308,10 @@ export default function AdminIssuesPage() {
               <div className="chat-reply-box">
                 <textarea
                   className="chat-reply-input"
-                  placeholder={selected.status === 'resolved' ? 'This issue is resolved. Reopen to reply.' : 'Type your reply…'}
+                  placeholder={selected.status === 'closed' ? 'This issue is closed.' : 'Type your reply…'}
                   value={reply}
                   onChange={e => setReply(e.target.value)}
-                  disabled={selected.status === 'resolved'}
+                  disabled={selected.status === 'closed'}
                   onKeyDown={e => {
                     if (e.key === 'Enter' && !e.shiftKey) {
                       e.preventDefault()
@@ -279,7 +324,7 @@ export default function AdminIssuesPage() {
                   variant="primary"
                   icon={<Send size={15}/>}
                   loading={sending}
-                  disabled={!reply.trim() || selected.status === 'resolved'}
+                  disabled={!reply.trim() || selected.status === 'closed'}
                   onClick={sendReply}
                 >
                   Send
