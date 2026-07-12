@@ -1,33 +1,13 @@
 import { useState, useEffect } from 'react'
 import { lecturerApi } from '../../lib/api'
 import { Card, PageHeader, Button, Alert, Input, Modal } from '../../components/ui'
-import { Plus, Copy, Download, Trash2, Edit2, Users, GraduationCap } from 'lucide-react'
+import LecturerStudentDetailModal from '../../components/lecturer/LecturerStudentDetailModal'
+import { exportStudentsCsv } from '../../lib/exportCsv'
+import { Plus, Copy, Download, Trash2, Edit2, Users, GraduationCap, Search, ChevronRight } from 'lucide-react'
 import '../../components/ui/components.css'
+import '../classrep/dashboard.css'
 import './classes.css'
-
-function exportClassCSV(cohort) {
-  const students = cohort.students || []
-  if (!students.length) return
-  const headers = ['Name', 'Index Number', 'Email', 'Phone', 'Present Count', 'Last Seen']
-  const rows = students.map(s => [
-    `"${(s.name || '').replace(/"/g, '""')}"`,
-    `"${(s.index_number || '').replace(/"/g, '""')}"`,
-    `"${(s.email || '').replace(/"/g, '""')}"`,
-    `"${(s.phone || '').replace(/"/g, '""')}"`,
-    s.present_count || 0,
-    s.last_seen || '',
-  ])
-  const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n')
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = `classiq-${(cohort.name || 'class').replace(/[^\w-]+/g, '-')}-${new Date().toISOString().slice(0, 10)}.csv`
-  document.body.appendChild(a)
-  a.click()
-  document.body.removeChild(a)
-  URL.revokeObjectURL(url)
-}
+import './lecturer-student.css'
 
 const fmtDate = (d) => d ? new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'
 
@@ -40,6 +20,8 @@ export default function LecturerClassesPage() {
   const [form, setForm] = useState({})
   const [saving, setSaving] = useState(false)
   const [openClass, setOpenClass] = useState({})
+  const [search, setSearch] = useState('')
+  const [selectedStudent, setSelectedStudent] = useState(null)
 
   const load = () => {
     setLoading(true)
@@ -151,6 +133,21 @@ export default function LecturerClassesPage() {
       {error && <Alert variant="error" onClose={() => setError('')} style={{ marginBottom: 16 }}>{error}</Alert>}
       {success && <Alert variant="success" onClose={() => setSuccess('')} style={{ marginBottom: 16 }}>{success}</Alert>}
 
+      {!loading && cohorts.length > 0 && (
+        <div className="classes-search-row">
+          <div className="dash-search-wrap">
+            <Search size={14} className="dash-search-icon" />
+            <input
+              className="dash-search-input"
+              placeholder="Search students by name or index…"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+            />
+            {search && <button type="button" className="dash-search-clear" onClick={() => setSearch('')}>×</button>}
+          </div>
+        </div>
+      )}
+
       {loading ? (
         <Card style={{ padding: 40, textAlign: 'center' }}><div className="spinner" style={{ margin: '0 auto' }}/></Card>
       ) : cohorts.length === 0 ? (
@@ -160,7 +157,13 @@ export default function LecturerClassesPage() {
           <Button size="sm" icon={<Plus size={14}/>} onClick={() => { setForm({}); setModal('class') }}>Add Class</Button>
         </Card>
       ) : (
-        cohorts.map(cohort => (
+        cohorts.map(cohort => {
+          const q = search.trim().toLowerCase()
+          const students = (cohort.students || []).filter(s =>
+            !q || s.name?.toLowerCase().includes(q) || s.index_number?.toLowerCase().includes(q) || s.email?.toLowerCase().includes(q)
+          )
+          if (q && !students.length) return null
+          return (
           <Card key={cohort.id} className="class-card" style={{ marginBottom: 16 }}>
             <div className="class-card-head">
               <button
@@ -170,7 +173,7 @@ export default function LecturerClassesPage() {
               >
                 <GraduationCap size={18}/>
                 <h2 className="class-name">{cohort.name}</h2>
-                <span className="class-count">{cohort.student_count || (cohort.students || []).length} students</span>
+                <span className="class-count">{students.length} students</span>
               </button>
               <div className="class-actions">
                 <Button size="sm" variant="ghost" icon={<Edit2 size={13}/>} onClick={() => { setForm({ id: cohort.id, name: cohort.name }); setModal('class') }}>Rename</Button>
@@ -192,13 +195,13 @@ export default function LecturerClassesPage() {
                     size="sm"
                     variant="secondary"
                     icon={<Download size={14}/>}
-                    disabled={!(cohort.students || []).length}
-                    onClick={() => exportClassCSV(cohort)}
+                    disabled={!students.length}
+                    onClick={() => exportStudentsCsv(students.map(s => ({ ...s, class_name: cohort.name })), cohort.name)}
                   >
                     Export CSV
                   </Button>
                 </div>
-                {(cohort.students || []).length === 0 ? (
+                {students.length === 0 ? (
                   <p className="class-stu-empty">No students yet. Share the registration link above.</p>
                 ) : (
                   <div className="table-wrap">
@@ -214,8 +217,8 @@ export default function LecturerClassesPage() {
                         </tr>
                       </thead>
                       <tbody>
-                        {(cohort.students || []).map(s => (
-                          <tr key={s.id}>
+                        {students.map(s => (
+                          <tr key={s.id} className="dash-stu-row" onClick={() => setSelectedStudent({ ...s, class_name: cohort.name })}>
                             <td>
                               <p className="dash-stu-name">{s.name}</p>
                               <p className="dash-stu-email">{s.email}</p>
@@ -224,7 +227,7 @@ export default function LecturerClassesPage() {
                             <td style={{ fontSize: '0.85rem' }}>{s.phone}</td>
                             <td><span className="dash-present-badge">{s.present_count || 0}</span></td>
                             <td style={{ color: 'var(--muted)', fontSize: '0.82rem' }}>{fmtDate(s.last_seen)}</td>
-                            <td>
+                            <td onClick={e => e.stopPropagation()}>
                               <Button size="sm" variant="ghost" icon={<Trash2 size={12}/>} onClick={() => removeStudent(s.id, s.name)} />
                             </td>
                           </tr>
@@ -236,8 +239,11 @@ export default function LecturerClassesPage() {
               </div>
             )}
           </Card>
-        ))
+          )
+        })
       )}
+
+      <LecturerStudentDetailModal student={selectedStudent} onClose={() => setSelectedStudent(null)} />
 
       <Modal
         open={modal === 'class'}

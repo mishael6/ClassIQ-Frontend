@@ -1,5 +1,10 @@
 .classes-page { padding-bottom: 40px; }
 
+.classes-search-row {
+  margin-bottom: 16px;
+}
+
+
 .classes-empty {
   padding: 48px 24px;
   text-align: center;

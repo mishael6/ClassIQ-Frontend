@@ -86,6 +86,7 @@ export const lecturerApi = {
   generateQR:    data => api.post('/lecturer/generate_qr.php', data),
   endSession:    data => api.post('/lecturer/end_session.php', data),
   getAttendance: ()   => api.get('/lecturer/attendance.php'),
+  getStudentDetail: (id) => api.get('/lecturer/student_detail.php', { params: { id } }),
 }
 
 // ── Student ───────────────────────────────────────────────────
