@@ -72,10 +72,11 @@ export const classrepApi = {
 // ── Lecturer ──────────────────────────────────────────────────
 export const lecturerApi = {
   getDashboard:  ()   => api.get('/lecturer/dashboard.php'),
+  getSchedule:   ()   => api.get('/lecturer/schedule.php'),
+  addSchedule:   data => api.post('/lecturer/schedule.php', data),
+  updateSchedule:data => api.put('/lecturer/schedule.php', data),
+  deleteSchedule:(type, id) => api.delete('/lecturer/schedule.php', { data: { type, id } }),
   getWeeks:      ()   => api.get('/lecturer/weeks.php'),
-  addWeek:       data => api.post('/lecturer/weeks.php', data),
-  updateWeek:    data => api.put('/lecturer/weeks.php', data),
-  deleteWeek:    id   => api.delete('/lecturer/weeks.php', { data: { id } }),
   generateQR:    data => api.post('/lecturer/generate_qr.php', data),
   endSession:    data => api.post('/lecturer/end_session.php', data),
   getAttendance: ()   => api.get('/lecturer/attendance.php'),

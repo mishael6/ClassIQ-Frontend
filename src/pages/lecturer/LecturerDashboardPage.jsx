@@ -27,7 +27,7 @@ export default function LecturerDashboardPage() {
 
   const stats = data?.stats || {}
   const chart = data?.chart || []
-  const weekStats = data?.week_stats || []
+  const classStats = data?.class_stats || data?.week_stats || []
   const students = data?.students || []
 
   return (
@@ -47,8 +47,8 @@ export default function LecturerDashboardPage() {
       <div className="stats-grid">
         <StatCard label="Total Students" value={stats.total_students} icon={<Users size={20}/>} color="blue" change="Registered" />
         <StatCard label="Attendance Today" value={stats.attendance_today} icon={<CheckCircle size={20}/>} color="green" change="Marked today" />
-        <StatCard label="Weeks Configured" value={stats.total_weeks} icon={<Calendar size={20}/>} color="purple" change="Topics set" />
-        <StatCard label="Last Session" value={stats.last_session} icon={<Clock size={20}/>} color="orange" />
+        <StatCard label="Semesters" value={stats.total_semesters} icon={<Calendar size={20}/>} color="purple" change="Configured" />
+        <StatCard label="Classes" value={stats.total_classes} icon={<CheckCircle size={20}/>} color="green" change="With topics" />
       </div>
 
       <div className="dash-top-grid">
@@ -81,7 +81,7 @@ export default function LecturerDashboardPage() {
             <div className="quick-actions">
               <Link to="/lecturer/weeks" className="quick-btn">
                 <div className="quick-icon purple"><Calendar size={22}/></div>
-                <span>Manage Weeks</span>
+                <span>Manage Schedule</span>
               </Link>
               <Link to="/lecturer/generate-qr" className="quick-btn">
                 <div className="quick-icon blue"><QrCode size={22}/></div>
@@ -111,19 +111,21 @@ export default function LecturerDashboardPage() {
 
       <Card style={{ marginBottom: 20 }}>
         <div className="card-head">
-          <h2 className="card-title">Per-Week Stats</h2>
-          <Link to="/lecturer/weeks" className="card-link">Manage weeks →</Link>
+          <h2 className="card-title">Per-Class Stats</h2>
+          <Link to="/lecturer/weeks" className="card-link">Manage schedule →</Link>
         </div>
-        {weekStats.length === 0 ? (
+        {classStats.length === 0 ? (
           <p style={{ color: 'var(--muted)', padding: '12px 0' }}>
-            No weeks yet. <Link to="/lecturer/weeks">Add week topics</Link> before taking attendance.
+            No classes yet. <Link to="/lecturer/weeks">Set up semester, weeks & classes</Link> before taking attendance.
           </p>
         ) : (
           <div className="table-wrap">
             <table className="table">
               <thead>
                 <tr>
+                  <th>Semester</th>
                   <th>Week</th>
+                  <th>Class</th>
                   <th>Topic</th>
                   <th>Total Marks</th>
                   <th>Present</th>
@@ -132,9 +134,11 @@ export default function LecturerDashboardPage() {
                 </tr>
               </thead>
               <tbody>
-                {weekStats.map(w => (
-                  <tr key={w.id}>
+                {classStats.map(w => (
+                  <tr key={w.class_id || w.id}>
+                    <td>{w.semester_name}</td>
                     <td><Badge variant="blue">Week {w.week_number}</Badge></td>
+                    <td>Class {w.class_number}</td>
                     <td>{w.topic}</td>
                     <td>{w.total_marks || 0}</td>
                     <td>{w.present_count || 0}</td>

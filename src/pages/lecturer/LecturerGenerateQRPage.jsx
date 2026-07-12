@@ -12,9 +12,11 @@ const RADII = [10, 20, 30, 50, 100, 150, 200]
 
 export default function LecturerGenerateQRPage() {
   const [step, setStep] = useState('map')
-  const [weeks, setWeeks] = useState([])
-  const [weeksLoading, setWeeksLoading] = useState(true)
-  const [weekNumber, setWeekNumber] = useState('')
+  const [semesters, setSemesters] = useState([])
+  const [scheduleLoading, setScheduleLoading] = useState(true)
+  const [semesterId, setSemesterId] = useState('')
+  const [weekId, setWeekId] = useState('')
+  const [classId, setClassId] = useState('')
   const [radius, setRadius] = useState(100)
   const [pin, setPin] = useState(null)
   const [session, setSession] = useState(null)
@@ -34,15 +36,31 @@ export default function LecturerGenerateQRPage() {
   useEffect(() => { radiusRef.current = radius }, [radius])
 
   useEffect(() => {
-    lecturerApi.getWeeks()
+    lecturerApi.getSchedule()
       .then(r => {
-        const list = r.data.weeks || []
-        setWeeks(list)
-        if (list.length) setWeekNumber(String(list[0].week_number))
+        const list = r.data.semesters || []
+        setSemesters(list)
+        if (list.length) {
+          const sem = list[0]
+          setSemesterId(String(sem.id))
+          const wk = sem.weeks?.[0]
+          if (wk) {
+            setWeekId(String(wk.id))
+            const cls = wk.classes?.[0]
+            if (cls) setClassId(String(cls.id))
+          }
+        }
       })
-      .catch(() => setError('Failed to load weeks. Add weeks first.'))
-      .finally(() => setWeeksLoading(false))
+      .catch(() => setError('Failed to load schedule. Set up your schedule first.'))
+      .finally(() => setScheduleLoading(false))
   }, [])
+
+  const selectedSemester = semesters.find(s => String(s.id) === String(semesterId))
+  const weeks = selectedSemester?.weeks || []
+  const selectedWeek = weeks.find(w => String(w.id) === String(weekId))
+  const classes = selectedWeek?.classes || []
+  const selectedClass = classes.find(c => String(c.id) === String(classId))
+  const hasClasses = semesters.some(s => (s.weeks || []).some(w => (w.classes || []).length > 0))
 
   const placePin = useCallback((map, pinIcon, lat, lng) => {
     if (markerRef.current) map.removeLayer(markerRef.current)
@@ -67,7 +85,7 @@ export default function LecturerGenerateQRPage() {
     map.setView([lat, lng], 18)
   }, [])
 
-  const mapActive = step === 'map' && !weeksLoading && weeks.length > 0
+  const mapActive = step === 'map' && !scheduleLoading && hasClasses
 
   useEffect(() => {
     if (!mapActive || !mapRef.current) return
@@ -119,15 +137,13 @@ export default function LecturerGenerateQRPage() {
     )
   }
 
-  const selectedWeek = weeks.find(w => String(w.week_number) === String(weekNumber))
-
   const generate = async () => {
     if (!pin) { setError('Please drop a pin on the map first.'); return }
-    if (!weekNumber) { setError('Please select a week.'); return }
+    if (!classId) { setError('Please select semester, week, and class.'); return }
     setError(''); setLoading(true)
     try {
       const { data } = await lecturerApi.generateQR({
-        week_number: parseInt(weekNumber, 10), lat: pin.lat, lng: pin.lng, radius_m: radius,
+        class_id: parseInt(classId, 10), lat: pin.lat, lng: pin.lng, radius_m: radius,
       })
       if (data.success !== false && (data.session || data.attendance_url)) {
         setSession(data.session)
@@ -150,10 +166,10 @@ export default function LecturerGenerateQRPage() {
     finally { setEnding(false) }
   }
 
-  if (weeksLoading) {
+  if (scheduleLoading) {
     return (
       <div className="animate-fade-up">
-        <PageHeader title="Generate Attendance QR" subtitle="Loading your weeks…" />
+        <PageHeader title="Generate Attendance QR" subtitle="Loading your schedule…" />
         <Card style={{ padding: 40, textAlign: 'center' }}>
           <Loader2 size={32} className="animate-spin" style={{ color: 'var(--blue)', margin: '0 auto' }} />
         </Card>
@@ -161,13 +177,15 @@ export default function LecturerGenerateQRPage() {
     )
   }
 
-  if (!weeks.length) {
+  if (!hasClasses) {
     return (
       <div className="animate-fade-up">
-        <PageHeader title="Generate Attendance QR" subtitle="Set up weeks before taking attendance" />
+        <PageHeader title="Generate Attendance QR" subtitle="Set up your teaching schedule first" />
         <Card style={{ padding: 32, textAlign: 'center' }}>
-          <p style={{ color: 'var(--muted)', marginBottom: 16 }}>You need at least one week with a topic before generating QR codes.</p>
-          <Link to="/lecturer/weeks"><Button>Add Weeks & Topics</Button></Link>
+          <p style={{ color: 'var(--muted)', marginBottom: 16 }}>
+            Add a semester, then weeks, then classes with topics before generating QR codes.
+          </p>
+          <Link to="/lecturer/weeks"><Button>Set Up Schedule</Button></Link>
         </Card>
       </div>
     )
@@ -177,7 +195,7 @@ export default function LecturerGenerateQRPage() {
     <div className="animate-fade-up qr-page">
       <PageHeader
         title="Generate Attendance QR"
-        subtitle={step === 'map' ? 'Pin your classroom, select a week/topic, then generate' : 'Show this QR to students'}
+        subtitle={step === 'map' ? 'Pin your classroom, pick semester/week/class, then generate' : 'Show this QR to students'}
       />
       {error && <Alert variant="error" onClose={() => setError('')} style={{ marginBottom: 16 }}>{error}</Alert>}
 
@@ -219,18 +237,36 @@ export default function LecturerGenerateQRPage() {
               <div className="step-head">
                 <div className="step-num">2</div>
                 <div>
-                  <p className="step-title">Select Week & Topic</p>
-                  <p className="step-sub">Attendance will be saved under this week number</p>
+                  <p className="step-title">Select Semester, Week & Class</p>
+                  <p className="step-sub">Attendance is saved per class session</p>
                 </div>
               </div>
-              <Select label="Week & Topic" value={weekNumber} onChange={e => setWeekNumber(e.target.value)} style={{ marginTop: 12 }}>
-                {weeks.map(w => (
-                  <option key={w.id} value={w.week_number}>Week {w.week_number} — {w.topic}</option>
+              <Select label="Semester" value={semesterId} onChange={e => {
+                const id = e.target.value
+                setSemesterId(id)
+                const sem = semesters.find(s => String(s.id) === id)
+                const wk = sem?.weeks?.[0]
+                setWeekId(wk ? String(wk.id) : '')
+                setClassId(wk?.classes?.[0] ? String(wk.classes[0].id) : '')
+              }} style={{ marginTop: 12 }}>
+                {semesters.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+              </Select>
+              <Select label="Week" value={weekId} onChange={e => {
+                const id = e.target.value
+                setWeekId(id)
+                const wk = weeks.find(w => String(w.id) === id)
+                setClassId(wk?.classes?.[0] ? String(wk.classes[0].id) : '')
+              }} style={{ marginTop: 12 }} disabled={!weeks.length}>
+                {weeks.map(w => <option key={w.id} value={w.id}>Week {w.week_number}</option>)}
+              </Select>
+              <Select label="Class & Topic" value={classId} onChange={e => setClassId(e.target.value)} style={{ marginTop: 12 }} disabled={!classes.length}>
+                {classes.map(c => (
+                  <option key={c.id} value={c.id}>Class {c.class_number} — {c.topic}</option>
                 ))}
               </Select>
-              {selectedWeek && (
+              {selectedClass && (
                 <p style={{ fontSize: '0.82rem', color: 'var(--muted)', marginTop: 8 }}>
-                  Topic: <strong>{selectedWeek.topic}</strong>
+                  {selectedSemester?.name} · Week {selectedWeek?.week_number} · <strong>{selectedClass.topic}</strong>
                 </p>
               )}
               <Button fullWidth loading={loading} onClick={generate} icon={<QrCode size={16}/>} style={{ marginTop: 16 }} size="lg">
@@ -246,7 +282,9 @@ export default function LecturerGenerateQRPage() {
           <Card className="qr-main-card">
             <div className="qr-top-badges">
               <span className="qr-live-badge"><span className="live-dot"/>Live Session</span>
-              <span className="qr-badge-item">📅 Week {session.week_number}</span>
+              <span className="qr-badge-item">📅 {session.semester_name}</span>
+              <span className="qr-badge-item">Week {session.week_number}</span>
+              <span className="qr-badge-item">Class {session.class_number}</span>
               <span className="qr-badge-item">📚 {session.topic}</span>
               <span className="qr-badge-item">🔑 {session.code}</span>
             </div>

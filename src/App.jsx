@@ -19,7 +19,7 @@ import ReportIssuePage       from './pages/classrep/ReportIssuePage'
 
 // Lecturer pages
 import LecturerDashboardPage         from './pages/lecturer/LecturerDashboardPage'
-import LecturerWeeksPage             from './pages/lecturer/LecturerWeeksPage'
+import LecturerSchedulePage          from './pages/lecturer/LecturerSchedulePage'
 import LecturerGenerateQRPage        from './pages/lecturer/LecturerGenerateQRPage'
 import LecturerAttendanceHistoryPage from './pages/lecturer/LecturerAttendanceHistoryPage'
 
@@ -122,7 +122,7 @@ export default function App() {
             <LecturerRoute><LecturerLayout /></LecturerRoute>
           }>
             <Route index element={<LecturerDashboardPage />} />
-            <Route path="weeks" element={<LecturerWeeksPage />} />
+            <Route path="weeks" element={<LecturerSchedulePage />} />
             <Route path="generate-qr" element={<LecturerGenerateQRPage />} />
             <Route path="attendance" element={<LecturerAttendanceHistoryPage />} />
           </Route>

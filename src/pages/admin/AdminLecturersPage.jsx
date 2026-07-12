@@ -175,8 +175,8 @@ export default function AdminLecturersPage() {
                       <span className="cr-stat-lbl">Students</span>
                     </div>
                     <div className="cr-stat">
-                      <span className="cr-stat-val">{l.week_count || 0}</span>
-                      <span className="cr-stat-lbl">Weeks</span>
+                      <span className="cr-stat-val">{l.class_count || 0}</span>
+                      <span className="cr-stat-lbl">Classes</span>
                     </div>
                   </div>
                   <div className="cr-actions">

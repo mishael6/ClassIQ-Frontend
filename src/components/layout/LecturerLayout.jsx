@@ -6,7 +6,7 @@ import './layout.css'
 
 const nav = [
   { to: '/lecturer', label: 'Dashboard', icon: LayoutDashboard },
-  { to: '/lecturer/weeks', label: 'Weeks & Topics', icon: Calendar },
+  { to: '/lecturer/weeks', label: 'Schedule', icon: Calendar },
   { to: '/lecturer/generate-qr', label: 'Generate QR', icon: QrCode },
   { to: '/lecturer/attendance', label: 'Attendance', icon: ClipboardList },
 ]
