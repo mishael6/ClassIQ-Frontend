@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react'
 import { lecturerApi } from '../../lib/api'
-import { Card, PageHeader, Button, Alert, Input, Modal } from '../../components/ui'
+import { Card, PageHeader, Button, Alert, Input, Modal, Select } from '../../components/ui'
 import { Plus, Edit2, Trash2, Calendar, BookOpen, GraduationCap, ChevronDown, ChevronRight } from 'lucide-react'
 import '../../components/ui/components.css'
 import './schedule.css'
 
 export default function LecturerSchedulePage() {
   const [semesters, setSemesters] = useState([])
+  const [cohorts, setCohorts] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
@@ -22,6 +23,7 @@ export default function LecturerSchedulePage() {
       .then(r => {
         const list = r.data.semesters || []
         setSemesters(list)
+        setCohorts(r.data.cohorts || [])
         if (list.length && !Object.keys(openSemesters).length) {
           setOpenSemesters({ [list[0].id]: true })
         }
@@ -52,22 +54,27 @@ export default function LecturerSchedulePage() {
     setModal('week')
   }
 
-  const openAddClass = (week) => {
-    const nums = (week.classes || []).map(c => c.class_number)
+  const openAddSession = (week) => {
     setForm({
-      type: 'class',
+      type: 'session',
       week_id: week.id,
-      class_number: String((nums.length ? Math.max(...nums) : 0) + 1),
+      cohort_id: cohorts[0] ? String(cohorts[0].id) : '',
       topic: '',
     })
-    setModal('class')
+    setModal('session')
   }
 
-  const openEdit = (type, item, extra = {}) => {
+  const openEdit = (type, item) => {
     if (type === 'semester') setForm({ type, id: item.id, name: item.name })
     if (type === 'week') setForm({ type, id: item.id, week_number: String(item.week_number) })
-    if (type === 'class') setForm({ type, id: item.id, class_number: String(item.class_number), topic: item.topic })
-    setForm(f => ({ ...f, ...extra }))
+    if (type === 'session') {
+      setForm({
+        type,
+        id: item.id,
+        cohort_id: String(item.cohort_id || ''),
+        topic: item.topic || '',
+      })
+    }
     setModal(type)
   }
 
@@ -88,13 +95,13 @@ export default function LecturerSchedulePage() {
         else await lecturerApi.addSchedule({ type: 'week', semester_id: form.semester_id, week_number })
         toast(form.id ? 'Week updated.' : 'Week added.')
       }
-      if (modal === 'class') {
-        const class_number = parseInt(form.class_number, 10)
+      if (modal === 'session') {
+        const cohort_id = parseInt(form.cohort_id, 10)
         const topic = form.topic?.trim()
-        if (!class_number || !topic) { toast('Class number and topic are required.', true); return }
-        if (form.id) await lecturerApi.updateSchedule({ type: 'class', id: form.id, class_number, topic })
-        else await lecturerApi.addSchedule({ type: 'class', week_id: form.week_id, class_number, topic })
-        toast(form.id ? 'Class updated.' : 'Class added.')
+        if (!cohort_id || !topic) { toast('Class and topic are required.', true); return }
+        if (form.id) await lecturerApi.updateSchedule({ type: 'session', id: form.id, cohort_id, topic })
+        else await lecturerApi.addSchedule({ type: 'session', week_id: form.week_id, cohort_id, topic })
+        toast(form.id ? 'Session updated.' : 'Session added.')
       }
       setModal(null)
       load()
@@ -119,16 +126,24 @@ export default function LecturerSchedulePage() {
   const toggleSem = (id) => setOpenSemesters(s => ({ ...s, [id]: !s[id] }))
   const toggleWeek = (id) => setOpenWeeks(s => ({ ...s, [id]: !s[id] }))
 
+  const sessionsLabel = (week) => (week.sessions || week.classes || []).length
+
   return (
     <div className="animate-fade-up schedule-page">
       <PageHeader
         title="Teaching Schedule"
-        subtitle="Semester → Week → Class → Topic. Set this up before generating attendance QR codes."
+        subtitle="Semester → Week → Class (by name) → Topic. Add classes under My Classes first."
         actions={<Button size="sm" icon={<Plus size={14}/>} onClick={openAddSemester}>Add Semester</Button>}
       />
 
       {error && <Alert variant="error" onClose={() => setError('')} style={{ marginBottom: 16 }}>{error}</Alert>}
       {success && <Alert variant="success" onClose={() => setSuccess('')} style={{ marginBottom: 16 }}>{success}</Alert>}
+
+      {cohorts.length === 0 && !loading && (
+        <Alert variant="info" style={{ marginBottom: 16 }}>
+          Add at least one class (e.g. DIT1A) under <strong>My Classes</strong> before scheduling sessions.
+        </Alert>
+      )}
 
       <Card>
         {loading ? (
@@ -168,10 +183,10 @@ export default function LecturerSchedulePage() {
                             {openWeeks[week.id] ? <ChevronDown size={16}/> : <ChevronRight size={16}/>}
                             <Calendar size={15}/>
                             <span>Week {week.week_number}</span>
-                            <span className="schedule-badge">{(week.classes || []).length} classes</span>
+                            <span className="schedule-badge">{sessionsLabel(week)} sessions</span>
                           </button>
                           <div className="schedule-actions">
-                            <Button size="sm" variant="ghost" icon={<Plus size={12}/>} onClick={() => openAddClass(week)}>Class</Button>
+                            <Button size="sm" variant="ghost" icon={<Plus size={12}/>} onClick={() => openAddSession(week)} disabled={!cohorts.length}>Session</Button>
                             <Button size="sm" variant="ghost" icon={<Edit2 size={12}/>} onClick={() => openEdit('week', week)}>Edit</Button>
                             <Button size="sm" variant="danger" icon={<Trash2 size={12}/>} onClick={() => remove('week', week.id, `Week ${week.week_number}`)}>Delete</Button>
                           </div>
@@ -179,17 +194,17 @@ export default function LecturerSchedulePage() {
 
                         {openWeeks[week.id] && (
                           <div className="schedule-classes">
-                            {(week.classes || []).length === 0 ? (
-                              <p className="schedule-muted">No classes yet. <button type="button" className="schedule-link" onClick={() => openAddClass(week)}>Add Class 1</button></p>
-                            ) : (week.classes || []).map(cls => (
-                              <div key={cls.id} className="schedule-class-row">
+                            {sessionsLabel(week) === 0 ? (
+                              <p className="schedule-muted">No sessions yet. <button type="button" className="schedule-link" onClick={() => openAddSession(week)} disabled={!cohorts.length}>Add session</button></p>
+                            ) : (week.sessions || week.classes || []).map(sess => (
+                              <div key={sess.id} className="schedule-class-row">
                                 <div>
-                                  <span className="schedule-class-num">Class {cls.class_number}</span>
-                                  <span className="schedule-class-topic">{cls.topic}</span>
+                                  <span className="schedule-class-num">{sess.class_name}</span>
+                                  <span className="schedule-class-topic">{sess.topic}</span>
                                 </div>
                                 <div className="schedule-actions">
-                                  <Button size="sm" variant="ghost" icon={<Edit2 size={12}/>} onClick={() => openEdit('class', cls)}>Edit</Button>
-                                  <Button size="sm" variant="danger" icon={<Trash2 size={12}/>} onClick={() => remove('class', cls.id, `Class ${cls.class_number}`)}>Delete</Button>
+                                  <Button size="sm" variant="ghost" icon={<Edit2 size={12}/>} onClick={() => openEdit('session', sess)}>Edit</Button>
+                                  <Button size="sm" variant="danger" icon={<Trash2 size={12}/>} onClick={() => remove('session', sess.id, `${sess.class_name} — ${sess.topic}`)}>Delete</Button>
                                 </div>
                               </div>
                             ))}
@@ -211,7 +226,7 @@ export default function LecturerSchedulePage() {
         title={
           modal === 'semester' ? (form.id ? 'Edit Semester' : 'Add Semester') :
           modal === 'week' ? (form.id ? 'Edit Week' : 'Add Week') :
-          form.id ? 'Edit Class' : 'Add Class'
+          form.id ? 'Edit Session' : 'Add Session'
         }
         width={440}
       >
@@ -225,12 +240,12 @@ export default function LecturerSchedulePage() {
               <input className="field-input" type="number" min={1} max={52} value={form.week_number || ''} onChange={e => setForm(f => ({ ...f, week_number: e.target.value }))} />
             </div>
           )}
-          {modal === 'class' && (
+          {modal === 'session' && (
             <>
-              <div className="field">
-                <label className="field-label">Class Number</label>
-                <input className="field-input" type="number" min={1} value={form.class_number || ''} onChange={e => setForm(f => ({ ...f, class_number: e.target.value }))} />
-              </div>
+              <Select label="Class" value={form.cohort_id || ''} onChange={e => setForm(f => ({ ...f, cohort_id: e.target.value }))}>
+                <option value="">Select class…</option>
+                {cohorts.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </Select>
               <Input label="Topic to Teach" value={form.topic || ''} onChange={e => setForm(f => ({ ...f, topic: e.target.value }))} placeholder="e.g. Introduction to Algorithms" icon={<BookOpen size={14}/>} />
             </>
           )}

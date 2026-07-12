@@ -14,15 +14,15 @@ export default function MarkAttendancePage() {
   const lecture        = params.get('lecture')
   const week           = params.get('week')
   const topic          = params.get('topic')
-  const class_id       = params.get('class_id')
-  const classNum       = params.get('class')
+  const session_id     = params.get('session_id')
+  const className      = params.get('class') ? decodeURIComponent(params.get('class')) : ''
   const semester       = params.get('semester')
   const isLecturer     = !!lecturer_id
   const sessionLabel   = isLecturer
     ? [
         semester ? decodeURIComponent(semester) : null,
         week ? `Week ${week}` : null,
-        classNum ? `Class ${classNum}` : null,
+        className || null,
         topic ? decodeURIComponent(topic) : null,
       ].filter(Boolean).join(' · ') || decodeURIComponent(topic || '')
     : lecture
@@ -76,9 +76,9 @@ export default function MarkAttendancePage() {
       if (isLecturer) {
         Object.assign(payload, {
           lecturer_id,
-          class_id: class_id ? parseInt(class_id, 10) : 0,
+          session_id: session_id ? parseInt(session_id, 10) : 0,
           week_number: parseInt(week, 10) || 0,
-          class_number: parseInt(classNum, 10) || 0,
+          class_name: className,
           topic: topic ? decodeURIComponent(topic) : '',
           lecture_name: topic ? decodeURIComponent(topic) : '',
         })
@@ -249,7 +249,7 @@ export default function MarkAttendancePage() {
           >
             📝 Having problems? Report an Issue
           </button>
-          <IssueForm classrepId={classrep_id} lecturerId={lecturer_id} lecture={lecture} topic={topic} week={week} classId={class_id} classNum={classNum} />
+          <IssueForm classrepId={classrep_id} lecturerId={lecturer_id} lecture={lecture} topic={topic} week={week} sessionId={session_id} className={className} />
         </div>
 
         <div style={{ textAlign: 'center', marginTop: 16 }}>
@@ -262,7 +262,7 @@ export default function MarkAttendancePage() {
   )
 }
 
-function IssueForm({ classrepId, lecturerId, lecture, topic, week, classId, classNum }) {
+function IssueForm({ classrepId, lecturerId, lecture, topic, week, sessionId, className }) {
   const [form, setForm]     = useState({ index_number: '', message: '' })
   const [sent, setSent]     = useState(false)
   const [loading, setLoading] = useState(false)
@@ -275,9 +275,9 @@ function IssueForm({ classrepId, lecturerId, lecture, topic, week, classId, clas
       if (lecturerId) {
         Object.assign(payload, {
           lecturer_id: lecturerId,
-          class_id: classId ? parseInt(classId, 10) : 0,
+          session_id: sessionId ? parseInt(sessionId, 10) : 0,
           week_number: parseInt(week, 10) || 0,
-          class_number: parseInt(classNum, 10) || 0,
+          class_name: className || '',
         })
       } else {
         Object.assign(payload, { classrep_id: classrepId })

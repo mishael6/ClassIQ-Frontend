@@ -1,11 +1,12 @@
 import { useState } from 'react'
 import { Outlet, NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
-import { LayoutDashboard, QrCode, ClipboardList, Calendar, LogOut, Menu } from 'lucide-react'
+import { LayoutDashboard, QrCode, ClipboardList, Calendar, LogOut, Menu, GraduationCap } from 'lucide-react'
 import './layout.css'
 
 const nav = [
   { to: '/lecturer', label: 'Dashboard', icon: LayoutDashboard },
+  { to: '/lecturer/classes', label: 'My Classes', icon: GraduationCap },
   { to: '/lecturer/weeks', label: 'Schedule', icon: Calendar },
   { to: '/lecturer/generate-qr', label: 'Generate QR', icon: QrCode },
   { to: '/lecturer/attendance', label: 'Attendance', icon: ClipboardList },

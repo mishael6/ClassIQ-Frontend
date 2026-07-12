@@ -11,9 +11,11 @@ export default function StudentRegisterPage() {
   const [params]      = useSearchParams()
   const classrep_id   = params.get('classrep_id')
   const lecturer_id   = params.get('lecturer_id')
+  const class_id      = params.get('class_id')
   const isLecturer    = !!lecturer_id
 
   const [owner, setOwner]       = useState(null)
+  const [classInfo, setClassInfo] = useState(null)
   const [loadingOwner, setLoadingOwner] = useState(true)
   const [notFound, setNotFound] = useState(false)
 
@@ -25,17 +27,19 @@ export default function StudentRegisterPage() {
   useEffect(() => {
     if (!classrep_id && !lecturer_id) { setNotFound(true); setLoadingOwner(false); return }
     const req = isLecturer
-      ? studentApi.getLecturerInfo(lecturer_id)
+      ? studentApi.getLecturerInfo(lecturer_id, class_id)
       : studentApi.getClassrepInfo(classrep_id)
     req
       .then(r => {
         const info = isLecturer ? r.data.lecturer : r.data.classrep
-        if (info) setOwner(info)
-        else setNotFound(true)
+        if (info) {
+          setOwner(info)
+          if (isLecturer && r.data.class) setClassInfo(r.data.class)
+        } else setNotFound(true)
       })
       .catch(() => setNotFound(true))
       .finally(() => setLoadingOwner(false))
-  }, [classrep_id, lecturer_id, isLecturer])
+  }, [classrep_id, lecturer_id, class_id, isLecturer])
 
   const handle = e => {
     let val = e.target.value
@@ -49,7 +53,7 @@ export default function StudentRegisterPage() {
     setLoading(true)
     try {
       const payload = isLecturer
-        ? { ...form, lecturer_id }
+        ? { ...form, lecturer_id, ...(class_id ? { class_id } : {}) }
         : { ...form, classrep_id }
       const { data } = await studentApi.register(payload)
       if (data.success) setSuccess(true)
@@ -106,7 +110,7 @@ export default function StudentRegisterPage() {
           <CheckCircle size={56} style={{ color: 'var(--green)', marginBottom: 16 }} />
           <h2 style={{ fontFamily: 'var(--font-head)', marginBottom: 8 }}>You're Registered!</h2>
           <p style={{ color: 'var(--muted)', fontSize: '0.88rem', lineHeight: 1.7 }}>
-            Welcome to <strong>{owner?.name}'s</strong> {isLecturer ? 'course' : 'class'}.<br />
+            Welcome to <strong>{owner?.name}'s</strong> {isLecturer ? (classInfo?.name ? `class (${classInfo.name})` : 'course') : 'class'}.<br />
             Your attendance can now be tracked on ClassIQ.
           </p>
           <div className="sreg-success-info">
@@ -142,7 +146,9 @@ export default function StudentRegisterPage() {
             <span className="s-logo-text">ClassIQ</span>
           </div>
           <h1 className="sreg-title">Student Registration</h1>
-          <p className="sreg-subtitle">Fill in your personal details to join {isLecturer ? 'the course' : 'the class'}</p>
+          <p className="sreg-subtitle">
+            Fill in your personal details to join {isLecturer ? (classInfo?.name || 'the course') : 'the class'}
+          </p>
         </div>
 
         {owner && (
@@ -155,6 +161,7 @@ export default function StudentRegisterPage() {
               <p className="sreg-cr-meta">
                 {owner.institution}
                 {isLecturer ? ` · ${owner.course}` : ` · ${owner.program}`}
+                {classInfo?.name ? ` · ${classInfo.name}` : ''}
               </p>
             </div>
           </div>
@@ -169,10 +176,18 @@ export default function StudentRegisterPage() {
                 <span className="sreg-ci-value">{owner.institution || '—'}</span>
               </div>
               {isLecturer ? (
-                <div className="sreg-ci-item">
-                  <span className="sreg-ci-label">Course</span>
-                  <span className="sreg-ci-value">{owner.course || '—'}</span>
-                </div>
+                <>
+                  <div className="sreg-ci-item">
+                    <span className="sreg-ci-label">Course</span>
+                    <span className="sreg-ci-value">{owner.course || '—'}</span>
+                  </div>
+                  {classInfo?.name && (
+                    <div className="sreg-ci-item">
+                      <span className="sreg-ci-label">Class</span>
+                      <span className="sreg-ci-value">{classInfo.name}</span>
+                    </div>
+                  )}
+                </>
               ) : (
                 <>
                   <div className="sreg-ci-item">

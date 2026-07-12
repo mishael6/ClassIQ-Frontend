@@ -72,6 +72,12 @@ export const classrepApi = {
 // ── Lecturer ──────────────────────────────────────────────────
 export const lecturerApi = {
   getDashboard:  ()   => api.get('/lecturer/dashboard.php'),
+  getCohorts:    ()   => api.get('/lecturer/cohorts.php'),
+  addCohort:     data => api.post('/lecturer/cohorts.php', { type: 'cohort', ...data }),
+  updateCohort:  data => api.put('/lecturer/cohorts.php', data),
+  deleteCohort:  id   => api.delete('/lecturer/cohorts.php', { data: { type: 'cohort', id } }),
+  addStudent:    data => api.post('/lecturer/cohorts.php', { type: 'student', ...data }),
+  deleteStudent: id   => api.delete('/lecturer/cohorts.php', { data: { type: 'student', id } }),
   getSchedule:   ()   => api.get('/lecturer/schedule.php'),
   addSchedule:   data => api.post('/lecturer/schedule.php', data),
   updateSchedule:data => api.put('/lecturer/schedule.php', data),
@@ -88,7 +94,9 @@ export const studentApi = {
   register:        data => api.post('/student/register.php', data),
   verifySession:   (p)  => api.get('/student/verify_session.php', { params: p }),
   getClassrepInfo: (id) => api.get('/student/get_classrep_info.php', { params: { classrep_id: id } }),
-  getLecturerInfo: (id) => api.get('/student/get_lecturer_info.php', { params: { lecturer_id: id } }),
+  getLecturerInfo: (id, classId) => api.get('/student/get_lecturer_info.php', {
+    params: { lecturer_id: id, ...(classId ? { class_id: classId } : {}) },
+  }),
 }
 
 // ── Messages ──────────────────────────────────────────────────
