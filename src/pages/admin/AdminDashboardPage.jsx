@@ -40,15 +40,24 @@ export default function AdminDashboardPage() {
   const [bulkLoading, setBulkLoading] = useState(false)
   const [bulkResult, setBulkResult] = useState(null)
   const [bulkError, setBulkError] = useState('')
+  const [promptLimit, setPromptLimit] = useState(30)
+  const [promptLimitInput, setPromptLimitInput] = useState('30')
+  const [promptLimitSaving, setPromptLimitSaving] = useState(false)
+  const [promptLimitMsg, setPromptLimitMsg] = useState('')
+  const [promptLimitErr, setPromptLimitErr] = useState('')
 
   useEffect(() => {
     Promise.all([
       adminApi.getDashboard(),
-      adminApi.getTriviaLeaderboard(5)
+      adminApi.getTriviaLeaderboard(5),
+      adminApi.getAiSettings(),
     ])
-      .then(([r1, r2]) => {
+      .then(([r1, r2, r3]) => {
         setData(r1.data)
         setTrivia(r2.data.leaderboard || [])
+        const limit = Number(r3.data.free_prompt_limit) || 30
+        setPromptLimit(limit)
+        setPromptLimitInput(String(limit))
       })
       .catch(() => setError('Failed to load dashboard.'))
       .finally(() => setLoading(false))
@@ -91,6 +100,27 @@ export default function AdminDashboardPage() {
     setBulkMsg('')
     setBulkResult(null)
     setBulkError('')
+  }
+
+  const handleSavePromptLimit = async () => {
+    const limit = parseInt(promptLimitInput, 10)
+    if (!limit || limit < 1 || limit > 999) {
+      setPromptLimitErr('Enter a number between 1 and 999.')
+      return
+    }
+    setPromptLimitSaving(true)
+    setPromptLimitErr('')
+    setPromptLimitMsg('')
+    try {
+      const { data } = await adminApi.updateAiPromptLimit(limit)
+      setPromptLimit(limit)
+      setPromptLimitInput(String(limit))
+      setPromptLimitMsg(data.message || 'Prompt limit updated.')
+    } catch (err) {
+      setPromptLimitErr(err.response?.data?.message || 'Failed to update prompt limit.')
+    } finally {
+      setPromptLimitSaving(false)
+    }
   }
 
   return (
@@ -233,6 +263,7 @@ export default function AdminDashboardPage() {
             {[
               { label: 'Active Subscribers', value: s.active_subscriptions || 0,                         color: 'var(--green)'  },
               { label: 'Total Revenue',      value: `GHS ${Number(s.subscription_revenue || 0).toFixed(2)}`, color: 'var(--blue)'   },
+              { label: 'Free Prompt Limit',  value: `${promptLimit} / 2hrs`,                               color: 'var(--purple)' },
               { label: 'Expiring in 3 days', value: subs.filter(s => s.days_remaining <= 3).length,      color: 'var(--red)'    },
               { label: 'Expiring in 7 days', value: subs.filter(s => s.days_remaining <= 7).length,      color: 'var(--orange)' },
             ].map(item => (
@@ -241,6 +272,32 @@ export default function AdminDashboardPage() {
                 <span style={{ fontSize: '1.15rem', fontWeight: 800, color: item.color }}>{item.value}</span>
               </div>
             ))}
+          </div>
+
+          <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--border)' }}>
+            <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 700, color: 'var(--txt2)', marginBottom: 8 }}>
+              Free chat prompt limit (per student, per 2-hour window)
+            </label>
+            {promptLimitErr && <Alert variant="error" onClose={() => setPromptLimitErr('')}>{promptLimitErr}</Alert>}
+            {promptLimitMsg && <Alert variant="success" onClose={() => setPromptLimitMsg('')}>{promptLimitMsg}</Alert>}
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <input
+                type="number"
+                min={1}
+                max={999}
+                value={promptLimitInput}
+                onChange={e => setPromptLimitInput(e.target.value)}
+                className="field-input"
+                style={{ flex: 1, maxWidth: 120 }}
+                disabled={promptLimitSaving}
+              />
+              <Button onClick={handleSavePromptLimit} loading={promptLimitSaving} disabled={promptLimitSaving}>
+                Save
+              </Button>
+            </div>
+            <p style={{ fontSize: '0.75rem', color: 'var(--muted)', marginTop: 8, marginBottom: 0 }}>
+              Subscribers and admin-granted students still get unlimited access.
+            </p>
           </div>
         </Card>
 

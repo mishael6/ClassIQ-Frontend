@@ -42,6 +42,18 @@ export default function DashboardPage() {
   const [deleteId,  setDeleteId]  = useState(null)
   const [deleting,  setDeleting]  = useState(false)
 
+  // Saved lectures
+  const [lectures,       setLectures]       = useState([])
+  const [lectureInput,   setLectureInput]   = useState('')
+  const [lectureSaving,  setLectureSaving]  = useState(false)
+  const [lectureDeleting, setLectureDeleting] = useState(null)
+
+  const loadLectures = () => {
+    classrepApi.getSavedLectures()
+      .then(r => setLectures(r.data.lectures || []))
+      .catch(() => {})
+  }
+
   const loadDashboard = () => {
     setLoading(true)
     classrepApi.getDashboard()
@@ -50,7 +62,7 @@ export default function DashboardPage() {
       .finally(() => setLoading(false))
   }
 
-  useEffect(() => { loadDashboard() }, [])
+  useEffect(() => { loadDashboard(); loadLectures() }, [])
 
   const toast = (msg, isErr = false) => {
     isErr ? setError(msg) : setSuccess(msg)
@@ -155,6 +167,31 @@ export default function DashboardPage() {
     finally { setDeleting(false) }
   }
 
+  const addLecture = async () => {
+    const name = lectureInput.trim()
+    if (!name) { toast('Enter a lecture name.', true); return }
+    setLectureSaving(true)
+    try {
+      const res = await classrepApi.saveLecture(name)
+      setLectures(prev => [...prev, { id: res.data.id, name: res.data.name || name }])
+      setLectureInput('')
+      toast('Lecture saved!')
+    } catch (e) {
+      toast(e.response?.data?.message || 'Failed to save lecture.', true)
+    } finally { setLectureSaving(false) }
+  }
+
+  const removeLecture = async (id) => {
+    if (!confirm('Delete this lecture name?')) return
+    setLectureDeleting(id)
+    try {
+      await classrepApi.deleteSavedLecture(id)
+      setLectures(prev => prev.filter(l => l.id !== id))
+      toast('Lecture removed.')
+    } catch { toast('Failed to delete lecture.', true) }
+    finally { setLectureDeleting(null) }
+  }
+
   if (loading) return <div className="dash-loading"><div className="spinner" /></div>
 
   const stats = data?.stats || {}
@@ -228,6 +265,59 @@ export default function DashboardPage() {
                 <span>Report Issue</span>
               </Link>
             </div>
+          </Card>
+
+          <Card style={{ marginTop: 16 }}>
+            <div className="card-head" style={{ marginBottom: 10 }}>
+              <h2 className="card-title">My Lectures</h2>
+            </div>
+            <p style={{ fontSize: '0.78rem', color: 'var(--muted)', marginBottom: 10 }}>
+              Add the lectures you teach — you'll pick from this list when generating QR codes
+            </p>
+            <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+              <input
+                className="reg-link-input"
+                placeholder="e.g. Introduction to Programming"
+                value={lectureInput}
+                onChange={e => setLectureInput(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && addLecture()}
+                disabled={lectureSaving}
+              />
+              <Button size="sm" loading={lectureSaving} onClick={addLecture} disabled={!lectureInput.trim()}>
+                Add
+              </Button>
+            </div>
+            {lectures.length === 0 ? (
+              <p style={{ fontSize: '0.82rem', color: 'var(--muted)', margin: 0 }}>
+                No lectures saved yet. Add your first lecture above.
+              </p>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {lectures.map(lec => (
+                  <div key={lec.id} style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    padding: '10px 12px', background: 'var(--bg)', borderRadius: 8,
+                    border: '1px solid var(--border)',
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+                      <BookOpen size={14} style={{ color: 'var(--blue)', flexShrink: 0 }} />
+                      <span style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {lec.name}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeLecture(lec.id)}
+                      disabled={lectureDeleting === lec.id}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--red)', padding: 4, opacity: lectureDeleting === lec.id ? 0.5 : 1 }}
+                      title="Delete lecture"
+                    >
+                      <Trash2 size={15} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </Card>
 
           <Card style={{ marginTop: 16 }}>

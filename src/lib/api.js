@@ -67,6 +67,9 @@ export const classrepApi = {
   getSavedLocations: () => api.get('/classrep/saved_locations.php'),
   saveLocation: (data) => api.post('/classrep/saved_locations.php', data),
   deleteSavedLocation: (id) => api.post('/classrep/saved_locations.php', { _method: 'DELETE', id }),
+  getSavedLectures: () => api.get('/classrep/saved_lectures.php'),
+  saveLecture: (name) => api.post('/classrep/saved_lectures.php', { name }),
+  deleteSavedLecture: (id) => api.post('/classrep/saved_lectures.php', { _method: 'DELETE', id }),
 }
 
 // ── Lecturer ──────────────────────────────────────────────────
@@ -138,6 +141,8 @@ export const adminApi = {
   getErrorLogs:       ()     => api.get('/admin/error_logs.php'),
   getTriviaLeaderboard: (limit = 5) => api.get('/ai/trivia_leaderboard.php', { params: { limit } }),
   resetTriviaLeaderboard: () => api.post('/ai/trivia_reset.php'),
+  getAiSettings:        ()     => api.get('/ai/ai_settings.php'),
+  updateAiPromptLimit:  (limit) => api.post('/ai/ai_settings.php', { action: 'update_prompt_limit', limit }),
   sendMessage:        (data) => api.post('/admin/send_message.php', data),
   sendBulkSms:        (message) => api.post('/admin/send_bulk_sms.php', { message }),
   sendPush:           (data)    => api.post('/push/send.php', data),

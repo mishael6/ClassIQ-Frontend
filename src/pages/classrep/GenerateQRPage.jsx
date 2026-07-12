@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { Link } from 'react-router-dom'
 import { classrepApi } from '../../lib/api'
 import { L, ensureLeafletIcons } from '../../lib/leafletSetup'
 import { Button, Select, Alert, Card, PageHeader } from '../../components/ui'
@@ -11,7 +12,8 @@ const RADII       = [10, 20, 30, 50, 100, 150, 200]
 
 export default function GenerateQRPage() {
   const [step,      setStep]      = useState('map')
-  const [lecture,   setLecture]   = useState('Lecture 1')
+  const [lecture,   setLecture]   = useState('')
+  const [savedLectures, setSavedLectures] = useState([])
   const [radius,    setRadius]    = useState(100)
   const [pin,       setPin]       = useState(null)
   const [session,   setSession]   = useState(null)
@@ -44,6 +46,13 @@ export default function GenerateQRPage() {
   useEffect(() => {
     classrepApi.getSavedLocations()
       .then(res => setSavedLocs(res.data.locations || []))
+      .catch(() => {})
+    classrepApi.getSavedLectures()
+      .then(res => {
+        const list = res.data.lectures || []
+        setSavedLectures(list)
+        if (list.length) setLecture(list[0].name)
+      })
       .catch(() => {})
   }, [])
 
@@ -194,6 +203,7 @@ export default function GenerateQRPage() {
 
   const generate = async () => {
     if (!pin) { setError('Please drop a pin on the map first.'); return }
+    if (!lecture) { setError('Please select a lecture. Add lecture names on your dashboard first.'); return }
     setError(''); setLoading(true)
     try {
       const { data } = await classrepApi.generateQR({
@@ -409,7 +419,7 @@ export default function GenerateQRPage() {
                 <div className="step-num">2</div>
                 <div>
                   <p className="step-title">Select Lecture &amp; Generate</p>
-                  <p className="step-sub">Pick the lecture then generate the QR code</p>
+                  <p className="step-sub">Choose a saved lecture name, then generate the QR code</p>
                 </div>
               </div>
 
@@ -425,15 +435,27 @@ export default function GenerateQRPage() {
                 </div>
               </div>
 
-              <Select label="Lecture" id="lecture" value={lecture}
-                onChange={e => setLecture(e.target.value)} style={{ marginTop: 16 }}>
-                {Array.from({ length: 10 }, (_, i) => (
-                  <option key={i+1} value={`Lecture ${i+1}`}>Lecture {i+1}</option>
-                ))}
-              </Select>
+              {savedLectures.length === 0 ? (
+                <div style={{ marginTop: 16, padding: '12px 14px', background: 'rgba(229,62,62,0.06)', border: '1px solid rgba(229,62,62,0.15)', borderRadius: 8 }}>
+                  <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--txt2)' }}>
+                    No lectures saved yet. Go to your{' '}
+                    <Link to="/dashboard" style={{ color: 'var(--blue)', fontWeight: 700 }}>dashboard</Link>
+                    {' '}and add lecture names under <strong>My Lectures</strong> first.
+                  </p>
+                </div>
+              ) : (
+                <Select label="Lecture Name" id="lecture" value={lecture}
+                  onChange={e => setLecture(e.target.value)} style={{ marginTop: 16 }}>
+                  <option value="" disabled>Select a lecture...</option>
+                  {savedLectures.map(l => (
+                    <option key={l.id} value={l.name}>{l.name}</option>
+                  ))}
+                </Select>
+              )}
 
               <Button fullWidth loading={loading} onClick={generate}
-                icon={<QrCode size={16}/>} style={{ marginTop: 16 }} size="lg">
+                icon={<QrCode size={16}/>} style={{ marginTop: 16 }} size="lg"
+                disabled={!lecture || savedLectures.length === 0}>
                 Generate QR Code
               </Button>
             </Card>
