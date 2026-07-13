@@ -32,7 +32,7 @@ export default function AdminLecturersPage() {
     setLoading(true)
     adminApi.getLecturers({ search, status: filter === 'all' ? '' : filter })
       .then(r => setLecturers(r.data.lecturers || []))
-      .catch(() => setError('Failed to load lecturers.'))
+      .catch((e) => setError(e.response?.data?.message || 'Failed to load lecturers.'))
       .finally(() => setLoading(false))
   }, [search, filter])
 
