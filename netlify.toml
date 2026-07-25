@@ -23,6 +23,18 @@
   force  = true
 
 [[redirects]]
+  from   = "/privacy.html"
+  to     = "/privacy.html"
+  status = 200
+  force  = true
+
+[[redirects]]
+  from   = "/payment.html"
+  to     = "/payment.html"
+  status = 200
+  force  = true
+
+[[redirects]]
   from   = "/*"
   to     = "/index.html"
   status = 200
