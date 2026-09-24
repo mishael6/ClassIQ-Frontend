@@ -52,13 +52,15 @@ export default function LecturerRegisterPage() {
         {success && <Alert variant="success">{success}</Alert>}
 
         <form onSubmit={submit} className="auth-form">
-          <Input label="Full Name" name="name" value={form.name} onChange={handle} icon={<User size={16}/>} required />
-          <Input label="Institution" name="institution" value={form.institution} onChange={handle} icon={<Building size={16}/>} required />
-          <Input label="Course" name="course" value={form.course} onChange={handle} icon={<BookOpen size={16}/>} required placeholder="e.g. Introduction to Programming" />
-          <Input label="Email" name="email" type="email" value={form.email} onChange={handle} icon={<Mail size={16}/>} required />
-          <Input label="Password" name="password" type="password" value={form.password} onChange={handle} icon={<Lock size={16}/>} required />
-          <Input label="Confirm Password" name="confirm_password" type="password" value={form.confirm_password} onChange={handle} icon={<Lock size={16}/>} required />
-          <Button type="submit" fullWidth loading={loading} size="lg">Submit Application</Button>
+          <div className="auth-grid">
+            <Input label="Full Name" name="name" value={form.name} onChange={handle} placeholder="Kofi Mensah" icon={<User size={15}/>} required />
+            <Input label="Email" name="email" type="email" value={form.email} onChange={handle} placeholder="you@example.com" icon={<Mail size={15}/>} required />
+            <Input label="Institution" name="institution" value={form.institution} onChange={handle} placeholder="KsTU" icon={<Building size={15}/>} required />
+            <Input label="Course" name="course" value={form.course} onChange={handle} icon={<BookOpen size={15}/>} required placeholder="e.g. Introduction to Programming" />
+            <Input label="Password" name="password" type="password" value={form.password} onChange={handle} placeholder="Min. 6 characters" icon={<Lock size={15}/>} required />
+            <Input label="Confirm Password" name="confirm_password" type="password" value={form.confirm_password} onChange={handle} placeholder="Repeat password" icon={<Lock size={15}/>} required />
+          </div>
+          <Button type="submit" fullWidth loading={loading} size="lg" style={{ marginTop: 8 }}>Submit Application</Button>
         </form>
 
         <p className="auth-foot">
