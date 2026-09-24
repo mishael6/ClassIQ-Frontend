@@ -1,43 +1,47 @@
 import { Link } from 'react-router-dom'
-import { Users, GraduationCap } from 'lucide-react'
-import '../classrep/auth.css'
+import { Users, GraduationCap, ArrowRight } from 'lucide-react'
+import './role-select.css'
 
 export default function RoleSelectPage() {
   return (
-    <div className="auth-page">
-      <div className="auth-card animate-fade-up">
-        <div className="auth-logo">
-          <div className="logo-mark" style={{ width: 48, height: 48, fontSize: '1.1rem' }}>CQ</div>
-          <h1 className="auth-title">Join ClassIQ</h1>
-          <p className="auth-sub">Choose how you will use ClassIQ</p>
+    <div className="role-page">
+      <section className="role-visual" aria-hidden="true">
+        <div className="role-visual-glow" />
+        <img src="/clock.jpg" alt="" className="role-visual-img" />
+      </section>
+
+      <section className="role-panel">
+        <div className="role-panel-bg" aria-hidden="true" />
+        <div className="role-panel-inner">
+          <Link to="/" className="role-brand">ClassIQ</Link>
+          <h1 className="role-title">Join ClassIQ</h1>
+          <p className="role-sub">Choose how you will use ClassIQ. You can sign up as a class representative or a lecturer.</p>
+
+          <div className="role-choices">
+            <Link to="/register" className="role-choice role-choice-rep">
+              <span className="role-choice-icon"><Users size={22} /></span>
+              <span className="role-choice-copy">
+                <span className="role-choice-title">Class Representative</span>
+                <span className="role-choice-desc">Manage your class, students, and lecture attendance</span>
+              </span>
+              <ArrowRight size={18} className="role-choice-arrow" />
+            </Link>
+
+            <Link to="/register/lecturer" className="role-choice role-choice-lecturer">
+              <span className="role-choice-icon"><GraduationCap size={22} /></span>
+              <span className="role-choice-copy">
+                <span className="role-choice-title">Lecturer</span>
+                <span className="role-choice-desc">Teach your course and track weekly topic attendance</span>
+              </span>
+              <ArrowRight size={18} className="role-choice-arrow" />
+            </Link>
+          </div>
+
+          <p className="role-foot">
+            Already have an account? <Link to="/login">Log in</Link>
+          </p>
         </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 8 }}>
-          <Link to="/register" className="role-card" style={{ textDecoration: 'none' }}>
-            <Users size={28} style={{ color: 'var(--blue)' }} />
-            <div>
-              <p style={{ fontWeight: 700, margin: 0, color: 'var(--text)' }}>Class Representative</p>
-              <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: 'var(--muted)' }}>
-                Manage your class, students, and lecture attendance
-              </p>
-            </div>
-          </Link>
-
-          <Link to="/register/lecturer" className="role-card" style={{ textDecoration: 'none' }}>
-            <GraduationCap size={28} style={{ color: 'var(--blue)' }} />
-            <div>
-              <p style={{ fontWeight: 700, margin: 0, color: 'var(--text)' }}>Lecturer</p>
-              <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: 'var(--muted)' }}>
-                Teach your course and track weekly topic attendance
-              </p>
-            </div>
-          </Link>
-        </div>
-
-        <p className="auth-foot" style={{ marginTop: 24 }}>
-          Already have an account? <Link to="/login" className="auth-link">Log in</Link>
-        </p>
-      </div>
+      </section>
     </div>
   )
 }
