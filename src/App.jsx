@@ -28,6 +28,7 @@ import LecturerClassesPage         from './pages/lecturer/LecturerClassesPage'
 import MarkAttendancePage    from './pages/student/MarkAttendancePage'
 import StudentRegisterPage   from './pages/student/StudentRegisterPage'
 import SubscribePage from './pages/student/SubscribePage'
+import PrivacyPolicyPage from './pages/PrivacyPolicyPage'
 
 // Admin pages
 import AdminDashboardPage    from './pages/admin/AdminDashboardPage'
@@ -109,6 +110,8 @@ export default function App() {
           <Route path="/mark-attendance" element={<MarkAttendancePage />} />
           <Route path="/student/register" element={<StudentRegisterPage />} />
           <Route path="/subscribe" element={<SubscribePage />} />
+          <Route path="/privacy" element={<PrivacyPolicyPage />} />
+          <Route path="/privacy.html" element={<PrivacyPolicyPage />} />
 
           <Route path="/dashboard" element={
             <ClassrepRoute><ClassrepLayout /></ClassrepRoute>

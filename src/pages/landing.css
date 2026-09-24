@@ -44,7 +44,8 @@
   padding: 9px 20px; border-radius: 9px;
   font-weight: 600; font-size: 14px;
   cursor: pointer; border: none;
-  text-decoration: none; display: inline-block;
+  text-decoration: none; display: inline-flex;
+  align-items: center; justify-content: center; gap: 8px;
   transition: all 0.18s; font-family: inherit;
   line-height: 1.4;
 }
@@ -70,7 +71,8 @@
   max-width: 760px; text-align: center; position: relative; z-index: 1;
 }
 .lp-badge {
-  display: inline-block; padding: 6px 16px;
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 16px;
   background: #eff6ff; color: #1d4ed8;
   border: 1px solid #bfdbfe;
   border-radius: 99px; font-size: 13px; font-weight: 600;
@@ -176,7 +178,7 @@
   border-top: 4px solid var(--accent);
 }
 .lp-step:hover { transform: translateY(-6px); box-shadow: 0 16px 40px rgba(0,0,0,0.08); }
-.lp-step-icon { font-size: 2.2rem; margin-bottom: 12px; }
+.lp-step-icon { display: flex; align-items: center; margin-bottom: 12px; color: var(--accent); }
 .lp-step-num {
   font-size: 2.5rem; font-weight: 900;
   letter-spacing: -2px; line-height: 1;
@@ -242,7 +244,10 @@
   background: linear-gradient(145deg, #faf5ff, #ede9fe);
   border: 1px solid #ddd6fe;
 }
-.lp-who-icon { font-size: 2.4rem; margin-bottom: 16px; }
+.lp-who-icon { display: flex; align-items: center; margin-bottom: 16px; }
+.lp-who-classrep .lp-who-icon { color: #1d4ed8; }
+.lp-who-student .lp-who-icon { color: #15803d; }
+.lp-who-admin .lp-who-icon { color: #6d28d9; }
 .lp-who-card h3 { font-size: 1.15rem; font-weight: 800; color: #0a0a0a; margin-bottom: 12px; }
 .lp-who-card p  { font-size: 0.9rem; color: #555; line-height: 1.7; }
 .lp-who-hint {
@@ -431,6 +436,18 @@
   box-shadow: 0 8px 24px rgba(26,115,232,0.4);
 }
 
+.lp-app-ios {
+  background: #111827;
+  border-color: #111827;
+  color: #fff;
+}
+
+.lp-app-ios:hover {
+  background: #1f2937;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+}
+
 .lp-app-ios-soon {
   background: rgba(255,255,255,0.06);
   border-color: rgba(255,255,255,0.15);
@@ -439,7 +456,8 @@
 }
 
 .lp-app-btn-icon {
-  font-size: 24px;
+  display: flex;
+  align-items: center;
 }
 
 .lp-app-btn-text {
@@ -460,6 +478,9 @@
 }
 
 .lp-app-note {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-size: 12px;
   color: var(--text-muted);
   opacity: 0.7;
@@ -550,7 +571,7 @@
   border-top: 3px solid var(--card-color);
 }
 
-.lp-phone-card-icon { font-size: 20px; }
+.lp-phone-card-icon { display: flex; color: var(--card-color); }
 
 .lp-phone-card-label {
   font-size: 12px;
@@ -569,6 +590,12 @@
   font-weight: 600;
   color: #fff;
   margin-bottom: 12px;
+}
+
+.lp-phone-banner-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .lp-phone-banner-cta {
@@ -661,7 +688,7 @@
 }
 
 .lp-guide-card-emoji {
-  font-size: 32px;
+  color: #fff;
   width: 52px;
   height: 52px;
   background: rgba(255,255,255,0.2);
@@ -753,8 +780,10 @@
 }
 
 .lp-guide-tip-icon {
-  font-size: 20px;
+  display: flex;
+  color: #d97706;
   flex-shrink: 0;
+  margin-top: 1px;
 }
 
 .lp-guide-tip p {

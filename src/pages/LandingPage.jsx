@@ -1,6 +1,27 @@
 import { useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import {
+  GraduationCap, Smartphone, MapPin, Bot, Trophy, PenLine, Users, Rocket,
+  BookOpen, Shield, QrCode, Lightbulb, BarChart3, Moon, Lock, Flame,
+  Mail, Phone, MessageCircle,
+} from 'lucide-react'
 import './landing.css'
+
+function AndroidIcon({ size = 24 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M17.6 9.48l1.84-3.18c.16-.31.04-.69-.26-.85a.637.637 0 0 0-.83.22l-1.88 3.24a11.43 11.43 0 0 0-8.94 0L5.65 5.67a.643.643 0 0 0-.87-.2c-.28.18-.37.54-.22.83L6.4 9.48A10.81 10.81 0 0 0 1 18h22a10.81 10.81 0 0 0-5.4-8.52zM7 15.25a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5zm10 0a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5z" />
+    </svg>
+  )
+}
+
+function AppleIcon({ size = 24 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z" />
+    </svg>
+  )
+}
 
 const PWA_URL = 'https://mobile-classiq.netlify.app/'
 
@@ -47,7 +68,7 @@ export default function LandingPage() {
       {/* ── Hero ── */}
       <section className="lp-hero">
         <div className="lp-hero-inner">
-          <div className="lp-badge">🎓 The Academic Ecosystem for Everyone in Education</div>
+          <div className="lp-badge"><GraduationCap size={15} /> The Academic Ecosystem for Everyone in Education</div>
           <h1 className="lp-h1">
             One platform for the<br/>
             <span className="lp-accent">entire academic journey</span>
@@ -60,7 +81,7 @@ export default function LandingPage() {
           <div className="lp-hero-cta">
             <Link to="/get-started" className="lp-btn lp-solid lp-lg">Join ClassIQ free →</Link>
             <a href={PWA_URL} target="_blank" rel="noopener noreferrer" className="lp-btn lp-outline lp-lg" style={{ textDecoration: 'none' }}>
-              📱 Download App
+              <Smartphone size={18} /> Download App
             </a>
           </div>
           <div className="lp-stats-row">
@@ -101,7 +122,7 @@ export default function LandingPage() {
         <div className="lp-ecosystem-grid">
           {[
             {
-              icon: '📍',
+              icon: MapPin,
               color: '#1A73E8',
               bg: '#1A73E815',
               title: 'Smart Attendance',
@@ -110,7 +131,7 @@ export default function LandingPage() {
               points: ['GPS radius verification', 'Live QR sessions', 'Fraud detection & flagging', 'Instant attendance reports'],
             },
             {
-              icon: '🤖',
+              icon: Bot,
               color: '#6B46C1',
               bg: '#6B46C115',
               title: 'AI Study Assistant',
@@ -119,7 +140,7 @@ export default function LandingPage() {
               points: ['Explain complex topics simply', 'Generate MCQ questions', 'Create flashcard sets', 'Fill-in-the-blank exercises'],
             },
             {
-              icon: '🏆',
+              icon: Trophy,
               color: '#D69E2E',
               bg: '#D69E2E15',
               title: 'Trivia & Leaderboard',
@@ -128,7 +149,7 @@ export default function LandingPage() {
               points: ['AI-generated course questions', '15-second timed challenges', 'Mixed question types', 'Global student rankings'],
             },
             {
-              icon: '📱',
+              icon: Smartphone,
               color: '#38A169',
               bg: '#38A16915',
               title: 'Mobile App',
@@ -136,11 +157,13 @@ export default function LandingPage() {
               desc: 'The ClassIQ mobile app puts the entire ecosystem in your pocket. Scan QR codes, study with Six, play trivia, and track attendance — anywhere, anytime.',
               points: ['QR code scanner', 'Full AI study access', 'Real-time trivia', 'Attendance history'],
             },
-          ].map((p, i) => (
+          ].map((p, i) => {
+            const Icon = p.icon
+            return (
             <div key={i} className="lp-eco-card" style={{ '--eco-color': p.color, '--eco-bg': p.bg }}>
               <div className="lp-eco-card-top">
                 <div className="lp-eco-icon" style={{ background: p.bg, color: p.color }}>
-                  {p.icon}
+                  <Icon size={22} />
                 </div>
                 <div className="lp-eco-tag">{p.tag}</div>
               </div>
@@ -155,7 +178,8 @@ export default function LandingPage() {
                 ))}
               </ul>
             </div>
-          ))}
+            )
+          })}
         </div>
       </section>
 
@@ -165,17 +189,20 @@ export default function LandingPage() {
         <h2 className="lp-h2">From registration to results</h2>
         <div className="lp-steps">
           {[
-            { n: '01', color: '#0066ff', title: 'Register & get approved', icon: '✍️', desc: 'Class reps register on the web app. Once approved by admin, they get access to the full dashboard and a unique student registration link.' },
-            { n: '02', color: '#00b57a', title: 'Onboard your students',   icon: '👥', desc: 'Share your registration link with students. They sign up and install the ClassIQ PWA — ready to go in minutes.' },
-            { n: '03', color: '#7c3aed', title: 'Run your class',          icon: '🚀', desc: 'Generate QR codes for attendance, let students study with Six, challenge them with trivia, and monitor everything from your dashboard.' },
-          ].map((s, i) => (
+            { n: '01', color: '#0066ff', title: 'Register & get approved', icon: PenLine, desc: 'Class reps register on the web app. Once approved by admin, they get access to the full dashboard and a unique student registration link.' },
+            { n: '02', color: '#00b57a', title: 'Onboard your students',   icon: Users, desc: 'Share your registration link with students. They sign up and install the ClassIQ PWA — ready to go in minutes.' },
+            { n: '03', color: '#7c3aed', title: 'Run your class',          icon: Rocket, desc: 'Generate QR codes for attendance, let students study with Six, challenge them with trivia, and monitor everything from your dashboard.' },
+          ].map((s, i) => {
+            const Icon = s.icon
+            return (
             <div key={i} className="lp-step" style={{ '--accent': s.color }}>
-              <div className="lp-step-icon">{s.icon}</div>
+              <div className="lp-step-icon"><Icon size={28} /></div>
               <div className="lp-step-num" style={{ color: s.color }}>{s.n}</div>
               <h3 className="lp-step-title">{s.title}</h3>
               <p className="lp-step-desc">{s.desc}</p>
             </div>
-          ))}
+            )
+          })}
         </div>
       </section>
 
@@ -185,7 +212,7 @@ export default function LandingPage() {
         <h2 className="lp-h2">Built for everyone in academia</h2>
         <div className="lp-who-grid">
           <div className="lp-who-card lp-who-classrep">
-            <div className="lp-who-icon">🎓</div>
+            <div className="lp-who-icon"><GraduationCap size={32} /></div>
             <h3>Class Representatives</h3>
             <p>Manage your class end-to-end. Generate QR attendance, track your students, view detailed reports, and communicate with your admin — all from one dashboard.</p>
             <Link to="/get-started" className="lp-btn lp-solid lp-sm" style={{ marginTop: 'auto', paddingTop: 20, alignSelf: 'flex-start' }}>
@@ -193,7 +220,7 @@ export default function LandingPage() {
             </Link>
           </div>
           <div className="lp-who-card lp-who-student">
-            <div className="lp-who-icon">📚</div>
+            <div className="lp-who-icon"><BookOpen size={32} /></div>
             <h3>Students</h3>
             <p>Mark attendance by scanning a QR code, study smarter with AI, compete in trivia, and track your academic progress — all from the ClassIQ mobile app.</p>
             <a href={PWA_URL} target="_blank" rel="noopener noreferrer" className="lp-btn lp-solid lp-sm" style={{ marginTop: 'auto', background: '#38A169', textDecoration: 'none' }}>
@@ -201,7 +228,7 @@ export default function LandingPage() {
             </a>
           </div>
           <div className="lp-who-card lp-who-admin">
-            <div className="lp-who-icon">🛡️</div>
+            <div className="lp-who-icon"><Shield size={32} /></div>
             <h3>Administrators</h3>
             <p>Oversee your entire institution from one admin portal. Approve class reps, monitor attendance across all classes, send SMS broadcasts, and review analytics.</p>
             <Link to="/admin/login" className="lp-btn lp-outline lp-sm" style={{ marginTop: 'auto', paddingTop: 20, alignSelf: 'flex-start' }}>
@@ -221,7 +248,7 @@ export default function LandingPage() {
         <div className="lp-guide-grid">
           <div className="lp-guide-card">
             <div className="lp-guide-card-header" style={{ background: 'linear-gradient(135deg, #0066ff, #0044cc)' }}>
-              <span className="lp-guide-card-emoji">🎓</span>
+              <span className="lp-guide-card-emoji"><GraduationCap size={26} /></span>
               <div>
                 <div className="lp-guide-card-tag">Step 1</div>
                 <div className="lp-guide-card-title">Sign up as a Class Rep</div>
@@ -246,7 +273,7 @@ export default function LandingPage() {
 
           <div className="lp-guide-card">
             <div className="lp-guide-card-header" style={{ background: 'linear-gradient(135deg, #00b57a, #008f5e)' }}>
-              <span className="lp-guide-card-emoji">👥</span>
+              <span className="lp-guide-card-emoji"><Users size={26} /></span>
               <div>
                 <div className="lp-guide-card-tag">Step 2</div>
                 <div className="lp-guide-card-title">Set up your class</div>
@@ -271,7 +298,7 @@ export default function LandingPage() {
 
           <div className="lp-guide-card">
             <div className="lp-guide-card-header" style={{ background: 'linear-gradient(135deg, #7c3aed, #5b21b6)' }}>
-              <span className="lp-guide-card-emoji">📷</span>
+              <span className="lp-guide-card-emoji"><QrCode size={26} /></span>
               <div>
                 <div className="lp-guide-card-tag">Step 3</div>
                 <div className="lp-guide-card-title">Mark attendance</div>
@@ -296,7 +323,7 @@ export default function LandingPage() {
         </div>
 
         <div className="lp-guide-tip">
-          <span className="lp-guide-tip-icon">💡</span>
+          <span className="lp-guide-tip-icon"><Lightbulb size={20} /></span>
           <p><strong>Pro tip:</strong> End your QR session after class to prevent late entries. Go to your dashboard and click "End Session" when the lecture is over.</p>
         </div>
       </section>
@@ -317,39 +344,42 @@ export default function LandingPage() {
             </p>
             <div className="lp-app-features">
               {[
-                { icon: '📷', title: 'QR Attendance',      desc: 'Scan your class QR code to mark attendance in seconds — GPS verified.' },
-                { icon: '🤖', title: 'AI Study with Six',  desc: 'Upload notes and let Six explain, generate MCQs, flashcards and fill-in-the-blank questions.' },
-                { icon: '🏆', title: 'Trivia & Rankings',  desc: 'Test your knowledge with AI-generated trivia and climb the global leaderboard.' },
-                { icon: '📊', title: 'Attendance History', desc: 'Track your attendance rate and see every lecture you have attended.' },
-                { icon: '🌙', title: 'Dark & Light Mode',  desc: 'Switch between beautiful dark and light themes to suit your preference.' },
-                { icon: '🔒', title: 'Secure & Private',   desc: 'Your data is encrypted and stored securely. No personal data is ever sold.' },
-              ].map((f, i) => (
+                { icon: QrCode, title: 'QR Attendance',      desc: 'Scan your class QR code to mark attendance in seconds — GPS verified.' },
+                { icon: Bot, title: 'AI Study with Six',  desc: 'Upload notes and let Six explain, generate MCQs, flashcards and fill-in-the-blank questions.' },
+                { icon: Trophy, title: 'Trivia & Rankings',  desc: 'Test your knowledge with AI-generated trivia and climb the global leaderboard.' },
+                { icon: BarChart3, title: 'Attendance History', desc: 'Track your attendance rate and see every lecture you have attended.' },
+                { icon: Moon, title: 'Dark & Light Mode',  desc: 'Switch between beautiful dark and light themes to suit your preference.' },
+                { icon: Lock, title: 'Secure & Private',   desc: 'Your data is encrypted and stored securely. No personal data is ever sold.' },
+              ].map((f, i) => {
+                const Icon = f.icon
+                return (
                 <div key={i} className="lp-app-feature-row">
-                  <div className="lp-app-feature-icon">{f.icon}</div>
+                  <div className="lp-app-feature-icon"><Icon size={18} /></div>
                   <div>
                     <div className="lp-app-feature-title">{f.title}</div>
                     <div className="lp-app-feature-desc">{f.desc}</div>
                   </div>
                 </div>
-              ))}
+                )
+              })}
             </div>
             <div className="lp-app-btns">
               <a href={PWA_URL} target="_blank" rel="noopener noreferrer" className="lp-app-download-btn lp-app-android" style={{ textDecoration: 'none', cursor: 'pointer' }}>
-                <div className="lp-app-btn-icon">🤖</div>
+                <div className="lp-app-btn-icon"><AndroidIcon size={26} /></div>
                 <div className="lp-app-btn-text">
                   <span className="lp-app-btn-sub">Install for</span>
                   <span className="lp-app-btn-main">Android</span>
                 </div>
               </a>
               <a href={PWA_URL} target="_blank" rel="noopener noreferrer" className="lp-app-download-btn lp-app-ios" style={{ textDecoration: 'none', cursor: 'pointer' }}>
-                <div className="lp-app-btn-icon">🍎</div>
+                <div className="lp-app-btn-icon"><AppleIcon size={24} /></div>
                 <div className="lp-app-btn-text">
                   <span className="lp-app-btn-sub">Install for</span>
                   <span className="lp-app-btn-main">iOS / iPhone</span>
                 </div>
               </a>
             </div>
-            <p className="lp-app-note">📱 PWA · Free to use · Works on Android & iOS · No installation needed</p>
+            <p className="lp-app-note"><Smartphone size={14} /> PWA · Free to use · Works on Android & iOS · No installation needed</p>
           </div>
 
           <div className="lp-app-mockup">
@@ -366,19 +396,22 @@ export default function LandingPage() {
                   </div>
                   <div className="lp-phone-cards">
                     {[
-                      { icon: '📷', label: 'Scan QR',    color: '#1A73E8' },
-                      { icon: '🤖', label: 'AI Study',   color: '#6B46C1' },
-                      { icon: '🏆', label: 'Trivia',     color: '#D69E2E' },
-                      { icon: '📊', label: 'Attendance', color: '#38A169' },
-                    ].map((c, i) => (
+                      { icon: QrCode, label: 'Scan QR',    color: '#1A73E8' },
+                      { icon: Bot, label: 'AI Study',   color: '#6B46C1' },
+                      { icon: Trophy, label: 'Trivia',     color: '#D69E2E' },
+                      { icon: BarChart3, label: 'Attendance', color: '#38A169' },
+                    ].map((c, i) => {
+                      const Icon = c.icon
+                      return (
                       <div key={i} className="lp-phone-card" style={{ '--card-color': c.color }}>
-                        <span className="lp-phone-card-icon">{c.icon}</span>
+                        <span className="lp-phone-card-icon"><Icon size={18} /></span>
                         <span className="lp-phone-card-label">{c.label}</span>
                       </div>
-                    ))}
+                      )
+                    })}
                   </div>
                   <div className="lp-phone-banner">
-                    <span>🔥 Daily Trivia Challenge</span>
+                    <span className="lp-phone-banner-title"><Flame size={14} /> Daily Trivia Challenge</span>
                     <span className="lp-phone-banner-cta">Play →</span>
                   </div>
                   <div className="lp-phone-stat-row">
@@ -415,7 +448,7 @@ export default function LandingPage() {
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
             <Link to="/get-started" className="lp-btn lp-white lp-lg">Get started free →</Link>
             <a href={PWA_URL} target="_blank" rel="noopener noreferrer" className="lp-btn lp-lg" style={{ background: 'rgba(255,255,255,0.15)', color: '#fff', border: '1.5px solid rgba(255,255,255,0.3)', textDecoration: 'none' }}>
-              📱 Download App
+              <Smartphone size={18} /> Download App
             </a>
           </div>
         </div>
@@ -434,10 +467,10 @@ export default function LandingPage() {
           </div>
           <div className="lp-footer-contact">
             <p className="lp-footer-contact-label">Contact us</p>
-            <a href="mailto:classiq660@gmail.com" className="lp-footer-contact-link">✉️ classiq660@gmail.com</a>
-            <a href="tel:+233502076920" className="lp-footer-contact-link">📞 0502 076 920</a>
+            <a href="mailto:classiq660@gmail.com" className="lp-footer-contact-link"><Mail size={14} /> classiq660@gmail.com</a>
+            <a href="tel:+233502076920" className="lp-footer-contact-link"><Phone size={14} /> 0502 076 920</a>
             <a href="https://whatsapp.com/channel/0029VbCbXOOHrDZpFFYw3r0O" target="_blank" rel="noopener noreferrer" className="lp-footer-contact-link lp-footer-whatsapp">
-              💬 Join our WhatsApp Channel
+              <MessageCircle size={14} /> Join our WhatsApp Channel
             </a>
           </div>
           <div className="lp-footer-links">
