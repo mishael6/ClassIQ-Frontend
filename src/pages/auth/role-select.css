@@ -50,7 +50,9 @@
 }
 
 .role-brand {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
   margin-bottom: 28px;
   font-size: 1.15rem;
   font-weight: 800;

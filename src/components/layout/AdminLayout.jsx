@@ -38,7 +38,7 @@ export default function AdminLayout() {
 
       <aside className={`sidebar sidebar-admin ${open ? 'sidebar-open' : ''}`}>
         <div className="sidebar-logo">
-          <div className="logo-mark admin-mark"><Shield size={16} /></div>
+          <img src="/logo.png" alt="ClassIQ" className="brand-logo sm" />
           <span className="logo-text">Class<span>IQ</span> <small>Admin</small></span>
         </div>
 

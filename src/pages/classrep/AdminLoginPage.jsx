@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { Button, Input, Alert } from '../../components/ui'
-import { Mail, Lock, Shield } from 'lucide-react'
+import { Mail, Lock } from 'lucide-react'
 import '../../components/ui/components.css'
 import './auth.css'
 
@@ -41,9 +41,7 @@ export default function AdminLoginPage() {
     <div className="auth-page">
       <div className="auth-card animate-fade-up">
         <div className="auth-logo">
-          <div className="logo-mark" style={{ width:48, height:48, fontSize:'1.1rem', background: 'linear-gradient(135deg,#7c3aed,#4f46e5)' }}>
-            <Shield size={22} color="white"/>
-          </div>
+          <img src="/logo.png" alt="ClassIQ" className="brand-logo" />
           <h1 className="auth-title">ClassIQ Admin</h1>
           <p className="auth-sub">Administrator Portal</p>
         </div>

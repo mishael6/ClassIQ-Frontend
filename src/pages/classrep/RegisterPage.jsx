@@ -56,7 +56,7 @@ export default function RegisterPage() {
     <div className="auth-page">
       <div className="auth-card auth-card-wide animate-fade-up">
         <div className="auth-logo">
-          <div className="logo-mark" style={{ width:48, height:48, fontSize:'1.1rem' }}>CQ</div>
+          <img src="/logo.png" alt="ClassIQ" className="brand-logo" />
           <h1 className="auth-title">Create Account</h1>
           <p className="auth-sub">Register as a Class Representative</p>
         </div>

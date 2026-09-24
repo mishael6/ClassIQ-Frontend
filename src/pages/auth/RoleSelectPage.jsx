@@ -12,7 +12,10 @@ export default function RoleSelectPage() {
       <section className="role-panel">
         <div className="role-panel-bg" aria-hidden="true" />
         <div className="role-panel-inner">
-          <Link to="/" className="role-brand">ClassIQ</Link>
+          <Link to="/" className="role-brand">
+            <img src="/logo.png" alt="" className="brand-logo sm" />
+            ClassIQ
+          </Link>
           <h1 className="role-title">Join ClassIQ</h1>
           <p className="role-sub">Choose how you will use ClassIQ. You can sign up as a class representative or a lecturer.</p>
 

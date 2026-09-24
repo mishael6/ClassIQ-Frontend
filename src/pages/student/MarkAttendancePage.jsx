@@ -98,7 +98,7 @@ export default function MarkAttendancePage() {
   if (sessionValid === null) return (
     <div className="student-page">
       <div className="student-card">
-        <div className="student-logo"><div className="logo-mark">CQ</div><span className="s-logo-text">ClassIQ</span></div>
+        <div className="student-logo"><img src="/logo.png" alt="ClassIQ" className="brand-logo sm" /><span className="s-logo-text">ClassIQ</span></div>
         <div style={{ textAlign: 'center', padding: '40px 0' }}>
           <Loader2 size={36} className="animate-spin" style={{ color: 'var(--blue)' }} />
           <p style={{ color: 'var(--muted)', marginTop: 12 }}>Verifying session...</p>
@@ -111,7 +111,7 @@ export default function MarkAttendancePage() {
   if (!sessionValid) return (
     <div className="student-page">
       <div className="student-card">
-        <div className="student-logo"><div className="logo-mark">CQ</div><span className="s-logo-text">ClassIQ</span></div>
+        <div className="student-logo"><img src="/logo.png" alt="ClassIQ" className="brand-logo sm" /><span className="s-logo-text">ClassIQ</span></div>
         <div className="student-error-state">
           <div className="error-icon">⛔</div>
           <h2>Session Closed</h2>
@@ -126,7 +126,7 @@ export default function MarkAttendancePage() {
   if (result?.success) return (
     <div className="student-page">
       <div className="student-card">
-        <div className="student-logo"><div className="logo-mark">CQ</div><span className="s-logo-text">ClassIQ</span></div>
+        <div className="student-logo"><img src="/logo.png" alt="ClassIQ" className="brand-logo sm" /><span className="s-logo-text">ClassIQ</span></div>
         <div className="student-success-state">
           <div className="success-icon"><CheckCircle size={48} /></div>
           <h2>Attendance Marked!</h2>
@@ -170,7 +170,7 @@ export default function MarkAttendancePage() {
     <div className="student-page">
       <div className="student-card">
         <div className="student-logo">
-          <img src="/logo.png" alt="ClassIQ" className="lp-logo-img" />
+          <img src="/logo.png" alt="ClassIQ" className="brand-logo sm" />
           <span className="s-logo-text">ClassIQ</span>
         </div>
 

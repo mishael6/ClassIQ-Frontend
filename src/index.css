@@ -50,6 +50,15 @@ body {
 
 a { color: inherit; text-decoration: none; }
 
+.brand-logo {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  display: block;
+  flex-shrink: 0;
+}
+.brand-logo.sm { width: 36px; height: 36px; }
+
 button { font-family: var(--font-body); cursor: pointer; }
 
 input, select, textarea {

@@ -69,7 +69,7 @@ export default function StudentRegisterPage() {
     <div className="sreg-page">
       <div className="sreg-card">
         <div className="sreg-logo">
-          <img src="/logo.png" alt="ClassIQ" className="lp-logo-img" />
+          <img src="/logo.png" alt="ClassIQ" className="brand-logo sm" />
           <span className="s-logo-text">ClassIQ</span>
         </div>
         <div style={{ textAlign: 'center', padding: '40px 0' }}>
@@ -84,7 +84,7 @@ export default function StudentRegisterPage() {
     <div className="sreg-page">
       <div className="sreg-card">
         <div className="sreg-logo">
-          <div className="logo-mark">CQ</div>
+          <img src="/logo.png" alt="ClassIQ" className="brand-logo sm" />
           <span className="s-logo-text">ClassIQ</span>
         </div>
         <div style={{ textAlign: 'center', padding: '32px 0' }}>
@@ -103,7 +103,7 @@ export default function StudentRegisterPage() {
     <div className="sreg-page">
       <div className="sreg-card">
         <div className="sreg-logo">
-          <div className="logo-mark">CQ</div>
+          <img src="/logo.png" alt="ClassIQ" className="brand-logo sm" />
           <span className="s-logo-text">ClassIQ</span>
         </div>
         <div style={{ textAlign: 'center', padding: '32px 0' }}>
@@ -142,7 +142,7 @@ export default function StudentRegisterPage() {
       <div className="sreg-card">
         <div className="sreg-header">
           <div className="sreg-logo">
-            <div className="logo-mark">CQ</div>
+            <img src="/logo.png" alt="ClassIQ" className="brand-logo sm" />
             <span className="s-logo-text">ClassIQ</span>
           </div>
           <h1 className="sreg-title">Student Registration</h1>

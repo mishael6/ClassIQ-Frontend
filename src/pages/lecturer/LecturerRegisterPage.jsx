@@ -43,7 +43,7 @@ export default function LecturerRegisterPage() {
     <div className="auth-page">
       <div className="auth-card auth-card-wide animate-fade-up">
         <div className="auth-logo">
-          <div className="logo-mark" style={{ width: 48, height: 48, fontSize: '1.1rem' }}>CQ</div>
+          <img src="/logo.png" alt="ClassIQ" className="brand-logo" />
           <h1 className="auth-title">Lecturer Registration</h1>
           <p className="auth-sub">Apply to teach on ClassIQ</p>
         </div>
