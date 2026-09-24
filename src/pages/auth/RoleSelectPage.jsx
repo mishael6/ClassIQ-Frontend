@@ -6,7 +6,6 @@ export default function RoleSelectPage() {
   return (
     <div className="role-page">
       <section className="role-visual" aria-hidden="true">
-        <div className="role-visual-glow" />
         <img src="/clock2.jpg" alt="" className="role-visual-img" />
       </section>
 
