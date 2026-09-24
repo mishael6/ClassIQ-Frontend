@@ -460,23 +460,42 @@ export default function LandingPage() {
         <div className="lp-footer-inner">
           <div className="lp-footer-brand">
             <div className="lp-footer-logo">
-              <img src="/logo.png" alt="ClassIQ" style={{ width: 24, height: 24 }} />
+              <img src="/logo.png" alt="" className="lp-footer-logo-img" />
               <span>ClassIQ</span>
             </div>
-            <p className="lp-footer-copy">© 2026 ClassIQ · The Academic Ecosystem</p>
+            <p className="lp-footer-tagline">
+              The academic ecosystem for attendance, AI study, and competitive learning.
+            </p>
           </div>
-          <div className="lp-footer-contact">
-            <p className="lp-footer-contact-label">Contact us</p>
-            <a href="mailto:classiq660@gmail.com" className="lp-footer-contact-link"><Mail size={14} /> classiq660@gmail.com</a>
-            <a href="tel:+233502076920" className="lp-footer-contact-link"><Phone size={14} /> 0502 076 920</a>
+
+          <nav className="lp-footer-col" aria-label="Platform">
+            <p className="lp-footer-label">Platform</p>
+            <Link to="/get-started">Get started</Link>
+            <a href={PWA_URL} target="_blank" rel="noopener noreferrer">Download the app</a>
+            <a href="#app-download">Mobile app</a>
+          </nav>
+
+          <nav className="lp-footer-col" aria-label="Account">
+            <p className="lp-footer-label">Account</p>
+            <Link to="/login">Log in</Link>
+            <Link to="/register">Class rep registration</Link>
+            <Link to="/register/lecturer">Lecturer registration</Link>
+            <Link to="/admin/login">Admin</Link>
+          </nav>
+
+          <div className="lp-footer-col">
+            <p className="lp-footer-label">Contact</p>
+            <a href="mailto:classiq660@gmail.com" className="lp-footer-contact-link"><Mail size={15} /> classiq660@gmail.com</a>
+            <a href="tel:+233502076920" className="lp-footer-contact-link"><Phone size={15} /> 0502 076 920</a>
             <a href="https://whatsapp.com/channel/0029VbCbXOOHrDZpFFYw3r0O" target="_blank" rel="noopener noreferrer" className="lp-footer-contact-link lp-footer-whatsapp">
-              <MessageCircle size={14} /> Join our WhatsApp Channel
+              <MessageCircle size={15} /> WhatsApp channel
             </a>
           </div>
-          <div className="lp-footer-links">
-            <Link to="/login">Class Rep Login</Link>
-            <Link to="/admin/login">Admin</Link>
-          </div>
+        </div>
+
+        <div className="lp-footer-bar">
+          <p>© 2026 ClassIQ. All rights reserved.</p>
+          <Link to="/privacy">Privacy Policy</Link>
         </div>
       </footer>
 
