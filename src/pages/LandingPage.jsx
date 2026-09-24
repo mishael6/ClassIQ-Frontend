@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
   GraduationCap, Smartphone, MapPin, Bot, Trophy, PenLine, Users, Rocket,
-  BookOpen, Shield, QrCode, Lightbulb, BarChart3, Moon, Lock, Flame,
+  BookOpen, Presentation, QrCode, Lightbulb, BarChart3, Moon, Lock, Flame,
   Mail, Phone, MessageCircle,
 } from 'lucide-react'
 import './landing.css'
@@ -227,12 +227,12 @@ export default function LandingPage() {
               Download the App →
             </a>
           </div>
-          <div className="lp-who-card lp-who-admin">
-            <div className="lp-who-icon"><Shield size={32} /></div>
-            <h3>Administrators</h3>
-            <p>Oversee your entire institution from one admin portal. Approve class reps, monitor attendance across all classes, send SMS broadcasts, and review analytics.</p>
-            <Link to="/admin/login" className="lp-btn lp-outline lp-sm" style={{ marginTop: 'auto', paddingTop: 20, alignSelf: 'flex-start' }}>
-              Admin Login →
+          <div className="lp-who-card lp-who-lecturer">
+            <div className="lp-who-icon"><Presentation size={32} /></div>
+            <h3>Lecturers</h3>
+            <p>Take attendance for your course. Generate QR sessions, track weekly topics, and follow which students are present from one lecturer dashboard.</p>
+            <Link to="/register/lecturer" className="lp-btn lp-solid lp-sm" style={{ marginTop: 'auto', background: '#7c3aed', alignSelf: 'flex-start' }}>
+              Sign up as a Lecturer →
             </Link>
           </div>
         </div>

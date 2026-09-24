@@ -240,14 +240,14 @@
   background: linear-gradient(145deg, #f0fdf4, #dcfce7);
   border: 1px solid #bbf7d0;
 }
-.lp-who-admin {
+.lp-who-lecturer {
   background: linear-gradient(145deg, #faf5ff, #ede9fe);
   border: 1px solid #ddd6fe;
 }
 .lp-who-icon { display: flex; align-items: center; margin-bottom: 16px; }
 .lp-who-classrep .lp-who-icon { color: #1d4ed8; }
 .lp-who-student .lp-who-icon { color: #15803d; }
-.lp-who-admin .lp-who-icon { color: #6d28d9; }
+.lp-who-lecturer .lp-who-icon { color: #6d28d9; }
 .lp-who-card h3 { font-size: 1.15rem; font-weight: 800; color: #0a0a0a; margin-bottom: 12px; }
 .lp-who-card p  { font-size: 0.9rem; color: #555; line-height: 1.7; }
 .lp-who-hint {
