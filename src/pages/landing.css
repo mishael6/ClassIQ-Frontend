@@ -66,6 +66,13 @@
   display: flex; align-items: center; justify-content: center;
   padding: 120px 32px 80px;
   position: relative; overflow: hidden;
+  background-color: #ffffff;
+  background-image:
+    radial-gradient(ellipse at center, rgba(255,255,255,0.92) 0%, rgba(255,255,255,0.72) 42%, rgba(255,255,255,0.28) 78%),
+    url('/schoolbag.jpg');
+  background-repeat: no-repeat;
+  background-position: center, center 62%;
+  background-size: cover, min(860px, 92vw) auto;
 }
 .lp-hero-inner {
   max-width: 760px; text-align: center; position: relative; z-index: 1;
@@ -341,7 +348,11 @@
 @media (max-width: 768px) {
   .lp-h1 { letter-spacing: -2px; }
   .lp-nav { padding: 14px 20px; }
-  .lp-hero { padding: 100px 20px 60px; }
+  .lp-hero {
+    padding: 100px 20px 60px;
+    background-position: center, center 70%;
+    background-size: cover, min(520px, 140vw) auto;
+  }
   .lp-how, .lp-who { padding: 70px 20px; }
   .lp-features { padding: 70px 20px; }
   .lp-cta { padding: 70px 20px; }
