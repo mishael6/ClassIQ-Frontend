@@ -16,8 +16,8 @@ export default function RoleSelectPage() {
             <img src="/logo.png" alt="" className="brand-logo sm" />
             ClassIQ
           </Link>
-          <h1 className="role-title">Join ClassIQ</h1>
-          <p className="role-sub">Choose how you will use ClassIQ. You can sign up as a class representative or a lecturer.</p>
+          <h1 className="role-title">Join Us</h1>
+          <p className="role-sub">Say goodbye to paper registers and missed lectures. Whether you lead a class or teach one, ClassIQ makes attendance effortless, accurate, and completely free. Pick your role and get started in minutes.</p>
 
           <div className="role-choices">
             <Link to="/register" className="role-choice role-choice-rep">

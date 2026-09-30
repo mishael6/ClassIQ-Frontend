@@ -50,15 +50,22 @@
 }
 
 .role-brand {
-  display: inline-flex;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   margin-bottom: 28px;
   font-size: 1.15rem;
   font-weight: 800;
   letter-spacing: -0.4px;
   color: #0a0a0a;
   text-decoration: none;
+}
+
+.role-brand .brand-logo.sm {
+  width: 64px;
+  height: 64px;
 }
 
 .role-title {
@@ -68,6 +75,7 @@
   color: #0a0a0a;
   line-height: 1.1;
   margin-bottom: 12px;
+  text-align: center;
 }
 
 .role-sub {
@@ -75,6 +83,7 @@
   font-size: 1rem;
   line-height: 1.6;
   margin-bottom: 28px;
+  text-align: center;
 }
 
 .role-choices {
@@ -159,7 +168,6 @@
 
 @media (max-width: 860px) {
   .role-page { grid-template-columns: 1fr; }
-  .role-visual { min-height: 280px; }
-  .role-visual-img { position: absolute; }
-  .role-panel { padding: 36px 20px 48px; }
+  .role-visual { display: none; }
+  .role-panel { min-height: 100vh; padding: 36px 20px 48px; }
 }
