@@ -1,214 +1,39 @@
 import { useState, useEffect } from 'react'
-import { PaymentWidget } from '@payloqa/payment-widget'
-import '@payloqa/payment-widget/styles'
-
-const API_URL = 'https://api-classiq.onrender.com'
-const NETWORKS = [
-  { id: 'mtn', label: 'MTN Mobile Money', color: '#FFC107' },
-  { id: 'vodafone', label: 'Vodafone Cash', color: '#E53935' },
-  { id: 'airteltigo', label: 'AirtelTigo Money', color: '#1565C0' },
-]
 
 export default function SubscribePage() {
-  const [studentId, setStudentId] = useState(null)
-  const [studentName, setStudentName] = useState('')
-  const [isOpen, setIsOpen] = useState(false)
-  const [status, setStatus] = useState('idle')
-  const [phone, setPhone] = useState('')
-  const [network, setNetwork] = useState('mtn')
-  const [paymentConfig, setPaymentConfig] = useState(null)
+  const [studentName, setStudentName] = useState('Student')
+  const [invalid, setInvalid] = useState(false)
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     const id = params.get('student_id')
     const name = params.get('name') || 'Student'
-    if (!id) { setStatus('error'); return }
-    setStudentId(id)
+    if (!id) { setInvalid(true); return }
     setStudentName(decodeURIComponent(name))
-    checkSubscription(id)
   }, [])
-
-  const checkSubscription = async (id) => {
-    try {
-      const res = await fetch(`${API_URL}/ai/check_payment.php?student_id=${id}&check_only=1`)
-      const data = await res.json()
-      if (data.subscribed) setStatus('already_subscribed')
-    } catch (e) {}
-  }
-
-  const handlePay = () => {
-    if (!phone.trim() || phone.replace(/\D/g, '').length < 10) {
-      alert('Please enter a valid phone number')
-      return
-    }
-
-    // Normalize phone
-    let normalized = phone.replace(/\D/g, '')
-    if (normalized.startsWith('0')) normalized = '233' + normalized.slice(1)
-
-    const orderId = `SIX-${studentId}-${Date.now()}`
-
-    setPaymentConfig({
-      apiKey: import.meta.env.VITE_PAYLOQA_API_KEY,
-      platformId: import.meta.env.VITE_PAYLOQA_PLATFORM_ID,
-      amount: 30.00,
-      currency: 'GHS',
-      primaryColor: '#1A73E8',
-      displayMode: 'modal',
-      phone_number: normalized,
-      network: network,
-      offline: true,
-      webhookUrl: `${API_URL}/ai/payment_callback.php`,
-      orderId,
-      metadata: {
-        student_id: studentId,
-        type: 'six_subscription',
-        customer_name: studentName,
-      },
-    })
-
-    setIsOpen(true)
-  }
-
-  const handleSuccess = async (result) => {
-    setIsOpen(false)
-    setStatus('loading')
-    try {
-      await fetch(`${API_URL}/ai/save_pending.php`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          student_id: studentId,
-          payment_id: result.payment_id || result.transactionId || result.id,
-          amount: 30.00,
-        }),
-      })
-    } catch (e) {}
-    setStatus('success')
-  }
-
-  if (status === 'success') return (
-    <div style={styles.page}>
-      <div style={styles.card}>
-        <div style={styles.emoji}>🎉</div>
-        <h1 style={styles.title}>Payment Successful!</h1>
-        <p style={styles.subtitle}>Six unlimited is now active. Go back to the ClassIQ app!</p>
-        <p style={styles.hint}>You can close this page.</p>
-      </div>
-    </div>
-  )
-
-  if (status === 'already_subscribed') return (
-    <div style={styles.page}>
-      <div style={styles.card}>
-        <div style={styles.emoji}>✨</div>
-        <h1 style={styles.title}>Already Subscribed!</h1>
-        <p style={styles.subtitle}>You already have an active Six subscription.</p>
-        <p style={styles.hint}>Go back to the ClassIQ app to continue studying.</p>
-      </div>
-    </div>
-  )
-
-  if (status === 'loading') return (
-    <div style={styles.page}>
-      <div style={styles.card}>
-        <div style={styles.emoji}>⏳</div>
-        <p style={styles.subtitle}>Activating your subscription...</p>
-      </div>
-    </div>
-  )
-
-  if (status === 'error') return (
-    <div style={styles.page}>
-      <div style={styles.card}>
-        <div style={styles.emoji}>❌</div>
-        <h1 style={styles.title}>Invalid Link</h1>
-        <p style={styles.subtitle}>Please go back to the app and try again.</p>
-      </div>
-    </div>
-  )
 
   return (
     <div style={styles.page}>
       <div style={styles.card}>
-        <div style={styles.logoWrap}>
-          <span style={{ fontSize: 36 }}>✨</span>
-        </div>
-        <h1 style={styles.title}>Unlock Six Unlimited</h1>
+        <img src="/logo.png" alt="ClassIQ" style={styles.logo} />
+        <h1 style={styles.title}>{invalid ? 'Open ClassIQ' : 'Six is free'}</h1>
         <p style={styles.subtitle}>
-          Hi {studentName}! Get unlimited AI explanations, flashcards, MCQs and more.
+          {invalid
+            ? 'Go back to the ClassIQ app to study with Six.'
+            : `Hi ${studentName}. Explanations, MCQs, flashcards, fill-in-the-blank questions, and PDF upload are free. No payment is required.`}
         </p>
-
-        {/* Plan card */}
-        <div style={styles.planCard}>
-          <div style={styles.priceRow}>
-            <span style={styles.currency}>GHS</span>
-            <span style={styles.price}>30</span>
-            <span style={styles.per}>/month</span>
-          </div>
-          <ul style={styles.featureList}>
-            {[
-              '✓ Unlimited AI explanations',
-              '✓ Unlimited MCQ generation',
-              '✓ Unlimited flashcards',
-              '✓ Fill-in-the-blank questions',
-              '✓ Priority Six responses',
-            ].map((f, i) => (
-              <li key={i} style={styles.featureItem}>{f}</li>
-            ))}
-          </ul>
-        </div>
-
-        {/* Phone input */}
-        <div style={styles.formGroup}>
-          <label style={styles.label}>Select Network</label>
-          <div style={styles.networkRow}>
-            {NETWORKS.map(n => (
-              <button
-                key={n.id}
-                onClick={() => setNetwork(n.id)}
-                style={{
-                  ...styles.networkBtn,
-                  borderColor: network === n.id ? n.color : '#E2E8F0',
-                  backgroundColor: network === n.id ? n.color + '18' : '#F5F7FA',
-                  color: network === n.id ? n.color : '#4A5568',
-                  fontWeight: network === n.id ? '700' : '500',
-                }}
-              >
-                {n.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div style={styles.formGroup}>
-          <label style={styles.label}>MoMo Phone Number</label>
-          <input
-            type="tel"
-            placeholder="e.g. 0244000000"
-            value={phone}
-            onChange={e => setPhone(e.target.value)}
-            style={styles.input}
-          />
-        </div>
-
-        <p style={styles.hint}>
-          📱 You'll receive a MoMo prompt on this number. Approve it to activate your subscription.
-        </p>
-
-        <button style={styles.payBtn} onClick={handlePay}>
-          Pay GHS 30 & Activate Six
-        </button>
-        <p style={styles.securedBy}>🔒 Secured by Payloqa</p>
-
-        {paymentConfig && (
-          <PaymentWidget
-            config={paymentConfig}
-            isOpen={isOpen}
-            onClose={() => setIsOpen(false)}
-            onSuccess={handleSuccess}
-          />
-        )}
+        <ul style={styles.featureList}>
+          {[
+            'Unlimited AI explanations',
+            'Unlimited MCQ generation',
+            'Unlimited flashcards',
+            'Fill-in-the-blank questions',
+            'PDF upload',
+          ].map(feature => (
+            <li key={feature} style={styles.featureItem}>{feature}</li>
+          ))}
+        </ul>
+        <p style={styles.hint}>Go back to the ClassIQ app to continue studying.</p>
       </div>
     </div>
   )
@@ -225,44 +50,10 @@ const styles = {
     maxWidth: '420px', width: '100%',
     boxShadow: '0 4px 40px rgba(0,0,0,0.10)', textAlign: 'center',
   },
-  logoWrap: {
-    width: '72px', height: '72px', backgroundColor: '#6B46C122',
-    borderRadius: '20px', display: 'flex', alignItems: 'center',
-    justifyContent: 'center', margin: '0 auto 16px',
-  },
-  emoji: { fontSize: '56px', marginBottom: '16px' },
+  logo: { width: 56, height: 56, objectFit: 'contain', marginBottom: 16 },
   title: { fontSize: '26px', fontWeight: '800', color: '#0D1B2A', marginBottom: '8px' },
   subtitle: { fontSize: '15px', color: '#4A5568', marginBottom: '24px', lineHeight: '1.6' },
-  planCard: {
-    backgroundColor: '#1A73E812', border: '1.5px solid #1A73E840',
-    borderRadius: '16px', padding: '20px', marginBottom: '24px', textAlign: 'left',
-  },
-  priceRow: {
-    display: 'flex', alignItems: 'flex-end', gap: '4px',
-    justifyContent: 'center', marginBottom: '16px',
-  },
-  currency: { fontSize: '18px', fontWeight: '700', color: '#1A73E8', marginBottom: '6px' },
-  price: { fontSize: '48px', fontWeight: '900', color: '#1A73E8', lineHeight: '1' },
-  per: { fontSize: '16px', color: '#4A5568', marginBottom: '8px' },
-  featureList: { listStyle: 'none', padding: '0', margin: '0', display: 'flex', flexDirection: 'column', gap: '8px' },
+  featureList: { listStyle: 'none', padding: '0', margin: '0 0 24px', display: 'flex', flexDirection: 'column', gap: '8px', textAlign: 'left' },
   featureItem: { fontSize: '14px', color: '#0D1B2A', fontWeight: '500' },
-  formGroup: { textAlign: 'left', marginBottom: '16px' },
-  label: { display: 'block', fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px', color: '#9AA5B4', marginBottom: '8px' },
-  networkRow: { display: 'flex', flexDirection: 'column', gap: '8px' },
-  networkBtn: {
-    padding: '12px 16px', borderRadius: '10px', border: '1.5px solid',
-    cursor: 'pointer', fontSize: '14px', textAlign: 'left',
-  },
-  input: {
-    width: '100%', padding: '14px 16px', borderRadius: '12px',
-    border: '1.5px solid #E2E8F0', fontSize: '15px', color: '#0D1B2A',
-    backgroundColor: '#F5F7FA', boxSizing: 'border-box',
-  },
-  hint: { fontSize: '12px', color: '#9AA5B4', marginBottom: '16px', lineHeight: '1.6', textAlign: 'left' },
-  payBtn: {
-    backgroundColor: '#1A73E8', color: '#fff', border: 'none',
-    borderRadius: '999px', padding: '16px 32px', fontSize: '16px',
-    fontWeight: '800', cursor: 'pointer', width: '100%', marginBottom: '12px',
-  },
-  securedBy: { fontSize: '12px', color: '#9AA5B4' },
+  hint: { fontSize: '13px', color: '#9AA5B4', lineHeight: '1.6' },
 }
