@@ -76,7 +76,7 @@
   position: relative; overflow: hidden;
   background-color: #ffffff;
   background-image:
-    radial-gradient(ellipse at center, rgba(255,255,255,0.92) 0%, rgba(255,255,255,0.72) 42%, rgba(255,255,255,0.28) 78%),
+    radial-gradient(ellipse at center, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.5) 42%, rgba(255,255,255,0.12) 78%),
     url('/schoolbag.jpg');
   background-repeat: no-repeat;
   background-position: center, center 62%;
