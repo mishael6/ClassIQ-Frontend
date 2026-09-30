@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { motion, MotionConfig, useScroll, useSpring } from 'framer-motion'
 import {
   GraduationCap, Smartphone, MapPin, Bot, Trophy, PenLine, Users, Rocket,
   BookOpen, Presentation, QrCode, Lightbulb, BarChart3, Moon, Lock, Flame,
@@ -25,8 +26,23 @@ function AppleIcon({ size = 24 }) {
 
 const PWA_URL = 'https://mobile-classiq.netlify.app/'
 
+const EASE = [0.22, 1, 0.36, 1]
+const fadeUp = {
+  hidden: { opacity: 0, y: 28 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.65, ease: EASE } },
+}
+const stagger = (gap = 0.1, delay = 0) => ({
+  hidden: {},
+  show: { transition: { staggerChildren: gap, delayChildren: delay } },
+})
+const inView = { once: true, amount: 0.2 }
+const reveal = { initial: 'hidden', whileInView: 'show', viewport: inView, variants: fadeUp }
+const grid = (gap = 0.12) => ({ initial: 'hidden', whileInView: 'show', viewport: inView, variants: stagger(gap) })
+
 export default function LandingPage() {
   const navigate = useNavigate()
+  const { scrollYProgress } = useScroll()
+  const progress = useSpring(scrollYProgress, { stiffness: 120, damping: 24, mass: 0.3 })
 
   useEffect(() => {
     const user = localStorage.getItem('classiq_user')
@@ -38,21 +54,18 @@ export default function LandingPage() {
     }
   }, [])
 
-  useEffect(() => {
-    const els = document.querySelectorAll('.lp-reveal')
-    const obs = new IntersectionObserver(
-      entries => entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('lp-visible') }),
-      { threshold: 0.1 }
-    )
-    els.forEach(el => obs.observe(el))
-    return () => obs.disconnect()
-  }, [])
-
   return (
+    <MotionConfig reducedMotion="user">
     <div className="lp-root">
+      <motion.div className="lp-progress" style={{ scaleX: progress }} aria-hidden />
 
       {/* ── Header ── */}
-      <header className="lp-header">
+      <motion.header
+        className="lp-header"
+        initial={{ y: -80, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.6, ease: EASE }}
+      >
         <div className="lp-nav">
           <div className="lp-logo">
             <img src="/logo.png" alt="ClassIQ" className="lp-logo-img" />
@@ -63,63 +76,77 @@ export default function LandingPage() {
             <Link to="/get-started" className="lp-btn lp-solid">Get started</Link>
           </div>
         </div>
-      </header>
+      </motion.header>
 
       {/* ── Hero ── */}
       <section className="lp-hero">
-        <div className="lp-hero-inner">
-          <div className="lp-badge"><GraduationCap size={15} /> The Academic Ecosystem for Everyone in Education</div>
-          <h1 className="lp-h1">
+        <motion.div className="lp-hero-inner" initial="hidden" animate="show" variants={stagger(0.12, 0.15)}>
+          <motion.div className="lp-badge" variants={fadeUp}><GraduationCap size={15} /> The Academic Ecosystem for Everyone in Education</motion.div>
+          <motion.h1 className="lp-h1" variants={fadeUp}>
             One platform for the<br/>
             <span className="lp-accent">entire academic journey</span>
-          </h1>
-          <p className="lp-hero-p">
+          </motion.h1>
+          <motion.p className="lp-hero-p" variants={fadeUp}>
             ClassIQ brings together smart attendance, AI-powered study tools,
             competitive learning, and a powerful mobile experience — everything
             academia needs, unified in one intelligent ecosystem.
-          </p>
-          <div className="lp-hero-cta">
-            <Link to="/get-started" className="lp-btn lp-solid lp-lg">Join ClassIQ free →</Link>
-            <a href={PWA_URL} target="_blank" rel="noopener noreferrer" className="lp-btn lp-outline lp-lg" style={{ textDecoration: 'none' }}>
-              <Smartphone size={18} /> Download App
-            </a>
-          </div>
-          <div className="lp-stats-row">
+          </motion.p>
+          <motion.div className="lp-hero-cta" variants={fadeUp}>
+            <motion.div whileHover={{ y: -3, scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+              <Link to="/get-started" className="lp-btn lp-solid lp-lg">Join ClassIQ free →</Link>
+            </motion.div>
+            <motion.div whileHover={{ y: -3, scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+              <a href={PWA_URL} target="_blank" rel="noopener noreferrer" className="lp-btn lp-outline lp-lg" style={{ textDecoration: 'none' }}>
+                <Smartphone size={18} /> Download App
+              </a>
+            </motion.div>
+          </motion.div>
+          <motion.div className="lp-stats-row" variants={stagger(0.08)}>
             {[
               { value: '100+', label: 'Institutions' },
               { value: '10K+', label: 'Students' },
               { value: '4',    label: 'Core products' },
               { value: '99%',  label: 'Accuracy rate' },
             ].map((s, i) => (
-              <div key={i} className="lp-stat-pill">
+              <motion.div
+                key={i}
+                className="lp-stat-pill"
+                variants={{ hidden: { opacity: 0, y: 18, scale: 0.92 }, show: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.5, ease: EASE } } }}
+                whileHover={{ y: -4, scale: 1.05 }}
+              >
                 <span className="lp-stat-val">{s.value}</span>
                 <span className="lp-stat-lbl">{s.label}</span>
-              </div>
+              </motion.div>
             ))}
-          </div>
-        </div>
-        <div className="lp-hero-glow" aria-hidden />
+          </motion.div>
+        </motion.div>
+        <motion.div
+          className="lp-hero-glow"
+          aria-hidden
+          animate={{ scale: [1, 1.12, 1], opacity: [0.8, 1, 0.8] }}
+          transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+        />
       </section>
 
       {/* ── Trust bar ── */}
-      <section className="lp-trust">
+      <motion.section className="lp-trust" {...reveal}>
         <p className="lp-trust-label">Trusted across Ghanaian institutions</p>
         <div className="lp-trust-scroll">
           {['Kumasi Technical University', 'AAMUSTED', 'KNUST', 'University of Mines', 'Garden City University'].map((n, i) => (
             <span key={i} className="lp-trust-item">{n}</span>
           ))}
         </div>
-      </section>
+      </motion.section>
 
       {/* ── Ecosystem Overview ── */}
-      <section className="lp-ecosystem lp-reveal">
-        <div className="lp-section-label">The Ecosystem</div>
-        <h2 className="lp-h2">Four pillars of academic excellence</h2>
-        <p className="lp-ecosystem-intro">
+      <section className="lp-ecosystem">
+        <motion.div className="lp-section-label" {...reveal}>The Ecosystem</motion.div>
+        <motion.h2 className="lp-h2" {...reveal}>Four pillars of academic excellence</motion.h2>
+        <motion.p className="lp-ecosystem-intro" {...reveal}>
           ClassIQ is not just an attendance tool. It is a complete academic operating system
           designed to help institutions, class representatives, and students thrive together.
-        </p>
-        <div className="lp-ecosystem-grid">
+        </motion.p>
+        <motion.div className="lp-ecosystem-grid" {...grid(0.12)}>
           {[
             {
               icon: MapPin,
@@ -160,11 +187,23 @@ export default function LandingPage() {
           ].map((p, i) => {
             const Icon = p.icon
             return (
-            <div key={i} className="lp-eco-card" style={{ '--eco-color': p.color, '--eco-bg': p.bg }}>
+            <motion.div
+              key={i}
+              className="lp-eco-card"
+              style={{ '--eco-color': p.color, '--eco-bg': p.bg }}
+              variants={fadeUp}
+              whileHover={{ y: -8 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 22 }}
+            >
               <div className="lp-eco-card-top">
-                <div className="lp-eco-icon" style={{ background: p.bg, color: p.color }}>
+                <motion.div
+                  className="lp-eco-icon"
+                  style={{ background: p.bg, color: p.color }}
+                  whileHover={{ rotate: [0, -8, 8, 0], scale: 1.1 }}
+                  transition={{ duration: 0.5 }}
+                >
                   <Icon size={22} />
-                </div>
+                </motion.div>
                 <div className="lp-eco-tag">{p.tag}</div>
               </div>
               <h3 className="lp-eco-title" style={{ color: p.color }}>{p.title}</h3>
@@ -177,17 +216,17 @@ export default function LandingPage() {
                   </li>
                 ))}
               </ul>
-            </div>
+            </motion.div>
             )
           })}
-        </div>
+        </motion.div>
       </section>
 
       {/* ── How it works ── */}
-      <section className="lp-how lp-reveal">
-        <div className="lp-section-label">How it works</div>
-        <h2 className="lp-h2">From registration to results</h2>
-        <div className="lp-steps">
+      <section className="lp-how">
+        <motion.div className="lp-section-label" {...reveal}>How it works</motion.div>
+        <motion.h2 className="lp-h2" {...reveal}>From registration to results</motion.h2>
+        <motion.div className="lp-steps" {...grid(0.15)}>
           {[
             { n: '01', color: '#0066ff', title: 'Register & get approved', icon: PenLine, desc: 'Class reps register on the web app. Once approved by admin, they get access to the full dashboard and a unique student registration link.' },
             { n: '02', color: '#00b57a', title: 'Onboard your students',   icon: Users, desc: 'Share your registration link with students. They sign up and install the ClassIQ PWA — ready to go in minutes.' },
@@ -195,57 +234,64 @@ export default function LandingPage() {
           ].map((s, i) => {
             const Icon = s.icon
             return (
-            <div key={i} className="lp-step" style={{ '--accent': s.color }}>
+            <motion.div
+              key={i}
+              className="lp-step"
+              style={{ '--accent': s.color }}
+              variants={fadeUp}
+              whileHover={{ y: -8 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 22 }}
+            >
               <div className="lp-step-icon"><Icon size={28} /></div>
               <div className="lp-step-num" style={{ color: s.color }}>{s.n}</div>
               <h3 className="lp-step-title">{s.title}</h3>
               <p className="lp-step-desc">{s.desc}</p>
-            </div>
+            </motion.div>
             )
           })}
-        </div>
+        </motion.div>
       </section>
 
       {/* ── Who it's for ── */}
-      <section className="lp-who lp-reveal">
-        <div className="lp-section-label">Who it's for</div>
-        <h2 className="lp-h2">Built for everyone in academia</h2>
-        <div className="lp-who-grid">
-          <div className="lp-who-card lp-who-classrep">
+      <section className="lp-who">
+        <motion.div className="lp-section-label" {...reveal}>Who it's for</motion.div>
+        <motion.h2 className="lp-h2" {...reveal}>Built for everyone in academia</motion.h2>
+        <motion.div className="lp-who-grid" {...grid(0.15)}>
+          <motion.div className="lp-who-card lp-who-classrep" variants={fadeUp} whileHover={{ y: -8 }} transition={{ type: 'spring', stiffness: 300, damping: 22 }}>
             <div className="lp-who-icon"><GraduationCap size={32} /></div>
             <h3>Class Representatives</h3>
             <p>Manage your class end-to-end. Generate QR attendance, track your students, view detailed reports, and communicate with your admin — all from one dashboard.</p>
             <Link to="/get-started" className="lp-btn lp-solid lp-sm" style={{ marginTop: 'auto', paddingTop: 20, alignSelf: 'flex-start' }}>
               Register as Class Rep →
             </Link>
-          </div>
-          <div className="lp-who-card lp-who-student">
+          </motion.div>
+          <motion.div className="lp-who-card lp-who-student" variants={fadeUp} whileHover={{ y: -8 }} transition={{ type: 'spring', stiffness: 300, damping: 22 }}>
             <div className="lp-who-icon"><BookOpen size={32} /></div>
             <h3>Students</h3>
             <p>Mark attendance by scanning a QR code, study smarter with AI, compete in trivia, and track your academic progress — all from the ClassIQ mobile app.</p>
             <a href={PWA_URL} target="_blank" rel="noopener noreferrer" className="lp-btn lp-solid lp-sm" style={{ marginTop: 'auto', background: '#38A169', textDecoration: 'none' }}>
               Download the App →
             </a>
-          </div>
-          <div className="lp-who-card lp-who-lecturer">
+          </motion.div>
+          <motion.div className="lp-who-card lp-who-lecturer" variants={fadeUp} whileHover={{ y: -8 }} transition={{ type: 'spring', stiffness: 300, damping: 22 }}>
             <div className="lp-who-icon"><Presentation size={32} /></div>
             <h3>Lecturers</h3>
             <p>Take attendance for your course. Generate QR sessions, track weekly topics, and follow which students are present from one lecturer dashboard.</p>
             <Link to="/register/lecturer" className="lp-btn lp-solid lp-sm" style={{ marginTop: 'auto', background: '#7c3aed', alignSelf: 'flex-start' }}>
               Sign up as a Lecturer →
             </Link>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </section>
 
       {/* ── Getting Started Guide ── */}
-      <section className="lp-guide lp-reveal">
-        <div className="lp-section-label">Get started</div>
-        <h2 className="lp-h2">Up and running in minutes</h2>
-        <p className="lp-guide-intro">
+      <section className="lp-guide">
+        <motion.div className="lp-section-label" {...reveal}>Get started</motion.div>
+        <motion.h2 className="lp-h2" {...reveal}>Up and running in minutes</motion.h2>
+        <motion.p className="lp-guide-intro" {...reveal}>
           Everything you need to know to get ClassIQ working for your class — from registration to marking attendance.
-        </p>
-        <div className="lp-guide-grid">
+        </motion.p>
+        <motion.div className="lp-guide-grid" {...reveal}>
           <div className="lp-guide-card">
             <div className="lp-guide-card-header" style={{ background: 'linear-gradient(135deg, #0066ff, #0044cc)' }}>
               <span className="lp-guide-card-emoji"><GraduationCap size={26} /></span>
@@ -320,29 +366,29 @@ export default function LandingPage() {
               <Link to="/login" className="lp-guide-cta" style={{ background: '#7c3aed' }}>Go to dashboard →</Link>
             </div>
           </div>
-        </div>
+        </motion.div>
 
-        <div className="lp-guide-tip">
+        <motion.div className="lp-guide-tip" {...reveal}>
           <span className="lp-guide-tip-icon"><Lightbulb size={20} /></span>
           <p><strong>Pro tip:</strong> End your QR session after class to prevent late entries. Go to your dashboard and click "End Session" when the lecture is over.</p>
-        </div>
+        </motion.div>
       </section>
 
       {/* ── Mobile App Download ── */}
-      <section className="lp-app lp-reveal" id="app-download">
+      <section className="lp-app" id="app-download">
         <div className="lp-app-inner">
-          <div className="lp-app-content">
-            <div className="lp-section-label" style={{ textAlign: 'left' }}>Mobile App</div>
-            <h2 className="lp-h2" style={{ textAlign: 'left' }}>
+          <motion.div className="lp-app-content" {...grid(0.1)}>
+            <motion.div className="lp-section-label" style={{ textAlign: 'left' }} variants={fadeUp}>Mobile App</motion.div>
+            <motion.h2 className="lp-h2" style={{ textAlign: 'left' }} variants={fadeUp}>
               The ecosystem,<br />
               <span className="lp-accent">in your pocket</span>
-            </h2>
-            <p className="lp-app-desc">
+            </motion.h2>
+            <motion.p className="lp-app-desc" variants={fadeUp}>
               The ClassIQ mobile app is the student's gateway to the entire ecosystem.
               Mark attendance, study with Six, compete in trivia, and track your academic
               progress — all from one beautifully designed app.
-            </p>
-            <div className="lp-app-features">
+            </motion.p>
+            <motion.div className="lp-app-features" variants={stagger(0.08)}>
               {[
                 { icon: QrCode, title: 'QR Attendance',      desc: 'Scan your class QR code to mark attendance in seconds — GPS verified.' },
                 { icon: Bot, title: 'AI Study with Six',  desc: 'Upload notes and let Six explain, generate MCQs, flashcards and fill-in-the-blank questions.' },
@@ -353,37 +399,52 @@ export default function LandingPage() {
               ].map((f, i) => {
                 const Icon = f.icon
                 return (
-                <div key={i} className="lp-app-feature-row">
+                <motion.div
+                  key={i}
+                  className="lp-app-feature-row"
+                  variants={{ hidden: { opacity: 0, x: -24 }, show: { opacity: 1, x: 0, transition: { duration: 0.5, ease: EASE } } }}
+                  whileHover={{ x: 6 }}
+                >
                   <div className="lp-app-feature-icon"><Icon size={18} /></div>
                   <div>
                     <div className="lp-app-feature-title">{f.title}</div>
                     <div className="lp-app-feature-desc">{f.desc}</div>
                   </div>
-                </div>
+                </motion.div>
                 )
               })}
-            </div>
-            <div className="lp-app-btns">
-              <a href={PWA_URL} target="_blank" rel="noopener noreferrer" className="lp-app-download-btn lp-app-android" style={{ textDecoration: 'none', cursor: 'pointer' }}>
+            </motion.div>
+            <motion.div className="lp-app-btns" variants={fadeUp}>
+              <motion.a href={PWA_URL} target="_blank" rel="noopener noreferrer" className="lp-app-download-btn lp-app-android" style={{ textDecoration: 'none', cursor: 'pointer' }} whileHover={{ y: -3, scale: 1.03 }} whileTap={{ scale: 0.97 }}>
                 <div className="lp-app-btn-icon"><AndroidIcon size={26} /></div>
                 <div className="lp-app-btn-text">
                   <span className="lp-app-btn-sub">Install for</span>
                   <span className="lp-app-btn-main">Android</span>
                 </div>
-              </a>
-              <a href={PWA_URL} target="_blank" rel="noopener noreferrer" className="lp-app-download-btn lp-app-ios" style={{ textDecoration: 'none', cursor: 'pointer' }}>
+              </motion.a>
+              <motion.a href={PWA_URL} target="_blank" rel="noopener noreferrer" className="lp-app-download-btn lp-app-ios" style={{ textDecoration: 'none', cursor: 'pointer' }} whileHover={{ y: -3, scale: 1.03 }} whileTap={{ scale: 0.97 }}>
                 <div className="lp-app-btn-icon"><AppleIcon size={24} /></div>
                 <div className="lp-app-btn-text">
                   <span className="lp-app-btn-sub">Install for</span>
                   <span className="lp-app-btn-main">iOS / iPhone</span>
                 </div>
-              </a>
-            </div>
-            <p className="lp-app-note"><Smartphone size={14} /> PWA · Free to use · Works on Android & iOS · No installation needed</p>
-          </div>
+              </motion.a>
+            </motion.div>
+            <motion.p className="lp-app-note" variants={fadeUp}><Smartphone size={14} /> PWA · Free to use · Works on Android & iOS · No installation needed</motion.p>
+          </motion.div>
 
-          <div className="lp-app-mockup">
-            <div className="lp-phone">
+          <motion.div
+            className="lp-app-mockup"
+            initial={{ opacity: 0, x: 60, rotate: 4 }}
+            whileInView={{ opacity: 1, x: 0, rotate: 0 }}
+            viewport={inView}
+            transition={{ duration: 0.8, ease: EASE }}
+          >
+            <motion.div
+              className="lp-phone"
+              animate={{ y: [0, -14, 0] }}
+              transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+            >
               <div className="lp-phone-screen">
                 <div className="lp-phone-notch" />
                 <div className="lp-phone-content">
@@ -403,10 +464,18 @@ export default function LandingPage() {
                     ].map((c, i) => {
                       const Icon = c.icon
                       return (
-                      <div key={i} className="lp-phone-card" style={{ '--card-color': c.color }}>
+                      <motion.div
+                        key={i}
+                        className="lp-phone-card"
+                        style={{ '--card-color': c.color }}
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        whileInView={{ opacity: 1, scale: 1 }}
+                        viewport={inView}
+                        transition={{ delay: 0.5 + i * 0.1, duration: 0.4, ease: EASE }}
+                      >
                         <span className="lp-phone-card-icon"><Icon size={18} /></span>
                         <span className="lp-phone-card-label">{c.label}</span>
-                      </div>
+                      </motion.div>
                       )
                     })}
                   </div>
@@ -430,28 +499,40 @@ export default function LandingPage() {
                   </div>
                 </div>
               </div>
-            </div>
+            </motion.div>
             <div className="lp-app-glow" aria-hidden />
-          </div>
+          </motion.div>
         </div>
       </section>
 
       {/* ── CTA ── */}
-      <section className="lp-cta lp-reveal">
-        <div className="lp-cta-inner">
-          <img src="/logo.png" alt="ClassIQ" className="lp-cta-logo" />
-          <h2 className="lp-cta-h2">Join the academic ecosystem</h2>
-          <p className="lp-cta-p">
+      <section className="lp-cta">
+        <motion.div className="lp-cta-inner" {...grid(0.12)}>
+          <motion.div variants={fadeUp}>
+            <motion.img
+              src="/logo.png"
+              alt="ClassIQ"
+              className="lp-cta-logo"
+              animate={{ rotate: [0, 6, -6, 0] }}
+              transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+            />
+          </motion.div>
+          <motion.h2 className="lp-cta-h2" variants={fadeUp}>Join the academic ecosystem</motion.h2>
+          <motion.p className="lp-cta-p" variants={fadeUp}>
             Thousands of students and class representatives across Ghana are already
             using ClassIQ to learn smarter, attend better, and compete harder.
-          </p>
-          <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Link to="/get-started" className="lp-btn lp-white lp-lg">Get started free →</Link>
-            <a href={PWA_URL} target="_blank" rel="noopener noreferrer" className="lp-btn lp-lg" style={{ background: 'rgba(255,255,255,0.15)', color: '#fff', border: '1.5px solid rgba(255,255,255,0.3)', textDecoration: 'none' }}>
-              <Smartphone size={18} /> Download App
-            </a>
-          </div>
-        </div>
+          </motion.p>
+          <motion.div variants={fadeUp} style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
+            <motion.div whileHover={{ y: -3, scale: 1.04 }} whileTap={{ scale: 0.97 }}>
+              <Link to="/get-started" className="lp-btn lp-white lp-lg">Get started free →</Link>
+            </motion.div>
+            <motion.div whileHover={{ y: -3, scale: 1.04 }} whileTap={{ scale: 0.97 }}>
+              <a href={PWA_URL} target="_blank" rel="noopener noreferrer" className="lp-btn lp-lg" style={{ background: 'rgba(255,255,255,0.15)', color: '#fff', border: '1.5px solid rgba(255,255,255,0.3)', textDecoration: 'none' }}>
+                <Smartphone size={18} /> Download App
+              </a>
+            </motion.div>
+          </motion.div>
+        </motion.div>
         <div className="lp-cta-glow" aria-hidden />
       </section>
 
@@ -500,5 +581,6 @@ export default function LandingPage() {
       </footer>
 
     </div>
+    </MotionConfig>
   )
 }
