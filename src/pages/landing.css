@@ -75,10 +75,12 @@
   padding: 120px 32px 80px;
   position: relative; overflow: hidden;
   background-color: #ffffff;
-  background-image: url('/schoolbag.jpg');
+  background-image:
+    linear-gradient(rgba(255,255,255,0.3), rgba(255,255,255,0.3)),
+    url('/schoolbag.jpg');
   background-repeat: no-repeat;
-  background-position: center 62%;
-  background-size: min(860px, 92vw) auto;
+  background-position: center, center 62%;
+  background-size: 100% 100%, min(860px, 92vw) auto;
 }
 .lp-hero-inner {
   max-width: 760px; text-align: center; position: relative; z-index: 1;
@@ -356,8 +358,8 @@
   .lp-nav { padding: 14px 20px; }
   .lp-hero {
     padding: 100px 20px 60px;
-    background-position: center 70%;
-    background-size: min(520px, 140vw) auto;
+    background-position: center, center 70%;
+    background-size: 100% 100%, min(520px, 140vw) auto;
   }
   .lp-how, .lp-who { padding: 70px 20px; }
   .lp-features { padding: 70px 20px; }
