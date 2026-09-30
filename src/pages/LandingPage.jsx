@@ -42,7 +42,12 @@ const grid = (gap = 0.12) => ({ initial: 'hidden', whileInView: 'show', viewport
 export default function LandingPage() {
   const navigate = useNavigate()
   const { scrollYProgress } = useScroll()
-  const progress = useSpring(scrollYProgress, { stiffness: 120, damping: 24, mass: 0.3 })
+  const progress = useSpring(scrollYProgress, {
+    stiffness: 120,
+    damping: 24,
+    mass: 0.3,
+    skipInitialAnimation: true,
+  })
 
   useEffect(() => {
     const user = localStorage.getItem('classiq_user')
