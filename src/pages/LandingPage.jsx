@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion, MotionConfig, useScroll, useSpring } from 'framer-motion'
 import {
@@ -25,6 +25,36 @@ function AppleIcon({ size = 24 }) {
 }
 
 const PWA_URL = 'https://mobile-classiq.netlify.app/'
+
+// Logos live in public/schools/. If a file is missing, the school falls back to a monogram badge.
+const SCHOOLS = [
+  { name: 'Kumasi Technical University', short: 'KsTU',  logo: '/schools/kstu.jpg' },
+  { name: 'AAMUSTED',                    short: 'AAM',   logo: '/schools/aamusted.jpg' },
+  { name: 'KNUST',                       short: 'KNUST', logo: '/schools/knust.jpg' },
+  { name: 'University of Mines',         short: 'UMaT',  logo: '/schools/umat.jpg' },
+  { name: 'University of Ghana',         short: 'UG',    logo: '/schools/ug.jpg' },
+]
+
+function SchoolLogo({ school, duplicate }) {
+  const [failed, setFailed] = useState(false)
+  return (
+    <div className={`lp-trust-item${duplicate ? ' lp-trust-dup' : ''}`} aria-hidden={duplicate || undefined}>
+      {failed ? (
+        <>
+          <span className="lp-trust-mark">{school.short}</span>
+          <span className="lp-trust-name">{school.name}</span>
+        </>
+      ) : (
+        <img
+          src={school.logo}
+          alt={duplicate ? '' : school.name}
+          className="lp-trust-logo"
+          onError={() => setFailed(true)}
+        />
+      )}
+    </div>
+  )
+}
 
 const EASE = [0.22, 1, 0.36, 1]
 const fadeUp = {
@@ -137,9 +167,13 @@ export default function LandingPage() {
       <motion.section className="lp-trust" {...reveal}>
         <p className="lp-trust-label">Trusted across Ghanaian institutions</p>
         <div className="lp-trust-scroll">
-          {['Kumasi Technical University', 'AAMUSTED', 'KNUST', 'University of Mines', 'Garden City University'].map((n, i) => (
-            <span key={i} className="lp-trust-item">{n}</span>
-          ))}
+          <div className="lp-trust-track">
+            {[0, 1, 2, 3].flatMap(copy =>
+              SCHOOLS.map(s => (
+                <SchoolLogo key={`${copy}-${s.name}`} school={s} duplicate={copy > 0} />
+              ))
+            )}
+          </div>
         </div>
       </motion.section>
 
