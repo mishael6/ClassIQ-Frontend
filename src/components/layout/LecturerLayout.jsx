@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Outlet, NavLink, useNavigate } from 'react-router-dom'
+import { NavLink, useNavigate } from '../../lib/navigation.jsx'
 import { useAuth } from '../../context/AuthContext'
 import { LayoutDashboard, QrCode, ClipboardList, Calendar, LogOut, Menu, GraduationCap } from 'lucide-react'
 import './layout.css'
@@ -12,7 +12,7 @@ const nav = [
   { to: '/lecturer/attendance', label: 'Attendance', icon: ClipboardList },
 ]
 
-export default function LecturerLayout() {
+export default function LecturerLayout({ children }) {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
@@ -58,7 +58,7 @@ export default function LecturerLayout() {
           <button className="mobile-menu-btn" onClick={() => setOpen(true)}><Menu size={22} /></button>
           <div className="topbar-right"><div className="user-avatar sm">{initials}</div></div>
         </header>
-        <main className="main-content"><Outlet /></main>
+        <main className="main-content">{children}</main>
       </div>
     </div>
   )

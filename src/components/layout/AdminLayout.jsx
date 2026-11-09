@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Outlet, NavLink, useNavigate } from 'react-router-dom'
+import { NavLink, useNavigate } from '../../lib/navigation.jsx'
 import { useAuth } from '../../context/AuthContext'
 import {
   LayoutDashboard, Users, GraduationCap, QrCode,
@@ -22,7 +22,7 @@ const nav = [
   { to: '/admin/push',           label: 'Push Notifications', icon: Bell },
 ]
 
-export default function AdminLayout() {
+export default function AdminLayout({ children }) {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
@@ -82,7 +82,7 @@ export default function AdminLayout() {
           </div>
         </header>
         <main className="main-content">
-          <Outlet />
+          {children}
         </main>
       </div>
     </div>

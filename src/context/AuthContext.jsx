@@ -1,13 +1,19 @@
+'use client'
+
 import { createContext, useContext, useState, useEffect } from 'react'
 import { authApi } from '../lib/api'
 
 const AuthContext = createContext(null)
 
 export function AuthProvider({ children }) {
-  const [user, setUser]       = useState(() => {
-    try { return JSON.parse(localStorage.getItem('classiq_user')) } catch { return null }
-  })
+  const [user, setUser]       = useState(null)
+  const [ready, setReady]     = useState(false)
   const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    try { setUser(JSON.parse(localStorage.getItem('classiq_user'))) } catch { setUser(null) }
+    setReady(true)
+  }, [])
 
   const login = async (credentials) => {
     setLoading(true)
@@ -47,7 +53,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, adminLogin, logout }}>
+    <AuthContext.Provider value={{ user, loading, ready, login, adminLogin, logout }}>
       {children}
     </AuthContext.Provider>
   )

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Outlet, NavLink, useNavigate } from 'react-router-dom'
+import { NavLink, useNavigate } from '../../lib/navigation.jsx'
 import { useAuth } from '../../context/AuthContext'
 import {
   LayoutDashboard, QrCode, ClipboardList,
@@ -14,7 +14,7 @@ const nav = [
   { to: '/dashboard/report-issue', label: 'Report Issue', icon: AlertCircle },
 ]
 
-export default function ClassrepLayout() {
+export default function ClassrepLayout({ children }) {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
@@ -76,7 +76,7 @@ export default function ClassrepLayout() {
           </div>
         </header>
         <main className="main-content">
-          <Outlet />
+          {children}
         </main>
       </div>
     </div>

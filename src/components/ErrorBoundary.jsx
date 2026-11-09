@@ -1,4 +1,5 @@
 import { Component } from 'react'
+import { CircleAlert } from 'lucide-react'
 
 export default class ErrorBoundary extends Component {
   constructor(props) {
@@ -22,7 +23,7 @@ export default class ErrorBoundary extends Component {
           alignItems: 'center', justifyContent: 'center', padding: 24,
           fontFamily: "'DM Sans', sans-serif", background: '#f5f7fa', color: '#111827',
         }}>
-          <div style={{ fontSize: 48, marginBottom: 12 }}>😅</div>
+          <CircleAlert size={42} style={{ marginBottom: 12, color: '#64748b' }} />
           <h1 style={{ fontSize: 22, fontWeight: 800, marginBottom: 8 }}>Something went wrong</h1>
           <p style={{ fontSize: 14, color: '#6b7280', textAlign: 'center', maxWidth: 420, lineHeight: 1.6, marginBottom: 24 }}>
             {this.state.error?.message || 'The app hit an unexpected error.'}

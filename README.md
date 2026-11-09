@@ -1,6 +1,6 @@
-# ClassIQ — React/Vite + PHP REST API
+# ClassIQ — Next.js web app + PHP REST API
 
-A full-stack smart attendance system with GPS verification, QR codes, device fingerprinting, and admin dashboard.
+A full-stack smart attendance system with GPS verification, QR codes, device fingerprinting, and admin dashboard. The web client uses Next.js; the PHP REST API remains a separate service.
 
 ---
 
@@ -8,7 +8,8 @@ A full-stack smart attendance system with GPS verification, QR codes, device fin
 
 ```
 classiq/
-├── src/                        # React/Vite frontend
+├── app/                        # Next.js App Router entry and root layout
+├── src/                        # Web UI and API client
 │   ├── components/
 │   │   ├── ui/                 # Reusable UI components + styles
 │   │   └── layout/             # Sidebar layouts (classrep + admin)
@@ -30,7 +31,7 @@ classiq/
 │   └── admin/                  # dashboard, classreps, students, issues...
 ├── .env.example                # Environment variable template
 ├── netlify.toml                # Netlify SPA config
-└── vite.config.js
+└── next.config.mjs
 ```
 
 ---
@@ -59,10 +60,10 @@ cd classiq
 # Install dependencies
 npm install
 
-# Create .env file
-cp .env.example .env
-# Edit .env and set:
-# VITE_API_URL=https://your-php-host.com/api
+# Create .env.local
+cp .env.example .env.local
+# Edit .env.local and set:
+# NEXT_PUBLIC_API_URL=https://your-php-host.com/api
 
 # Run locally
 npm run dev
@@ -75,8 +76,8 @@ npm run build
 1. Push to GitHub
 2. Connect repo to Netlify
 3. Build command: `npm run build`
-4. Publish directory: `dist`
-5. Add environment variable: `VITE_API_URL=https://your-host.com/api`
+4. Publish directory: `.next` (Netlify Next.js adapter)
+5. Add environment variable: `NEXT_PUBLIC_API_URL=https://your-host.com/api`
 
 ---
 
@@ -96,13 +97,13 @@ Generate hash with PHP: `echo password_hash('YourNewPassword', PASSWORD_DEFAULT)
 
 | Variable        | Description                          | Example                              |
 |-----------------|--------------------------------------|--------------------------------------|
-| `VITE_API_URL`  | Your PHP API base URL                | `https://classiq.free.nf/api`        |
+| `NEXT_PUBLIC_API_URL` | Your PHP API base URL           | `https://classiq.free.nf/api`        |
 
 In `api/bootstrap.php`, also update:
 ```php
 $allowed_origins = [
     'https://your-app.netlify.app',  // your Netlify URL
-    'http://localhost:5173',          // local dev
+    'http://localhost:3000',          // local dev
 ];
 ```
 

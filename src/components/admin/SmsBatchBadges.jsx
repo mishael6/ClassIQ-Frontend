@@ -10,9 +10,9 @@ export function SmsBatchBadges({ batches = [] }) {
   }
 
   const labelMap = {
-    success: '✓ Sent',
-    partial: '⚠ Partial',
-    failed:  '✗ Failed',
+    success: ' Sent',
+    partial: 'Partial',
+    failed:  ' Failed',
   }
 
   return (

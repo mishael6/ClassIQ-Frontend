@@ -4,12 +4,11 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
   },
   "dependencies": {
-    "@vitejs/plugin-react": "^4.3.2",
     "axios": "^1.7.7",
     "date-fns": "^4.1.0",
     "framer-motion": "^13.4.6",
@@ -18,13 +17,12 @@
     "jspdf-autotable": "^5.0.7",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.447.0",
+    "next": "^16.4.5",
     "qrcode": "^1.5.4",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "react-leaflet": "^4.2.1",
-    "react-router-dom": "^6.26.2",
-    "recharts": "^2.12.7",
-    "vite": "^5.4.8"
+    "recharts": "^2.12.7"
   },
   "devDependencies": {
     "@types/react": "^18.3.11",
