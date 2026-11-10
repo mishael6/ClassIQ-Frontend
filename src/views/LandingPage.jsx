@@ -1,579 +1,438 @@
-import { useEffect } from 'react'
+'use client'
+
+import { useEffect, useRef } from 'react'
 import { Link, useNavigate } from '../lib/navigation.jsx'
-import { motion, MotionConfig, useScroll, useSpring } from 'framer-motion'
+import { motion, MotionConfig, useReducedMotion, useScroll, useTransform } from 'framer-motion'
 import {
-  GraduationCap, Smartphone, MapPin, Bot, Trophy, PenLine, Users, Rocket,
-  BookOpen, Presentation, QrCode, Lightbulb, BarChart3, Moon, Lock, Flame,
-  Mail, Phone, MessageCircle, ArrowRight, Check, ShieldCheck, ScanLine,
+  ArrowRight,
+  ArrowUpRight,
+  BarChart3,
+  BookOpen,
+  Bot,
+  Check,
+  CheckCircle2,
+  ChevronRight,
+  Clock3,
+  GraduationCap,
+  MessageCircle,
+  QrCode,
+  ScanLine,
+  ShieldCheck,
+  Smartphone,
+  Sparkles,
+  Trophy,
+  Users,
 } from 'lucide-react'
 import './landing.css'
 
-function AndroidIcon({ size = 24 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-      <path d="M17.6 9.48l1.84-3.18c.16-.31.04-.69-.26-.85a.637.637 0 0 0-.83.22l-1.88 3.24a11.43 11.43 0 0 0-8.94 0L5.65 5.67a.643.643 0 0 0-.87-.2c-.28.18-.37.54-.22.83L6.4 9.48A10.81 10.81 0 0 0 1 18h22a10.81 10.81 0 0 0-5.4-8.52zM7 15.25a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5zm10 0a1.25 1.25 0 1 1 0-2.5 1.25 1.25 0 0 1 0 2.5z" />
-    </svg>
-  )
-}
-
-function AppleIcon({ size = 24 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-      <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z" />
-    </svg>
-  )
-}
-
 const PWA_URL = 'https://mobile-classiq.netlify.app/'
-
-// Logos live in public/schools/. If a file is missing, the school falls back to a monogram badge.
 const EASE = [0.22, 1, 0.36, 1]
-const fadeUp = {
-  hidden: { opacity: 0, y: 28 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.65, ease: EASE } },
+const reveal = {
+  initial: { opacity: 0, y: 24 },
+  whileInView: { opacity: 1, y: 0 },
+  viewport: { once: true, amount: 0.18 },
+  transition: { duration: 0.6, ease: EASE },
 }
-const stagger = (gap = 0.1, delay = 0) => ({
-  hidden: {},
-  show: { transition: { staggerChildren: gap, delayChildren: delay } },
-})
-const inView = { once: true, amount: 0.2 }
-const reveal = { initial: 'hidden', whileInView: 'show', viewport: inView, variants: fadeUp }
-const grid = (gap = 0.12) => ({ initial: 'hidden', whileInView: 'show', viewport: inView, variants: stagger(gap) })
+
+function ScrollParallax({ children, className, distance = 28 }) {
+  const ref = useRef(null)
+  const prefersReducedMotion = useReducedMotion()
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ['start end', 'end start'],
+  })
+  const y = useTransform(scrollYProgress, [0, 1], [distance, -distance])
+
+  return <motion.div ref={ref} className={className} style={{ y: prefersReducedMotion ? 0 : y }}>{children}</motion.div>
+}
+
+function CartoonVector({ type }) {
+  return (
+    <svg viewBox="0 0 72 72" aria-hidden="true" focusable="false">
+      <circle cx="36" cy="36" r="33" fill="#eaf1fb" />
+
+      {type === 'attendance' && (
+        <>
+          <rect x="17" y="10" width="38" height="51" rx="8" fill="#fff" stroke="#185adb" strokeWidth="2.5" />
+          <path d="M17 19a9 9 0 0 1 9-9h20a9 9 0 0 1 9 9v2H17z" fill="#185adb" />
+          <path d="M24 29h12v12H24zM27 32h3v3h-3zM32 37h2v2h-2zM24 46h4v4h-4zM31 46h3v3h-3zM37 29h3v3h-3z" fill="#8eb1ff" />
+          <circle cx="49" cy="49" r="11" fill="#34a879" stroke="#fff" strokeWidth="2" />
+          <path d="m44 49 3 3 6-7" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+        </>
+      )}
+
+      {type === 'assistant' && (
+        <>
+          <path d="M36 10v7" stroke="#7559a0" strokeWidth="3" strokeLinecap="round" />
+          <circle cx="36" cy="9" r="4" fill="#ffbd58" />
+          <rect x="15" y="19" width="42" height="34" rx="12" fill="#fff" stroke="#7559a0" strokeWidth="2.5" />
+          <path d="M15 31v-2a10 10 0 0 1 10-10h22a10 10 0 0 1 10 10v2" fill="#e7dcff" />
+          <circle cx="28" cy="36" r="3" fill="#7559a0" /><circle cx="44" cy="36" r="3" fill="#7559a0" />
+          <path d="M29 44q7 7 14 0" fill="none" stroke="#7559a0" strokeWidth="2.5" strokeLinecap="round" />
+          <path d="M26 54v5m20-5v5M22 60h28" stroke="#7559a0" strokeWidth="2.5" strokeLinecap="round" />
+          <path d="m56 12 2 4 4 1-4 2-2 4-1-4-4-2 4-1z" fill="#ffbd58" />
+        </>
+      )}
+
+      {type === 'trivia' && (
+        <>
+          <path d="M25 17h22v10c0 11-5 17-11 17s-11-6-11-17z" fill="#ffca5c" stroke="#d58b24" strokeWidth="2.5" />
+          <path d="M25 23h-7v4c0 7 4 11 11 11m18-15h7v4c0 7-4 11-11 11" fill="none" stroke="#d58b24" strokeWidth="3" strokeLinecap="round" />
+          <path d="M36 44v9m-9 5h18m-15-5h12" stroke="#d58b24" strokeWidth="3" strokeLinecap="round" />
+          <path d="m19 13 2 4 4 1-4 2-2 4-1-4-4-2 4-1zM53 42l2 3 3 1-3 1-2 3-1-3-3-1 3-1z" fill="#ff9f43" />
+          <path d="m36 24 2 4 4 .6-3 3 .7 4-3.7-2-3.7 2 .7-4-3-3 4-.6z" fill="#fff4c6" />
+        </>
+      )}
+
+      {type === 'representatives' && (
+        <>
+          <circle cx="36" cy="27" r="9" fill="#f1b98d" />
+          <path d="M26 27q1-12 11-12 9 1 10 10l-4-3-5-5-7 6z" fill="#24375c" />
+          <path d="M19 58q1-18 17-18t17 18" fill="#185adb" />
+          <circle cx="18" cy="35" r="7" fill="#d99770" /><path d="M10 35q1-10 9-9l5 5-6-1-4 2z" fill="#51416f" />
+          <path d="M7 57q0-13 11-13 6 0 9 5l-4 10z" fill="#9b8bd0" />
+          <circle cx="55" cy="35" r="7" fill="#f2c59d" /><path d="M48 34q0-9 8-9 5 1 7 7l-6-3-5 2z" fill="#2d4953" />
+          <path d="M46 50q3-6 10-6 10 0 11 13H47z" fill="#47a58c" />
+          <circle cx="51" cy="52" r="6" fill="#ffca5c" stroke="#fff" strokeWidth="2" />
+          <path d="m49 52 2 2 3-4" fill="none" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+        </>
+      )}
+
+      {type === 'lecturer' && (
+        <>
+          <rect x="8" y="13" width="41" height="31" rx="4" fill="#fff" stroke="#185adb" strokeWidth="2.5" />
+          <path d="M15 35V27h6v8m4 0V22h6v13m4 0v-5h6v5" fill="#91b6ff" />
+          <path d="M17 49h24" stroke="#185adb" strokeWidth="3" strokeLinecap="round" />
+          <circle cx="54" cy="29" r="7" fill="#f1b98d" />
+          <path d="M48 29q1-9 8-8l5 5-6-2-4 3z" fill="#38486b" />
+          <path d="M45 57q1-17 10-17t11 17" fill="#7559a0" />
+          <path d="m47 38-9 8" stroke="#f1b98d" strokeWidth="3" strokeLinecap="round" />
+          <circle cx="37" cy="47" r="2" fill="#ffbd58" />
+        </>
+      )}
+
+      {type === 'student' && (
+        <>
+          <path d="M11 42q12-7 25 1 13-8 25-1v17q-12-6-25 2-13-8-25-2z" fill="#fff" stroke="#185adb" strokeWidth="2.5" strokeLinejoin="round" />
+          <path d="M36 43v18" stroke="#185adb" strokeWidth="2" />
+          <circle cx="36" cy="24" r="9" fill="#d99770" />
+          <path d="m20 18 16-8 16 8-16 8z" fill="#7559a0" />
+          <path d="M29 21v5q7 5 14 0v-5" fill="#ffca5c" />
+          <path d="M20 19v8" stroke="#7559a0" strokeWidth="2" strokeLinecap="round" />
+          <circle cx="20" cy="29" r="3" fill="#ffbd58" />
+        </>
+      )}
+
+      {type === 'account' && (
+        <>
+          <rect x="18" y="12" width="37" height="49" rx="7" fill="#fff" stroke="#185adb" strokeWidth="2.5" />
+          <path d="M28 12v-2h17v7H28z" fill="#ffca5c" stroke="#d58b24" strokeWidth="1.5" />
+          <path d="M26 29h19m-19 8h13" stroke="#91b6ff" strokeWidth="3" strokeLinecap="round" />
+          <circle cx="45" cy="49" r="11" fill="#34a879" stroke="#fff" strokeWidth="2" />
+          <path d="m40 49 3 3 6-7" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+          <path d="m13 43-4 12 11-5" fill="#ff9f43" stroke="#d58b24" strokeWidth="1.5" strokeLinejoin="round" />
+        </>
+      )}
+
+      {type === 'invite' && (
+        <>
+          <rect x="9" y="27" width="54" height="34" rx="7" fill="#fff" stroke="#185adb" strokeWidth="2.5" />
+          <path d="m11 31 25 18 25-18" fill="none" stroke="#91b6ff" strokeWidth="3" strokeLinejoin="round" />
+          <circle cx="26" cy="19" r="7" fill="#f1b98d" /><circle cx="45" cy="19" r="7" fill="#d99770" />
+          <path d="M17 29q1-9 9-9 7 0 9 9m2 0q1-9 9-9 8 0 9 9" fill="#7559a0" />
+          <circle cx="56" cy="48" r="9" fill="#34a879" stroke="#fff" strokeWidth="2" />
+          <path d="M56 43v10m-5-5h10" stroke="#fff" strokeWidth="2" strokeLinecap="round" />
+        </>
+      )}
+
+      {type === 'checkin' && (
+        <>
+          <rect x="17" y="8" width="38" height="57" rx="9" fill="#fff" stroke="#185adb" strokeWidth="2.5" />
+          <rect x="22" y="15" width="28" height="34" rx="3" fill="#eaf1fb" />
+          <path d="M26 19h8v8h-8zm3 3v2h2v-2zm12-3h6v6h-6zm-15 13h6v6h-6zm10-2h3v3h-3zm7 4h4v4h-4zm-7 6h3v3h-3z" fill="#185adb" />
+          <circle cx="48" cy="49" r="11" fill="#34a879" stroke="#fff" strokeWidth="2" />
+          <path d="m43 49 3 3 6-7" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+          <rect x="29" y="54" width="14" height="3" rx="1.5" fill="#91b6ff" />
+        </>
+      )}
+    </svg>
+  )
+}
+
+const features = [
+  {
+    illustration: 'attendance',
+    tone: 'blue',
+    eyebrow: 'Attendance',
+    title: 'A clearer record of every class',
+    description: 'Create QR attendance sessions with GPS radius verification. See check-ins as they happen, then review attendance history and reports.',
+    bullets: ['Live QR sessions', 'GPS checks and fraud flagging', 'Attendance history and reports'],
+  },
+  {
+    illustration: 'assistant',
+    tone: 'violet',
+    eyebrow: 'Study assistant · Six',
+    title: 'Turn lecture notes into active study',
+    description: 'Upload notes or paste text for a simpler explanation, then make practice material from the same content.',
+    bullets: ['Topic explanations and study guides', 'MCQs and flashcards', 'Fill-in-the-blank practice'],
+  },
+  {
+    illustration: 'trivia',
+    tone: 'amber',
+    eyebrow: 'Trivia',
+    title: 'Make revision more engaging',
+    description: 'Challenge yourself with course-based trivia, timed questions, points, and a global student leaderboard.',
+    bullets: ['AI-generated questions', '15-second mixed-question rounds', 'Points and global rankings'],
+  },
+]
+
+const roles = [
+  {
+    illustration: 'representatives',
+    name: 'Class representatives',
+    description: 'Organize your class, invite students, run attendance sessions, review reports, and communicate with your administrator from one dashboard.',
+    action: 'Register as a class rep',
+    to: '/get-started',
+    tone: 'green',
+  },
+  {
+    illustration: 'lecturer',
+    name: 'Lecturers',
+    description: 'Manage your courses, create QR attendance sessions, and follow weekly topics and student presence.',
+    action: 'Register as a lecturer',
+    to: '/register/lecturer',
+    tone: 'violet',
+  },
+  {
+    illustration: 'student',
+    name: 'Students',
+    description: 'Scan to check in, keep track of attendance, study with Six, and take part in course trivia.',
+    action: 'Get the student app',
+    href: PWA_URL,
+    tone: 'blue',
+  },
+]
+
+function Brand({ footer = false }) {
+  return (
+    <span className={`lp-brand${footer ? ' lp-brand-footer' : ''}`}>
+      <img src="/logo.png" alt="" className="lp-brand-mark" />
+      <span>Class<span className="lp-brand-accent">IQ</span></span>
+    </span>
+  )
+}
 
 export default function LandingPage() {
   const navigate = useNavigate()
-  const { scrollYProgress } = useScroll()
-  const progress = useSpring(scrollYProgress, {
-    stiffness: 120,
-    damping: 24,
-    mass: 0.3,
-    skipInitialAnimation: true,
-  })
 
   useEffect(() => {
     const user = localStorage.getItem('classiq_user')
-    if (user) {
-      try {
-        const p = JSON.parse(user)
-        navigate(p.role === 'admin' ? '/admin' : p.role === 'lecturer' ? '/lecturer' : '/dashboard', { replace: true })
-      } catch {}
+    if (!user) return
+    try {
+      const profile = JSON.parse(user)
+      if (profile.role === 'admin') return
+      navigate(profile.role === 'lecturer' ? '/lecturer' : '/dashboard', { replace: true })
+    } catch {
+      // Keep the public landing page available if a saved profile is malformed.
     }
-  }, [])
+  }, [navigate])
 
   return (
     <MotionConfig reducedMotion="user">
-    <div className="lp-root">
-      <motion.div className="lp-progress" style={{ scaleX: progress }} aria-hidden />
-
-      {/* ── Header ── */}
-      <motion.header
-        className="lp-header"
-        initial={{ y: -80, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.6, ease: EASE }}
-      >
-        <div className="lp-nav">
-          <div className="lp-logo">
-            <img src="/logo.png" alt="ClassIQ" className="lp-logo-img" />
-            <span>ClassIQ</span>
+      <div className="lp-root">
+        <header className="lp-header">
+          <div className="lp-nav lp-container">
+            <Link to="/" className="lp-brand-link" aria-label="ClassIQ home"><Brand /></Link>
+            <nav className="lp-nav-links" aria-label="Main navigation">
+              <a href="#platform">Platform</a>
+              <a href="#how-it-works">How it works</a>
+              <a href="#for-everyone">Who it’s for</a>
+            </nav>
+            <div className="lp-nav-actions">
+              <Link to="/login" className="lp-login-link">Log in</Link>
+              <Link to="/get-started" className="lp-button lp-button-primary lp-button-nav">Get started <ArrowRight size={16} /></Link>
+            </div>
           </div>
-          <nav className="lp-nav-btns" aria-label="Main navigation">
-            <Link to="/login"    className="lp-btn lp-ghost">Log in</Link>
-            <Link to="/get-started" className="lp-btn lp-solid">Create an account <ArrowRight size={16} /></Link>
-          </nav>
-        </div>
-      </motion.header>
+        </header>
 
-      {/* ── Hero ── */}
-      <section className="lp-hero">
-        <motion.div className="lp-hero-inner" initial="hidden" animate="show" variants={stagger(0.12, 0.15)}>
-          <motion.div className="lp-badge" variants={fadeUp}><GraduationCap size={15} /> Attendance and study tools for higher education</motion.div>
-          <motion.h1 className="lp-h1" variants={fadeUp}>
-            Make every class<br/>
-            <span className="lp-accent">count.</span>
-          </motion.h1>
-          <motion.p className="lp-hero-p" variants={fadeUp}>
-            ClassIQ helps lecturers and class representatives run attendance with QR codes and GPS verification. Students can check in, review their attendance, and use AI study tools in one app.
-          </motion.p>
-          <motion.div className="lp-hero-cta" variants={fadeUp}>
-            <motion.div whileHover={{ y: -3, scale: 1.03 }} whileTap={{ scale: 0.97 }}>
-              <Link to="/get-started" className="lp-btn lp-solid lp-lg">Choose your account <ArrowRight size={18} /></Link>
-            </motion.div>
-            <motion.div whileHover={{ y: -3, scale: 1.03 }} whileTap={{ scale: 0.97 }}>
-              <a href={PWA_URL} target="_blank" rel="noopener noreferrer" className="lp-btn lp-outline lp-lg" style={{ textDecoration: 'none' }}>
-                <Smartphone size={18} /> Download App
-              </a>
-            </motion.div>
-          </motion.div>
-          <motion.div className="lp-stats-row lp-value-row" variants={stagger(0.08)} aria-label="ClassIQ essentials">
-            {[
-              { value: '01', label: 'Create a class' },
-              { value: '02', label: 'Share a QR code' },
-              { value: '03', label: 'Review attendance' },
-            ].map((s, i) => (
-              <motion.div
-                key={i}
-                className="lp-stat-pill"
-                variants={{ hidden: { opacity: 0, y: 18, scale: 0.92 }, show: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.5, ease: EASE } } }}
-                whileHover={{ y: -4, scale: 1.05 }}
-              >
-                <span className="lp-stat-val">{s.value}</span>
-                <span className="lp-stat-lbl">{s.label}</span>
+        <main>
+          <section className="lp-hero">
+            <div className="lp-container lp-hero-grid">
+              <motion.div className="lp-hero-copy" initial="hidden" animate="show" variants={{ hidden: {}, show: { transition: { staggerChildren: 0.1, delayChildren: 0.08 } } }}>
+                <motion.div className="lp-eyebrow" variants={reveal}><span className="lp-eyebrow-mark"><GraduationCap size={15} /></span> Learning and class operations, together</motion.div>
+                <motion.h1 variants={reveal}>Make every class <span>count.</span></motion.h1>
+                <motion.p className="lp-hero-description" variants={reveal}>ClassIQ brings attendance, study support, and class tools into one connected platform for lecturers, class representatives, and students.</motion.p>
+                <motion.div className="lp-hero-actions" variants={reveal}>
+                  <Link to="/get-started" className="lp-button lp-button-primary lp-button-large">Get started <ArrowRight size={18} /></Link>
+                  <a href="#platform" className="lp-button lp-button-secondary lp-button-large">Explore ClassIQ <ChevronRight size={17} /></a>
+                </motion.div>
               </motion.div>
-            ))}
-          </motion.div>
-        </motion.div>
-        <motion.div
-          className="lp-hero-glow"
-          aria-hidden
-          animate={{ scale: [1, 1.12, 1], opacity: [0.8, 1, 0.8] }}
-          transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
-        />
-      </section>
+            </div>
+          </section>
 
-      {/* ── Ecosystem Overview ── */}
-      <section className="lp-ecosystem">
-        <motion.div className="lp-section-label" {...reveal}>The Ecosystem</motion.div>
-        <motion.h2 className="lp-h2" {...reveal}>Four pillars of academic excellence</motion.h2>
-        <motion.p className="lp-ecosystem-intro" {...reveal}>
-          ClassIQ is not just an attendance tool. It is a complete academic operating system
-          designed to help institutions, class representatives, and students thrive together.
-        </motion.p>
-        <motion.div className="lp-ecosystem-grid" {...grid(0.12)}>
-          {[
-            {
-              icon: MapPin,
-              color: '#1A73E8',
-              bg: '#1A73E815',
-              title: 'Smart Attendance',
-              tag: 'For Class Reps & Students',
-              desc: 'GPS-verified QR code attendance that eliminates proxy marking. Generate a session, display the code, and watch attendance mark itself in real time.',
-              points: ['GPS radius verification', 'Live QR sessions', 'Fraud detection & flagging', 'Instant attendance reports'],
-            },
-            {
-              icon: Bot,
-              color: '#6B46C1',
-              bg: '#6B46C115',
-              title: 'AI Study Assistant',
-              tag: 'Powered by Six',
-              desc: 'Meet Six — your personal AI tutor. Upload lecture notes or paste text and Six breaks it down, generates quizzes, flashcards, and study guides in seconds.',
-              points: ['Explain complex topics simply', 'Generate MCQ questions', 'Create flashcard sets', 'Fill-in-the-blank exercises'],
-            },
-            {
-              icon: Trophy,
-              color: '#D69E2E',
-              bg: '#D69E2E15',
-              title: 'Trivia & Leaderboard',
-              tag: 'Gamified Learning',
-              desc: 'Turn studying into competition. AI-generated trivia challenges test students on their courses, award points, and rank them on a global leaderboard.',
-              points: ['AI-generated course questions', '15-second timed challenges', 'Mixed question types', 'Global student rankings'],
-            },
-            {
-              icon: Smartphone,
-              color: '#38A169',
-              bg: '#38A16915',
-              title: 'Mobile App',
-              tag: 'Android & iOS',
-              desc: 'The ClassIQ mobile app puts the entire ecosystem in your pocket. Scan QR codes, study with Six, play trivia, and track attendance — anywhere, anytime.',
-              points: ['QR code scanner', 'Full AI study access', 'Real-time trivia', 'Attendance history'],
-            },
-          ].map((p, i) => {
-            const Icon = p.icon
-            return (
-            <motion.div
-              key={i}
-              className="lp-eco-card"
-              style={{ '--eco-color': p.color, '--eco-bg': p.bg }}
-              variants={fadeUp}
-              whileHover={{ y: -8 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 22 }}
-            >
-              <div className="lp-eco-card-top">
-                <motion.div
-                  className="lp-eco-icon"
-                  style={{ background: p.bg, color: p.color }}
-                  whileHover={{ rotate: [0, -8, 8, 0], scale: 1.1 }}
-                  transition={{ duration: 0.5 }}
-                >
-                  <Icon size={22} />
-                </motion.div>
-                <div className="lp-eco-tag">{p.tag}</div>
-              </div>
-              <h3 className="lp-eco-title" style={{ color: p.color }}>{p.title}</h3>
-              <p className="lp-eco-desc">{p.desc}</p>
-              <ul className="lp-eco-points">
-                {p.points.map((pt, j) => (
-                  <li key={j} className="lp-eco-point">
-                    <span className="lp-eco-point-dot" style={{ background: p.color }} />
-                    {pt}
-                  </li>
-                ))}
-              </ul>
-            </motion.div>
-            )
-          })}
-        </motion.div>
-      </section>
+          <section className="lp-intro-strip" aria-label="ClassIQ summary">
+            <div className="lp-container lp-intro-inner">
+              <p>One connected experience for the moments before, during, and after class.</p>
+              <div className="lp-intro-items"><span><QrCode size={17} /> Check in</span><span><Sparkles size={17} /> Learn actively</span><span><BarChart3 size={17} /> Track progress</span></div>
+            </div>
+          </section>
 
-      {/* ── How it works ── */}
-      <section className="lp-how">
-        <motion.div className="lp-section-label" {...reveal}>How it works</motion.div>
-        <motion.h2 className="lp-h2" {...reveal}>From registration to results</motion.h2>
-        <motion.div className="lp-steps" {...grid(0.15)}>
-          {[
-            { n: '01', color: '#0066ff', title: 'Register & get approved', icon: PenLine, desc: 'Class reps register on the web app. Once approved by admin, they get access to the full dashboard and a unique student registration link.' },
-            { n: '02', color: '#00b57a', title: 'Onboard your students',   icon: Users, desc: 'Share your registration link with students. They sign up and install the ClassIQ PWA — ready to go in minutes.' },
-            { n: '03', color: '#7c3aed', title: 'Run your class',          icon: Rocket, desc: 'Generate QR codes for attendance, let students study with Six, challenge them with trivia, and monitor everything from your dashboard.' },
-          ].map((s, i) => {
-            const Icon = s.icon
-            return (
-            <motion.div
-              key={i}
-              className="lp-step"
-              style={{ '--accent': s.color }}
-              variants={fadeUp}
-              whileHover={{ y: -8 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 22 }}
-            >
-              <div className="lp-step-icon"><Icon size={28} /></div>
-              <div className="lp-step-num" style={{ color: s.color }}>{s.n}</div>
-              <h3 className="lp-step-title">{s.title}</h3>
-              <p className="lp-step-desc">{s.desc}</p>
-            </motion.div>
-            )
-          })}
-        </motion.div>
-      </section>
+          <section className="lp-section lp-platform" id="platform">
+            <div className="lp-container">
+              <motion.div className="lp-section-heading" {...reveal}>
+                <span className="lp-section-kicker">THE CLASSIQ PLATFORM</span>
+                <h2>Less admin. More learning.</h2>
+                <p>Purpose-built tools help your class stay organized and give students a better way to keep learning.</p>
+              </motion.div>
+              <ScrollParallax className="lp-feature-parallax" distance={18}>
+                <div className="lp-feature-grid">
+                  {features.map((feature, index) => {
+                    return (
+                      <motion.article className={`lp-feature-card lp-tone-${feature.tone}`} key={feature.title} {...reveal} transition={{ ...reveal.transition, delay: index * 0.08 }}>
+                        <div className="lp-feature-top"><span className="lp-feature-icon"><CartoonVector type={feature.illustration} /></span><span className="lp-feature-eyebrow">{feature.eyebrow}</span></div>
+                        <h3>{feature.title}</h3>
+                        <p>{feature.description}</p>
+                        <ul>{feature.bullets.map((bullet) => <li key={bullet}><Check size={15} />{bullet}</li>)}</ul>
+                      </motion.article>
+                    )
+                  })}
+                </div>
+              </ScrollParallax>
+            </div>
+          </section>
 
-      {/* ── Who it's for ── */}
-      <section className="lp-who">
-        <motion.div className="lp-section-label" {...reveal}>Who it's for</motion.div>
-        <motion.h2 className="lp-h2" {...reveal}>Built for everyone in academia</motion.h2>
-        <motion.div className="lp-who-grid" {...grid(0.15)}>
-          <motion.div className="lp-who-card lp-who-classrep" variants={fadeUp} whileHover={{ y: -8 }} transition={{ type: 'spring', stiffness: 300, damping: 22 }}>
-            <div className="lp-who-icon"><GraduationCap size={32} /></div>
-            <h3>Class Representatives</h3>
-            <p>Manage your class end-to-end. Generate QR attendance, track your students, view detailed reports, and communicate with your admin — all from one dashboard.</p>
-            <Link to="/get-started" className="lp-btn lp-solid lp-sm" style={{ marginTop: 'auto', paddingTop: 20, alignSelf: 'flex-start' }}>
-              Register as Class Rep →
-            </Link>
-          </motion.div>
-          <motion.div className="lp-who-card lp-who-student" variants={fadeUp} whileHover={{ y: -8 }} transition={{ type: 'spring', stiffness: 300, damping: 22 }}>
-            <div className="lp-who-icon"><BookOpen size={32} /></div>
-            <h3>Students</h3>
-            <p>Mark attendance by scanning a QR code, study smarter with AI, compete in trivia, and track your academic progress — all from the ClassIQ mobile app.</p>
-            <a href={PWA_URL} target="_blank" rel="noopener noreferrer" className="lp-btn lp-solid lp-sm" style={{ marginTop: 'auto', background: '#38A169', textDecoration: 'none' }}>
-              Download the App →
-            </a>
-          </motion.div>
-          <motion.div className="lp-who-card lp-who-lecturer" variants={fadeUp} whileHover={{ y: -8 }} transition={{ type: 'spring', stiffness: 300, damping: 22 }}>
-            <div className="lp-who-icon"><Presentation size={32} /></div>
-            <h3>Lecturers</h3>
-            <p>Take attendance for your course. Generate QR sessions, track weekly topics, and follow which students are present from one lecturer dashboard.</p>
-            <Link to="/register/lecturer" className="lp-btn lp-solid lp-sm" style={{ marginTop: 'auto', background: '#7c3aed', alignSelf: 'flex-start' }}>
-              Sign up as a Lecturer →
-            </Link>
-          </motion.div>
-        </motion.div>
-      </section>
+          <section className="lp-six-section">
+            <div className="lp-container lp-six-grid">
+              <motion.div className="lp-six-copy" {...reveal}>
+                <span className="lp-section-kicker lp-kicker-light"><Sparkles size={14} /> MEET SIX</span>
+                <h2>A study partner that starts with your notes.</h2>
+                <p>Six helps students work with the material they already have. Upload lecture notes or paste text, then turn it into clearer explanations and focused practice.</p>
+                <ul className="lp-six-list">
+                  <li><CheckCircle2 size={18} /> Break down complex topics</li>
+                  <li><CheckCircle2 size={18} /> Generate MCQs and flashcards</li>
+                  <li><CheckCircle2 size={18} /> Practise with fill-in-the-blank questions</li>
+                </ul>
+                <a href={PWA_URL} target="_blank" rel="noopener noreferrer" className="lp-button lp-button-light">Study with Six <ArrowUpRight size={17} /></a>
+              </motion.div>
+              <ScrollParallax className="lp-six-image-parallax" distance={34}>
+                <motion.figure className="lp-six-image" {...reveal} transition={{ ...reveal.transition, delay: 0.12 }}>
+                  <img src="/classiq-student-learning.jpg" alt="A student studying online at home with headphones and a laptop" />
+                  <figcaption className="lp-six-image-caption">
+                    <span className="lp-six-image-caption-icon"><Sparkles size={18} /></span>
+                    <span><strong>Learn with Six</strong><small>Clear explanations and practice from your notes.</small></span>
+                  </figcaption>
+                </motion.figure>
+              </ScrollParallax>
+            </div>
+          </section>
 
-      {/* ── Getting Started Guide ── */}
-      <section className="lp-guide">
-        <motion.div className="lp-section-label" {...reveal}>Get started</motion.div>
-        <motion.h2 className="lp-h2" {...reveal}>Up and running in minutes</motion.h2>
-        <motion.p className="lp-guide-intro" {...reveal}>
-          Everything you need to know to get ClassIQ working for your class — from registration to marking attendance.
-        </motion.p>
-        <motion.div className="lp-guide-grid" {...reveal}>
-          <div className="lp-guide-card">
-            <div className="lp-guide-card-header" style={{ background: 'linear-gradient(135deg, #0066ff, #0044cc)' }}>
-              <span className="lp-guide-card-emoji"><GraduationCap size={26} /></span>
-              <div>
-                <div className="lp-guide-card-tag">Step 1</div>
-                <div className="lp-guide-card-title">Sign up as a Class Rep</div>
+          <section className="lp-section lp-roles" id="for-everyone">
+            <div className="lp-container">
+              <motion.div className="lp-section-heading" {...reveal}>
+                <span className="lp-section-kicker">MADE FOR YOUR ROLE</span>
+                <h2>Everyone has a place in class.</h2>
+                <p>Choose the path that fits you. ClassIQ connects the work happening across your academic community.</p>
+              </motion.div>
+              <div className="lp-role-grid">
+                {roles.map((role, index) => {
+                  return (
+                    <motion.article className={`lp-role-card lp-tone-${role.tone}`} key={role.name} {...reveal} transition={{ ...reveal.transition, delay: index * 0.06 }}>
+                      <span className="lp-role-icon"><CartoonVector type={role.illustration} /></span>
+                      <h3>{role.name}</h3>
+                      <p>{role.description}</p>
+                      {role.href ? <a className="lp-text-link" href={role.href} target="_blank" rel="noopener noreferrer">{role.action}<ArrowUpRight size={16} /></a> : <Link className="lp-text-link" to={role.to}>{role.action}<ArrowRight size={16} /></Link>}
+                    </motion.article>
+                  )
+                })}
               </div>
             </div>
-            <div className="lp-guide-card-body">
-              {[
-                { n: 1, text: 'Click "Get started" at the top of this page' },
-                { n: 2, text: 'Fill in your name, institution, department, program and contact details' },
-                { n: 3, text: 'Click "Create account" to submit your registration' },
-                { n: 4, text: 'Wait for admin approval — usually a few hours' },
-                { n: 5, text: 'Once approved, sign in and access your full dashboard' },
-              ].map((s, i) => (
-                <div key={i} className="lp-guide-step">
-                  <div className="lp-guide-step-num" style={{ background: '#0066ff22', color: '#0066ff' }}>{s.n}</div>
-                  <p className="lp-guide-step-text">{s.text}</p>
-                </div>
-              ))}
-              <Link to="/get-started" className="lp-guide-cta" style={{ background: '#0066ff' }}>Get started →</Link>
-            </div>
-          </div>
+          </section>
 
-          <div className="lp-guide-card">
-            <div className="lp-guide-card-header" style={{ background: 'linear-gradient(135deg, #00b57a, #008f5e)' }}>
-              <span className="lp-guide-card-emoji"><Users size={26} /></span>
-              <div>
-                <div className="lp-guide-card-tag">Step 2</div>
-                <div className="lp-guide-card-title">Set up your class</div>
+          <section className="lp-process-section" id="how-it-works">
+            <div className="lp-container">
+              <motion.div className="lp-section-heading" {...reveal}>
+                <span className="lp-section-kicker">A SIMPLE START</span>
+                <h2>Get your class moving in three steps.</h2>
+                <p>From setup to a more organized lecture routine, the essentials are straightforward.</p>
+              </motion.div>
+              <div className="lp-process-grid">
+                <motion.article className="lp-process-card" {...reveal}>
+                  <span className="lp-process-number">01</span><span className="lp-process-icon"><CartoonVector type="account" /></span>
+                  <h3>Create your account</h3><p>Class representatives register with their institution and class details. An administrator reviews and approves the request. Lecturers can register directly.</p>
+                </motion.article>
+                <motion.article className="lp-process-card" {...reveal} transition={{ ...reveal.transition, delay: 0.08 }}>
+                  <span className="lp-process-number">02</span><span className="lp-process-icon"><CartoonVector type="invite" /></span>
+                  <h3>Bring students in</h3><p>After approval, class reps share their unique registration link. Students join the class and install the mobile app to access their learning tools.</p>
+                </motion.article>
+                <motion.article className="lp-process-card" {...reveal} transition={{ ...reveal.transition, delay: 0.16 }}>
+                  <span className="lp-process-number">03</span><span className="lp-process-icon"><CartoonVector type="checkin" /></span>
+                  <h3>Run and review class</h3><p>Start a QR session, set the classroom location and radius, then display the code. End the session after class and review attendance reports.</p>
+                </motion.article>
               </div>
+              <motion.div className="lp-process-note" {...reveal}><Clock3 size={18} /><p><strong>Useful tip:</strong> End your QR session when the lecture is over to prevent late check-ins.</p></motion.div>
             </div>
-            <div className="lp-guide-card-body">
-              {[
-                { n: 1, text: 'Log into your ClassIQ dashboard after approval' },
-                { n: 2, text: 'Copy your unique student registration link from your profile' },
-                { n: 3, text: 'Share the link with your students via WhatsApp or any messaging app' },
-                { n: 4, text: 'Students register using the link and appear in your student list' },
-                { n: 5, text: 'Direct your students to install the ClassIQ mobile app below' },
-              ].map((s, i) => (
-                <div key={i} className="lp-guide-step">
-                  <div className="lp-guide-step-num" style={{ background: '#00b57a22', color: '#00b57a' }}>{s.n}</div>
-                  <p className="lp-guide-step-text">{s.text}</p>
+          </section>
+
+          <section className="lp-mobile-section" id="mobile-app">
+            <div className="lp-container lp-mobile-grid">
+              <motion.div className="lp-mobile-copy" {...reveal}>
+                <span className="lp-section-kicker">CLASSIQ ON MOBILE</span>
+                <h2>Your class tools, ready when you are.</h2>
+                <p>The student app brings attendance, study, and trivia together on Android and iPhone. Install ClassIQ as a progressive web app—no app store required.</p>
+              <div className="lp-mobile-benefits">
+                  <span><ScanLine size={17} /> Scan class QR codes</span>
+                  <span><Bot size={17} /> Study with Six</span>
+                  <span><Trophy size={17} /> Play trivia and track rankings</span>
+                  <span><BarChart3 size={17} /> Review attendance history</span>
+                <span><Smartphone size={17} /> Dark and light themes</span>
                 </div>
-              ))}
-              <a href="#app-download" className="lp-guide-cta" style={{ background: '#00b57a' }}>Download the app ↓</a>
+                <a href={PWA_URL} target="_blank" rel="noopener noreferrer" className="lp-button lp-button-primary lp-button-large">Open the ClassIQ app <ArrowUpRight size={18} /></a>
+                <p className="lp-mobile-note"><Smartphone size={15} /> Free to install · Android and iOS · No app store needed</p>
+              </motion.div>
+              <ScrollParallax className="lp-mobile-parallax" distance={24}>
+              <motion.div className="lp-mobile-visual" {...reveal} transition={{ ...reveal.transition, delay: 0.1 }} aria-hidden="true">
+                <div className="lp-mobile-halo" />
+                <div className="lp-phone-shell">
+                  <div className="lp-phone-camera" />
+                  <div className="lp-phone-screen">
+                    <div className="lp-phone-greeting"><span className="lp-phone-logo"><img src="/logo.png" alt="" /></span><span><small>CLASSIQ STUDENT</small><strong>Your class, at a glance</strong></span><span className="lp-phone-profile">S</span></div>
+                    <div className="lp-phone-today"><span>YOUR LEARNING SPACE</span><strong>Stay ready for what’s next.</strong><small>Attendance · Study · Class updates</small></div>
+                    <div className="lp-phone-action"><span className="lp-phone-action-icon"><QrCode size={19} /></span><span><strong>Mark attendance</strong><small>Scan a class QR code</small></span><ChevronRight size={17} /></div>
+                    <div className="lp-phone-action"><span className="lp-phone-action-icon lp-phone-ai"><Sparkles size={19} /></span><span><strong>Study with Six</strong><small>Make more of your notes</small></span><ChevronRight size={17} /></div>
+                    <div className="lp-phone-action"><span className="lp-phone-action-icon lp-phone-trivia"><Trophy size={19} /></span><span><strong>Course trivia</strong><small>Practise and earn points</small></span><ChevronRight size={17} /></div>
+                    <div className="lp-phone-nav"><span><BookOpen size={16} />Learn</span><span><BarChart3 size={16} />Progress</span><span><Users size={16} />Classes</span></div>
+                  </div>
+                </div>
+                <div className="lp-mobile-float lp-mobile-float-a"><span><Check size={14} /></span>Check in with QR</div>
+                <div className="lp-mobile-float lp-mobile-float-b"><Sparkles size={15} /> Keep learning</div>
+              </motion.div>
+              </ScrollParallax>
             </div>
+          </section>
+
+          <section className="lp-cta-section">
+            <div className="lp-container">
+              <motion.div className="lp-cta-panel" {...reveal}>
+                <div className="lp-cta-decoration lp-cta-decoration-one" aria-hidden="true" /><div className="lp-cta-decoration lp-cta-decoration-two" aria-hidden="true" />
+                <div className="lp-cta-copy"><span className="lp-cta-kicker"><GraduationCap size={15} /> YOUR NEXT CLASS STARTS HERE</span><h2>Bring your academic community together.</h2><p>Make attendance easier to manage and give students more ways to learn between lectures.</p></div>
+                <div className="lp-cta-actions"><Link to="/get-started" className="lp-button lp-button-white lp-button-large">Get started <ArrowRight size={18} /></Link><Link to="/login" className="lp-cta-login">Already have an account? Log in</Link></div>
+              </motion.div>
+            </div>
+          </section>
+        </main>
+
+        <footer className="lp-footer">
+          <div className="lp-container">
+            <div className="lp-footer-main">
+              <div className="lp-footer-about"><Link to="/" className="lp-brand-link" aria-label="ClassIQ home"><Brand footer /></Link><p>Tools for class operations, student learning, and the people who make both happen.</p><span className="lp-footer-note"><ShieldCheck size={15} /> Data is encrypted and stored securely. Personal data is never sold.</span></div>
+              <nav className="lp-footer-column" aria-label="Explore ClassIQ"><h3>Explore</h3><a href="#platform">Platform</a><a href="#for-everyone">Who it’s for</a><a href="#how-it-works">How it works</a><a href={PWA_URL} target="_blank" rel="noopener noreferrer">Student app <ArrowUpRight size={13} /></a></nav>
+              <nav className="lp-footer-column" aria-label="Account links"><h3>Account</h3><Link to="/get-started">Get started</Link><Link to="/login">Log in</Link><Link to="/register/lecturer">Lecturer registration</Link></nav>
+              <div className="lp-footer-column lp-footer-contact"><h3>Contact</h3><a href="mailto:classiq660@gmail.com">classiq660@gmail.com</a><a href="tel:+233502076920">0502 076 920</a><a href="https://whatsapp.com/channel/0029VbCbXOOHrDZpFFYw3r0O" target="_blank" rel="noopener noreferrer"><MessageCircle size={15} /> WhatsApp channel <ArrowUpRight size={13} /></a></div>
+            </div>
+            <div className="lp-footer-bottom"><span>© 2026 ClassIQ. All rights reserved.</span><Link to="/privacy">Privacy policy</Link><span className="lp-footer-locale">For higher education <span>•</span> Android and iOS</span></div>
           </div>
-
-          <div className="lp-guide-card">
-            <div className="lp-guide-card-header" style={{ background: 'linear-gradient(135deg, #7c3aed, #5b21b6)' }}>
-              <span className="lp-guide-card-emoji"><QrCode size={26} /></span>
-              <div>
-                <div className="lp-guide-card-tag">Step 3</div>
-                <div className="lp-guide-card-title">Mark attendance</div>
-              </div>
-            </div>
-            <div className="lp-guide-card-body">
-              {[
-                { n: 1, text: 'Go to "Generate QR" in your dashboard at the start of each lecture' },
-                { n: 2, text: 'Drop a pin on the map at your exact classroom location' },
-                { n: 3, text: 'Set the GPS radius — how far students can be to mark attendance' },
-                { n: 4, text: 'Enter the lecture name or number and click "Generate QR Code"' },
-                { n: 5, text: 'Display the QR on your screen — students scan with ClassIQ or their camera' },
-              ].map((s, i) => (
-                <div key={i} className="lp-guide-step">
-                  <div className="lp-guide-step-num" style={{ background: '#7c3aed22', color: '#7c3aed' }}>{s.n}</div>
-                  <p className="lp-guide-step-text">{s.text}</p>
-                </div>
-              ))}
-              <Link to="/login" className="lp-guide-cta" style={{ background: '#7c3aed' }}>Go to dashboard →</Link>
-            </div>
-          </div>
-        </motion.div>
-
-        <motion.div className="lp-guide-tip" {...reveal}>
-          <span className="lp-guide-tip-icon"><Lightbulb size={20} /></span>
-          <p><strong>Pro tip:</strong> End your QR session after class to prevent late entries. Go to your dashboard and click "End Session" when the lecture is over.</p>
-        </motion.div>
-      </section>
-
-      {/* ── Mobile App Download ── */}
-      <section className="lp-app" id="app-download">
-        <div className="lp-app-inner">
-          <motion.div className="lp-app-content" {...grid(0.1)}>
-            <motion.div className="lp-section-label" style={{ textAlign: 'left' }} variants={fadeUp}>Mobile App</motion.div>
-            <motion.h2 className="lp-h2" style={{ textAlign: 'left' }} variants={fadeUp}>
-              The ecosystem,<br />
-              <span className="lp-accent">in your pocket</span>
-            </motion.h2>
-            <motion.p className="lp-app-desc" variants={fadeUp}>
-              The ClassIQ mobile app is the student's gateway to the entire ecosystem.
-              Mark attendance, study with Six, compete in trivia, and track your academic
-              progress — all from one beautifully designed app.
-            </motion.p>
-            <motion.div className="lp-app-features" variants={stagger(0.08)}>
-              {[
-                { icon: QrCode, title: 'QR Attendance',      desc: 'Scan your class QR code to mark attendance in seconds — GPS verified.' },
-                { icon: Bot, title: 'AI Study with Six',  desc: 'Upload notes and let Six explain, generate MCQs, flashcards and fill-in-the-blank questions.' },
-                { icon: Trophy, title: 'Trivia & Rankings',  desc: 'Test your knowledge with AI-generated trivia and climb the global leaderboard.' },
-                { icon: BarChart3, title: 'Attendance History', desc: 'Track your attendance rate and see every lecture you have attended.' },
-                { icon: Moon, title: 'Dark & Light Mode',  desc: 'Switch between beautiful dark and light themes to suit your preference.' },
-                { icon: Lock, title: 'Secure & Private',   desc: 'Your data is encrypted and stored securely. No personal data is ever sold.' },
-              ].map((f, i) => {
-                const Icon = f.icon
-                return (
-                <motion.div
-                  key={i}
-                  className="lp-app-feature-row"
-                  variants={{ hidden: { opacity: 0, x: -24 }, show: { opacity: 1, x: 0, transition: { duration: 0.5, ease: EASE } } }}
-                  whileHover={{ x: 6 }}
-                >
-                  <div className="lp-app-feature-icon"><Icon size={18} /></div>
-                  <div>
-                    <div className="lp-app-feature-title">{f.title}</div>
-                    <div className="lp-app-feature-desc">{f.desc}</div>
-                  </div>
-                </motion.div>
-                )
-              })}
-            </motion.div>
-            <motion.div className="lp-app-btns" variants={fadeUp}>
-              <motion.a href={PWA_URL} target="_blank" rel="noopener noreferrer" className="lp-app-download-btn lp-app-android" style={{ textDecoration: 'none', cursor: 'pointer' }} whileHover={{ y: -3, scale: 1.03 }} whileTap={{ scale: 0.97 }}>
-                <div className="lp-app-btn-icon"><AndroidIcon size={26} /></div>
-                <div className="lp-app-btn-text">
-                  <span className="lp-app-btn-sub">Install for</span>
-                  <span className="lp-app-btn-main">Android</span>
-                </div>
-              </motion.a>
-              <motion.a href={PWA_URL} target="_blank" rel="noopener noreferrer" className="lp-app-download-btn lp-app-ios" style={{ textDecoration: 'none', cursor: 'pointer' }} whileHover={{ y: -3, scale: 1.03 }} whileTap={{ scale: 0.97 }}>
-                <div className="lp-app-btn-icon"><AppleIcon size={24} /></div>
-                <div className="lp-app-btn-text">
-                  <span className="lp-app-btn-sub">Install for</span>
-                  <span className="lp-app-btn-main">iOS / iPhone</span>
-                </div>
-              </motion.a>
-            </motion.div>
-            <motion.p className="lp-app-note" variants={fadeUp}><Smartphone size={14} /> PWA · Free to install · Works on Android & iOS · No app store needed</motion.p>
-          </motion.div>
-
-          <motion.div
-            className="lp-app-mockup"
-            initial={{ opacity: 0, x: 60, rotate: 4 }}
-            whileInView={{ opacity: 1, x: 0, rotate: 0 }}
-            viewport={inView}
-            transition={{ duration: 0.8, ease: EASE }}
-          >
-            <motion.div
-              className="lp-phone"
-              animate={{ y: [0, -14, 0] }}
-              transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
-            >
-              <div className="lp-phone-screen">
-                <div className="lp-phone-notch" />
-                <div className="lp-phone-content">
-                  <div className="lp-phone-header">
-                    <div className="lp-phone-avatar">C</div>
-                    <div>
-                      <div className="lp-phone-name">ClassIQ</div>
-                      <div className="lp-phone-sub">Academic Ecosystem</div>
-                    </div>
-                  </div>
-                  <div className="lp-phone-cards">
-                    {[
-                      { icon: QrCode, label: 'Scan QR',    color: '#1A73E8' },
-                      { icon: Bot, label: 'AI Study',   color: '#6B46C1' },
-                      { icon: Trophy, label: 'Trivia',     color: '#D69E2E' },
-                      { icon: BarChart3, label: 'Attendance', color: '#38A169' },
-                    ].map((c, i) => {
-                      const Icon = c.icon
-                      return (
-                      <motion.div
-                        key={i}
-                        className="lp-phone-card"
-                        style={{ '--card-color': c.color }}
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        whileInView={{ opacity: 1, scale: 1 }}
-                        viewport={inView}
-                        transition={{ delay: 0.5 + i * 0.1, duration: 0.4, ease: EASE }}
-                      >
-                        <span className="lp-phone-card-icon"><Icon size={18} /></span>
-                        <span className="lp-phone-card-label">{c.label}</span>
-                      </motion.div>
-                      )
-                    })}
-                  </div>
-                  <div className="lp-phone-banner">
-                    <span className="lp-phone-banner-title"><Flame size={14} /> Daily Trivia Challenge</span>
-                    <span className="lp-phone-banner-cta">Play →</span>
-                  </div>
-                  <div className="lp-phone-stat-row">
-                    <div className="lp-phone-stat">
-                      <span className="lp-phone-stat-val" style={{ color: '#1A73E8' }}>12</span>
-                      <span className="lp-phone-stat-lbl">Classes</span>
-                    </div>
-                    <div className="lp-phone-stat">
-                      <span className="lp-phone-stat-val" style={{ color: '#38A169' }}>94%</span>
-                      <span className="lp-phone-stat-lbl">Rate</span>
-                    </div>
-                    <div className="lp-phone-stat">
-                      <span className="lp-phone-stat-val" style={{ color: '#D69E2E' }}>48</span>
-                      <span className="lp-phone-stat-lbl">Points</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-            <div className="lp-app-glow" aria-hidden />
-          </motion.div>
-        </div>
-      </section>
-
-      {/* ── CTA ── */}
-      <section className="lp-cta">
-        <motion.div className="lp-cta-inner" {...grid(0.12)}>
-          <motion.div variants={fadeUp}>
-            <motion.img
-              src="/logo.png"
-              alt="ClassIQ"
-              className="lp-cta-logo"
-              animate={{ rotate: [0, 6, -6, 0] }}
-              transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
-            />
-          </motion.div>
-          <motion.h2 className="lp-cta-h2" variants={fadeUp}>Join the academic ecosystem</motion.h2>
-          <motion.p className="lp-cta-p" variants={fadeUp}>
-            Set up your class, make attendance easier to manage, and give students
-            tools to keep learning between lectures.
-          </motion.p>
-          <motion.div variants={fadeUp} style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <motion.div whileHover={{ y: -3, scale: 1.04 }} whileTap={{ scale: 0.97 }}>
-              <Link to="/get-started" className="lp-btn lp-white lp-lg">Get started free →</Link>
-            </motion.div>
-            <motion.div whileHover={{ y: -3, scale: 1.04 }} whileTap={{ scale: 0.97 }}>
-              <a href={PWA_URL} target="_blank" rel="noopener noreferrer" className="lp-btn lp-lg" style={{ background: 'rgba(255,255,255,0.15)', color: '#fff', border: '1.5px solid rgba(255,255,255,0.3)', textDecoration: 'none' }}>
-                <Smartphone size={18} /> Download App
-              </a>
-            </motion.div>
-          </motion.div>
-        </motion.div>
-        <div className="lp-cta-glow" aria-hidden />
-      </section>
-
-      {/* ── Footer ── */}
-      <footer className="lp-footer">
-        <div className="lp-footer-inner">
-          <div className="lp-footer-brand">
-            <div className="lp-footer-logo">
-              <img src="/logo.png" alt="" className="lp-footer-logo-img" />
-              <span>ClassIQ</span>
-            </div>
-            <p className="lp-footer-tagline">
-              The academic ecosystem for attendance, AI study, and competitive learning.
-            </p>
-          </div>
-
-          <nav className="lp-footer-col" aria-label="Platform">
-            <p className="lp-footer-label">Platform</p>
-            <Link to="/get-started">Get started</Link>
-            <a href={PWA_URL} target="_blank" rel="noopener noreferrer">Download the app</a>
-            <a href="#app-download">Mobile app</a>
-          </nav>
-
-          <nav className="lp-footer-col" aria-label="Account">
-            <p className="lp-footer-label">Account</p>
-            <Link to="/login">Log in</Link>
-            <Link to="/register">Class rep registration</Link>
-            <Link to="/register/lecturer">Lecturer registration</Link>
-            <Link to="/admin/login">Admin</Link>
-          </nav>
-
-          <div className="lp-footer-col">
-            <p className="lp-footer-label">Contact</p>
-            <a href="mailto:classiq660@gmail.com" className="lp-footer-contact-link"><Mail size={15} /> classiq660@gmail.com</a>
-            <a href="tel:+233502076920" className="lp-footer-contact-link"><Phone size={15} /> 0502 076 920</a>
-            <a href="https://whatsapp.com/channel/0029VbCbXOOHrDZpFFYw3r0O" target="_blank" rel="noopener noreferrer" className="lp-footer-contact-link lp-footer-whatsapp">
-              <MessageCircle size={15} /> WhatsApp channel
-            </a>
-          </div>
-        </div>
-
-        <div className="lp-footer-bar">
-          <p>© 2026 ClassIQ. All rights reserved.</p>
-          <Link to="/privacy">Privacy Policy</Link>
-        </div>
-      </footer>
-
-    </div>
+        </footer>
+      </div>
     </MotionConfig>
   )
 }
