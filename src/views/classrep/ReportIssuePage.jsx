@@ -40,6 +40,8 @@ export default function ReportIssuePage() {
   const [submitting, setSubmitting] = useState(false)
   const [live, setLive] = useState(false)
   const bottomRef = useRef(null)
+  const activeIssueRef = useRef(null)
+  const threadRequestRef = useRef(0)
 
   const loadIssues = useCallback((silent = false) => {
     if (!silent) setLoading(true)
@@ -57,26 +59,34 @@ export default function ReportIssuePage() {
     return () => clearInterval(id)
   }, [view, loadIssues])
 
-  const refreshThread = useCallback(async (issueId, silent = true) => {
+  const refreshThread = useCallback(async (issueId, silent = true, showLoading = false) => {
+    if (activeIssueRef.current !== issueId) return
+    const requestId = ++threadRequestRef.current
+    if (showLoading) setLoadingThread(true)
     try {
       const r = await messagesApi.getThread(issueId)
+      if (activeIssueRef.current !== issueId || requestId !== threadRequestRef.current) return
       const next = r.data.messages || []
       setThread(prev => messagesChanged(prev, next) ? next : prev)
       if (r.data.issue) {
-        setSelected(prev => prev ? { ...prev, ...r.data.issue } : prev)
+        setSelected(prev => prev?.id === issueId ? { ...prev, ...r.data.issue } : prev)
       }
+      if (showLoading) loadIssues(true)
     } catch {
-      if (!silent) setError('Failed to refresh conversation.')
+      if (!silent && activeIssueRef.current === issueId && requestId === threadRequestRef.current) setError('Failed to refresh conversation.')
+    } finally {
+      if (showLoading && activeIssueRef.current === issueId && requestId === threadRequestRef.current) setLoadingThread(false)
     }
-  }, [])
+  }, [loadIssues])
 
   useEffect(() => {
     if (view !== 'thread' || !selected?.id) {
       setLive(false)
       return undefined
     }
+    activeIssueRef.current = selected.id
     setLive(true)
-    refreshThread(selected.id)
+    refreshThread(selected.id, true, true)
     const id = setInterval(() => refreshThread(selected.id), POLL_THREAD_MS)
     return () => { clearInterval(id); setLive(false) }
   }, [view, selected?.id, refreshThread])
@@ -86,15 +96,16 @@ export default function ReportIssuePage() {
   }, [thread])
 
   const openThread = async (issue) => {
+    if (selected?.id === issue.id && view === 'thread') {
+      await refreshThread(issue.id, false, true)
+      return
+    }
+    activeIssueRef.current = issue.id
+    threadRequestRef.current += 1
     setSelected(issue)
     setView('thread')
+    setThread([])
     setLoadingThread(true)
-    try {
-      const r = await messagesApi.getThread(issue.id)
-      setThread(r.data.messages || [])
-    } catch { setThread([]) }
-    finally { setLoadingThread(false) }
-    loadIssues(true)
   }
 
   const sendReply = async () => {
@@ -119,6 +130,10 @@ export default function ReportIssuePage() {
       await classrepApi.reportIssue(newForm)
       setSuccess('Issue submitted! Admin will respond shortly.')
       setNewForm({ subject: '', message: '' })
+      activeIssueRef.current = null
+      threadRequestRef.current += 1
+      setSelected(null)
+      setThread([])
       setView('list')
       loadIssues()
       setTimeout(() => setSuccess(''), 4000)
@@ -136,7 +151,7 @@ export default function ReportIssuePage() {
             <Button
               size="sm"
               icon={<Plus size={14}/>}
-              onClick={() => setView('new')}
+              onClick={() => { activeIssueRef.current = null; threadRequestRef.current += 1; setView('new') }}
             >
               New Issue
             </Button>
@@ -213,8 +228,9 @@ export default function ReportIssuePage() {
                   <div className="ri-item-content">
                     <div className="ri-item-top">
                       <span className="ri-item-subject">{issue.subject}</span>
-                      <span className="ri-item-time">{timeAgo(issue.created_at)}</span>
+                      <span className="ri-item-time">{timeAgo(issue.last_activity_at || issue.created_at)}</span>
                     </div>
+                    <p className="ri-item-preview">{issue.last_reply || issue.body}</p>
                     <div className="ri-item-bottom">
                       <span className={`ri-status ri-status-${issue.status}`}>
                         {issue.status === 'resolved' ? <><CheckCircle size={13} /> Resolved</> : <><Clock size={13} /> Pending</>}
@@ -239,7 +255,7 @@ export default function ReportIssuePage() {
           <div className="ri-thread-header">
             <button
               className="ri-back-btn"
-              onClick={() => { setView('list'); setSelected(null); setThread([]) }}
+              onClick={() => { activeIssueRef.current = null; threadRequestRef.current += 1; setView('list'); setSelected(null); setThread([]) }}
             >
               <ChevronLeft size={16} /> Back
             </button>
@@ -274,7 +290,7 @@ export default function ReportIssuePage() {
                 const isAdmin = msg.sender_role === 'admin'
                 return (
                   <div
-                    key={i}
+                    key={msg.id ?? i}
                     className={`chat-bubble ${isAdmin ? 'chat-bubble-admin' : 'chat-bubble-classrep'}`}
                   >
                     <div className="chat-bubble-meta">

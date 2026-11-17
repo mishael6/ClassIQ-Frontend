@@ -64,6 +64,10 @@
   color: var(--muted2);
   flex-shrink: 0;
 }
+.ri-item-preview {
+  color: var(--muted); font-size: 0.76rem; line-height: 1.45; margin: 0 0 8px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
 
 .ri-item-bottom {
   display: flex;

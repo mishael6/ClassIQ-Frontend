@@ -112,6 +112,10 @@
   text-overflow: ellipsis;
   margin-bottom: 6px;
 }
+.issue-item-preview {
+  color: var(--muted2); font-size: 0.7rem; line-height: 1.4; margin: -2px 0 7px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
 
 .issue-item-bottom {
   display: flex;

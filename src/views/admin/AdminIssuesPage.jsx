@@ -41,6 +41,8 @@ export default function AdminIssuesPage() {
   const [sending,  setSending]  = useState(false)
   const [live,     setLive]     = useState(false)
   const bottomRef = useRef(null)
+  const activeIssueRef = useRef(null)
+  const threadRequestRef = useRef(0)
 
   const load = useCallback((silent = false) => {
     if (!silent) setLoading(true)
@@ -65,40 +67,48 @@ export default function AdminIssuesPage() {
     return () => clearInterval(id)
   }, [load])
 
-  const refreshThread = useCallback(async (issueId, silent = true) => {
+  const refreshThread = useCallback(async (issueId, silent = true, showLoading = false) => {
+    if (activeIssueRef.current !== issueId) return
+    const requestId = ++threadRequestRef.current
+    if (showLoading) setLoadingThread(true)
     try {
       const r = await messagesApi.getThread(issueId)
+      if (activeIssueRef.current !== issueId || requestId !== threadRequestRef.current) return
       const next = r.data.messages || []
       setThread(prev => messagesChanged(prev, next) ? next : prev)
       if (r.data.issue) {
-        setSelected(prev => prev ? { ...prev, ...r.data.issue } : prev)
+        setSelected(prev => prev?.id === issueId ? { ...prev, ...r.data.issue } : prev)
       }
+      if (showLoading) load(true)
     } catch {
-      if (!silent) setError('Failed to refresh conversation.')
+      if (!silent && activeIssueRef.current === issueId && requestId === threadRequestRef.current) setError('Failed to refresh conversation.')
+    } finally {
+      if (showLoading && activeIssueRef.current === issueId && requestId === threadRequestRef.current) setLoadingThread(false)
     }
-  }, [])
+  }, [load])
 
   useEffect(() => {
     if (!selected?.id) {
       setLive(false)
       return undefined
     }
+    activeIssueRef.current = selected.id
     setLive(true)
-    refreshThread(selected.id)
+    refreshThread(selected.id, true, true)
     const id = setInterval(() => refreshThread(selected.id), POLL_THREAD_MS)
     return () => { clearInterval(id); setLive(false) }
   }, [selected?.id, refreshThread])
 
   const openIssue = async (issue) => {
+    if (selected?.id === issue.id) {
+      await refreshThread(issue.id, false, true)
+      return
+    }
+    activeIssueRef.current = issue.id
+    threadRequestRef.current += 1
     setSelected(issue)
-    setLoadingThread(true)
     setThread([])
-    try {
-      const r = await messagesApi.getThread(issue.id)
-      setThread(r.data.messages || [])
-    } catch { setThread([]) }
-    finally { setLoadingThread(false) }
-    load(true)
+    setLoadingThread(true)
   }
 
   // Scroll to bottom when thread updates
@@ -199,9 +209,10 @@ export default function AdminIssuesPage() {
                           {issue.user_type === 'student' ? <><Smartphone size={12} /> Student</> : <><UserRound size={12} /> Classrep</>}
                         </span>
                       </span>
-                      <span className="issue-item-time">{timeAgo(issue.created_at)}</span>
+                      <span className="issue-item-time">{timeAgo(issue.last_activity_at || issue.created_at)}</span>
                     </div>
                     <p className="issue-item-subject">{issue.subject}</p>
+                    <p className="issue-item-preview">{issue.last_reply || issue.body}</p>
                     <div className="issue-item-bottom">
                       <Badge variant={issue.status === 'resolved' ? 'present' : 'pending'}>
                         {issue.status === 'resolved' ? <><CheckCircle size={13} /> Resolved</> : <><Clock size={13} /> Pending</>}
@@ -290,7 +301,7 @@ export default function AdminIssuesPage() {
                     const senderLabel = isAdmin ? 'Admin' : isStudent ? (selected.classrep_name || 'Student') : selected.classrep_name
                     return (
                       <div
-                        key={i}
+                        key={msg.id ?? i}
                         className={`chat-bubble ${isAdmin ? 'chat-bubble-admin' : isStudent ? 'chat-bubble-student' : 'chat-bubble-classrep'}`}
                       >
                         <div className="chat-bubble-meta">
