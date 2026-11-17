@@ -3,13 +3,16 @@ import { adminApi } from '../../lib/api'
 import { Card, PageHeader, Badge, Alert, Button, Modal, Input } from '../../components/ui'
 import { Search, ChevronLeft, ChevronRight, User, Phone, Mail, Hash,
          BookOpen, Building, GraduationCap, CheckCircle, Edit2, Save,
-         X, Calendar, Plus, Trash2 } from 'lucide-react'
+         X, Calendar, Plus, Trash2, UserPlus, Link2, Check } from 'lucide-react'
+import { Link, useSearchParams } from '../../lib/navigation.jsx'
 import '../../components/ui/components.css'
 import './adminstudents.css'
 
 const PER_PAGE = 10
 
 export default function AdminStudentsPage() {
+  const [params] = useSearchParams()
+  const unassignedOnly = params?.get('unassigned') === '1'
   const [students,  setStudents]  = useState([])
   const [total,     setTotal]     = useState(0)
   const [page,      setPage]      = useState(1)
@@ -27,6 +30,10 @@ export default function AdminStudentsPage() {
   // Add student modal
   const [addModal,  setAddModal]  = useState(false)
   const [classreps, setClassreps] = useState([])
+  const [classrepsReady, setClassrepsReady] = useState(false)
+  const [classrepLoadError, setClassrepLoadError] = useState('')
+  const [assignSelection, setAssignSelection] = useState({})
+  const [assigningId, setAssigningId] = useState(null)
   const [addForm,   setAddForm]   = useState({
     classrep_id: '', name: '', index_number: '',
     email: '', phone: '', institution: '',
@@ -40,21 +47,22 @@ export default function AdminStudentsPage() {
 
   const totalPages = Math.ceil(total / PER_PAGE)
 
-  const load = useCallback((p = page, q = search) => {
+  const load = useCallback((p, q) => {
     setLoading(true)
-    adminApi.getStudents({ search: q, limit: PER_PAGE, offset: (p - 1) * PER_PAGE })
+    adminApi.getStudents({ search: q, unassigned: unassignedOnly ? 1 : undefined, limit: PER_PAGE, offset: (p - 1) * PER_PAGE })
       .then(r => { setStudents(r.data.students || []); setTotal(r.data.total || 0) })
       .catch(() => setError('Failed to load students.'))
       .finally(() => setLoading(false))
-  }, [])
+  }, [unassignedOnly])
 
-  useEffect(() => { load(page, search) }, [page])
+  useEffect(() => { load(page, search) }, [page, unassignedOnly, load])
 
   // Load classreps for add modal
   useEffect(() => {
     adminApi.getClassreps({ status: 'approved' })
       .then(r => setClassreps(r.data.classreps || []))
-      .catch(() => {})
+      .catch(() => setClassrepLoadError('Could not load approved class representatives. Refresh and try again.'))
+      .finally(() => setClassrepsReady(true))
   }, [])
 
   // Auto-fill institution/dept/program when classrep selected
@@ -71,6 +79,26 @@ export default function AdminStudentsPage() {
   }
 
   const doSearch = () => { setPage(1); load(1, search) }
+
+  const assignStudent = async (student) => {
+    const classrepId = assignSelection[student.id]
+    if (!classrepId) { toast('Select a class representative first.', true); return }
+    const classrep = classreps.find(rep => String(rep.id) === String(classrepId))
+    if (!classrep) { toast('That class representative is no longer available. Refresh the page and try again.', true); return }
+    setAssigningId(student.id)
+    setError('')
+    try {
+      await adminApi.updateStudent({ id: student.id, action: 'assign_classrep', classrep_id: Number(classrepId) })
+      setStudents(current => unassignedOnly
+        ? current.filter(item => item.id !== student.id)
+        : current.map(item => item.id === student.id ? { ...item, classrep_name: classrep.name } : item))
+      if (unassignedOnly) setTotal(count => Math.max(0, count - 1))
+      setAssignSelection(current => { const next = { ...current }; delete next[student.id]; return next })
+      toast(`${student.name} assigned to ${classrep.name}.`)
+    } catch (e) {
+      toast(e.response?.data?.message || 'Failed to assign this student.', true)
+    } finally { setAssigningId(null) }
+  }
 
   const toast = (msg, isErr = false) => {
     isErr ? setError(msg) : setSuccess(msg)
@@ -144,8 +172,10 @@ export default function AdminStudentsPage() {
   return (
     <div className="animate-fade-up">
       <PageHeader
-        title="All Students"
-        subtitle={`${total.toLocaleString()} students registered across all classes`}
+        title={unassignedOnly ? 'Students without a class rep' : 'All Students'}
+        subtitle={unassignedOnly
+          ? `${total.toLocaleString()} students need to be assigned to a class representative`
+          : `${total.toLocaleString()} students registered across all classes`}
         actions={
           <Button size="sm" icon={<Plus size={14}/>} onClick={() => setAddModal(true)}>
             Add Student
@@ -155,6 +185,12 @@ export default function AdminStudentsPage() {
 
       {error   && <Alert variant="error"   onClose={() => setError('')}   style={{ marginBottom: 16 }}>{error}</Alert>}
       {success && <Alert variant="success" onClose={() => setSuccess('')} style={{ marginBottom: 16 }}>{success}</Alert>}
+
+      {unassignedOnly && <div className="stu-unassigned-banner">
+        <div className="stu-unassigned-icon"><UserPlus size={19}/></div>
+        <div className="stu-unassigned-copy"><strong>Assign students to an approved class representative</strong><span>{classrepLoadError || (classrepsReady && !classreps.length ? 'No approved class reps are available. Approve a representative before assigning students.' : 'Choose a rep on each row. Student institution and program are shown alongside their contact details.')}</span></div>
+        <Link to="/admin/students" className="stu-unassigned-all"><Link2 size={14}/> All students</Link>
+      </div>}
 
       <Card>
         <div className="stu-toolbar">
@@ -193,10 +229,12 @@ export default function AdminStudentsPage() {
                     <th>#</th>
                     <th>Student</th>
                     <th>Index No.</th>
+                    <th>Institution</th>
                     <th>Program</th>
                     <th>Level</th>
                     <th>Class Rep</th>
                     <th>Phone</th>
+                    {unassignedOnly && <th>Assign class rep</th>}
                   </tr>
                 </thead>
                 <tbody>
@@ -213,10 +251,20 @@ export default function AdminStudentsPage() {
                         </button>
                       </td>
                       <td><code className="stu-index">{s.index_number}</code></td>
+                      <td className="stu-muted">{s.institution || '—'}</td>
                       <td className="stu-muted">{s.program || '—'}</td>
                       <td>{s.level ? <Badge variant="blue">L{s.level}</Badge> : '—'}</td>
                       <td className="stu-muted">{s.classrep_name || '—'}</td>
                       <td className="stu-muted">{s.phone || '—'}</td>
+                      {unassignedOnly && <td onClick={e => e.stopPropagation()}>
+                        <div className="stu-assign-controls">
+                          <select className="field-select stu-assign-select" aria-label={`Choose class representative for ${s.name}`} disabled={!classrepsReady || !classreps.length} value={assignSelection[s.id] || ''} onChange={e => setAssignSelection(current => ({ ...current, [s.id]: e.target.value }))}>
+                            <option value="">{!classrepsReady ? 'Loading representatives…' : classreps.length ? 'Select representative' : 'No approved representatives'}</option>
+                            {classreps.map(rep => <option key={rep.id} value={rep.id}>{rep.name} · {rep.institution || 'Institution not listed'}{rep.department ? ` · ${rep.department}` : ''}{rep.program ? ` · ${rep.program}` : ''}</option>)}
+                          </select>
+                          <Button size="sm" disabled={!assignSelection[s.id] || Boolean(classrepLoadError)} loading={assigningId === s.id} icon={<Check size={14}/>} onClick={() => assignStudent(s)}>Assign</Button>
+                        </div>
+                      </td>}
                     </tr>
                   ))}
                 </tbody>

@@ -1,3 +1,21 @@
+/* ── Unassigned student workflow ── */
+.stu-unassigned-banner {
+  display: flex; align-items: center; gap: 12px; margin: -6px 0 18px; padding: 14px 16px;
+  border: 1px solid rgba(0,102,255,.16); border-radius: var(--radius-lg);
+  background: linear-gradient(100deg, rgba(0,102,255,.075), rgba(0,102,255,.025));
+}
+.stu-unassigned-icon { width: 36px; height: 36px; display: grid; place-items: center; flex: 0 0 auto; border-radius: 10px; color: var(--blue); background: rgba(0,102,255,.1); }
+.stu-unassigned-copy { flex: 1; min-width: 0; }
+.stu-unassigned-copy strong, .stu-unassigned-copy span { display: block; }
+.stu-unassigned-copy strong { color: var(--txt); font-size: .82rem; }
+.stu-unassigned-copy span { margin-top: 3px; color: var(--muted); font-size: .72rem; line-height: 1.45; }
+.stu-unassigned-all { display: inline-flex; align-items: center; gap: 6px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--txt2); text-decoration: none; white-space: nowrap; font-size: .72rem; font-weight: 700; }
+.stu-unassigned-all:hover { border-color: var(--blue); color: var(--blue); }
+.stu-assign-controls { display: flex; align-items: center; gap: 7px; min-width: 260px; }
+.stu-assign-select { min-width: 0; width: 100%; max-width: 260px; padding: 7px 28px 7px 9px; font-size: .72rem; }
+.stu-assign-controls .btn { flex: 0 0 auto; }
+.stu-assign-select:disabled { cursor: not-allowed; opacity: .65; }
+
 /* ── Toolbar ── */
 .stu-toolbar {
   display: flex;
@@ -316,4 +334,8 @@
 @media (max-width: 600px) {
   .stu-edit-grid { grid-template-columns: 1fr; }
   .stu-modal-head { flex-direction: column; align-items: flex-start; }
+  .stu-unassigned-banner { align-items: flex-start; flex-wrap: wrap; }
+  .stu-unassigned-copy { flex-basis: calc(100% - 50px); }
+  .stu-unassigned-all { margin-left: 48px; }
+  .stu-assign-controls { min-width: 235px; }
 }
