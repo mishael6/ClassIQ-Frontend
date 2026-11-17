@@ -158,10 +158,12 @@ export default function AdminStudentsPage() {
     setDeleting(true)
     try {
       await adminApi.deleteStudent(deleteId)
-      toast('Student deleted.')
+      const deletedStudent = students.find(student => String(student.id) === String(deleteId))
+      toast(`${deletedStudent?.name || 'Student'} and their attendance records were permanently deleted.`)
       setDeleteId(null)
       setSelected(null)
-      load(page, search)
+      if (students.length === 1 && page > 1) setPage(current => current - 1)
+      else load(page, search)
     } catch { toast('Failed to delete.', true) }
     finally { setDeleting(false) }
   }
@@ -234,7 +236,7 @@ export default function AdminStudentsPage() {
                     <th>Level</th>
                     <th>Class Rep</th>
                     <th>Phone</th>
-                    {unassignedOnly && <th>Assign class rep</th>}
+                    {unassignedOnly && <><th>Signed up</th><th>Actions</th></>}
                   </tr>
                 </thead>
                 <tbody>
@@ -256,15 +258,19 @@ export default function AdminStudentsPage() {
                       <td>{s.level ? <Badge variant="blue">L{s.level}</Badge> : '—'}</td>
                       <td className="stu-muted">{s.classrep_name || '—'}</td>
                       <td className="stu-muted">{s.phone || '—'}</td>
-                      {unassignedOnly && <td onClick={e => e.stopPropagation()}>
+                      {unassignedOnly && <>
+                        <td className="stu-muted stu-signup-date">{fmtDate(s.created_at)}</td>
+                        <td className="stu-row-actions" onClick={e => e.stopPropagation()}>
                         <div className="stu-assign-controls">
                           <select className="field-select stu-assign-select" aria-label={`Choose class representative for ${s.name}`} disabled={!classrepsReady || !classreps.length} value={assignSelection[s.id] || ''} onChange={e => setAssignSelection(current => ({ ...current, [s.id]: e.target.value }))}>
                             <option value="">{!classrepsReady ? 'Loading representatives…' : classreps.length ? 'Select representative' : 'No approved representatives'}</option>
                             {classreps.map(rep => <option key={rep.id} value={rep.id}>{rep.name} · {rep.institution || 'Institution not listed'}{rep.department ? ` · ${rep.department}` : ''}{rep.program ? ` · ${rep.program}` : ''}</option>)}
                           </select>
                           <Button size="sm" disabled={!assignSelection[s.id] || Boolean(classrepLoadError)} loading={assigningId === s.id} icon={<Check size={14}/>} onClick={() => assignStudent(s)}>Assign</Button>
+                          <Button size="sm" variant="danger" icon={<Trash2 size={14}/>} aria-label={`Permanently delete ${s.name}`} title={`Permanently delete ${s.name}`} onClick={() => setDeleteId(s.id)}>Delete</Button>
                         </div>
-                      </td>}
+                        </td>
+                      </>}
                     </tr>
                   ))}
                 </tbody>
@@ -427,13 +433,13 @@ export default function AdminStudentsPage() {
       </Modal>
 
       {/* ── Delete Confirm Modal ── */}
-      <Modal open={!!deleteId} onClose={() => setDeleteId(null)} title="Delete Student" width={400}>
+      <Modal open={!!deleteId} onClose={() => setDeleteId(null)} title="Permanently delete student?" width={440}>
         <p style={{ fontSize: '0.9rem', color: 'var(--txt2)', marginBottom: 20, lineHeight: 1.6 }}>
-          <strong style={{ color: 'var(--red)' }}>This cannot be undone.</strong> This will permanently delete the student and all their attendance records.
+          <strong style={{ color: 'var(--red)' }}>This cannot be undone.</strong> This removes the student account and their attendance records from the database. Continue only if you have confirmed this account should be removed.
         </p>
         <div style={{ display: 'flex', gap: 10 }}>
           <Button variant="secondary" fullWidth onClick={() => setDeleteId(null)}>Cancel</Button>
-          <Button variant="danger" fullWidth loading={deleting} onClick={deleteStudent}>Yes, Delete</Button>
+          <Button variant="danger" fullWidth loading={deleting} onClick={deleteStudent} icon={<Trash2 size={15}/>}>Delete permanently</Button>
         </div>
       </Modal>
     </div>
