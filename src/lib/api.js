@@ -141,6 +141,7 @@ export const adminApi = {
   deleteStudent:      (id)   => api.delete('/admin/students.php', { data: { id } }),
   getDailyAttendance: (p)    => api.get('/admin/daily_attendance.php', { params: p }),
   getQrSessions:      (p)    => api.get('/admin/qr_sessions.php', { params: p }),
+  getQrSessionAttendance: (p) => api.get('/admin/qr_session_attendance.php', { params: p }),
   endQrSession:       (data) => api.post('/admin/qr_sessions.php', data),
   getLogs:            (p)    => api.get('/admin/logs.php', { params: p }),
   getIssues:          (p)    => api.get('/admin/issues.php', { params: p }),

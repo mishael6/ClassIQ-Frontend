@@ -3,7 +3,7 @@ import { Link } from '../../lib/navigation.jsx'
 import { classrepApi } from '../../lib/api'
 import { L, ensureLeafletIcons } from '../../lib/leafletSetup'
 import { Button, Select, Alert, Card, PageHeader } from '../../components/ui'
-import { MapPin, QrCode, Navigation, Loader2, ArrowLeft, Bookmark, Save, Trash2, Search, AlertTriangle, Lightbulb, CheckCircle, Ruler, BookOpen, KeyRound, CircleStop } from 'lucide-react'
+import { MapPin, QrCode, Navigation, Loader2, Bookmark, Save, Trash2, Search, AlertTriangle, Lightbulb, CheckCircle, Ruler, BookOpen, KeyRound, CircleStop, Crosshair, ChevronDown } from 'lucide-react'
 import QRCode from 'qrcode'
 import '../../components/ui/components.css'
 import './generateqr.css'
@@ -249,217 +249,146 @@ export default function GenerateQRPage() {
       {/* ── MAP STEP ── */}
       {step === 'map' && (
         <div className="qr-map-step">
-          <Card>
-            <div className="step-head" style={{ flexWrap: 'wrap', gap: 12 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <div className="step-num">1</div>
+          <div className="qr-progress" aria-label="QR session setup progress">
+            <div className={`qr-progress-step ${pin ? 'is-complete' : 'is-current'}`}>
+              <span className="qr-progress-number">{pin ? <CheckCircle size={16}/> : '1'}</span>
+              <span><strong>Set classroom</strong><small>Choose where attendance is taken</small></span>
+            </div>
+            <span className={`qr-progress-line ${pin ? 'is-complete' : ''}`} />
+            <div className={`qr-progress-step ${pin ? 'is-current' : ''}`}>
+              <span className="qr-progress-number">2</span>
+              <span><strong>Choose lecture</strong><small>Then create the QR code</small></span>
+            </div>
+          </div>
+
+          <div className="qr-setup-grid">
+            <Card className="qr-map-card">
+              <div className="qr-card-heading">
                 <div>
-                  <p className="step-title">Pin Your Classroom</p>
-                  <p className="step-sub">Click the map, use GPS, enter coordinates, or select a saved preset</p>
+                  <div className="qr-eyebrow">STEP 1</div>
+                  <h2>Set the classroom location</h2>
+                  <p>Click the map to place the pin. You can drag it to fine-tune the position.</p>
                 </div>
+                <Button variant="secondary" size="sm" icon={<Navigation size={15}/>} onClick={autoLocate}>
+                  Use my location
+                </Button>
               </div>
 
-              <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-                {savedLocs.length > 0 && (
-                  <div style={{ position: 'relative', display: 'flex', alignItems: 'center', gap: 4 }}>
-                    <Bookmark size={15} style={{ color: 'var(--blue)' }}/>
-                    <select
-                      onChange={e => applySavedLocation(e.target.value)}
-                      value=""
-                      style={{ padding: '6px 28px 6px 10px', borderRadius: 6, border: '1px solid var(--border)', fontSize: '0.85rem', minWidth: 140, cursor: 'pointer', background: 'var(--surface)' }}
-                    >
-                      <option value="" disabled>Quick Select...</option>
-                      {savedLocs.map(loc => (
-                        <option key={loc.id} value={loc.id}>{loc.name} ({loc.radius_m}m)</option>
-                      ))}
-                    </select>
+              {savedLocs.length > 0 && (
+                <div className="qr-saved-places">
+                  <div className="qr-saved-title"><Bookmark size={15}/> Saved classrooms</div>
+                  <div className="qr-saved-list">
+                    {savedLocs.map(loc => (
+                      <div className="qr-saved-place" key={loc.id}>
+                        <button type="button" className="qr-saved-select" onClick={() => applySavedLocation(loc.id)}>
+                          <span>{loc.name}</span><small>{loc.radius_m}m radius</small>
+                        </button>
+                        <button
+                          type="button"
+                          className="qr-saved-delete"
+                          aria-label={`Delete ${loc.name}`}
+                          title={`Delete ${loc.name}`}
+                          disabled={deleting === loc.id}
+                          onClick={e => removeSavedLocation(loc.id, e)}
+                        ><Trash2 size={14}/></button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="qr-map-wrap">
+                {!mapReady && (
+                  <div className="qr-map-loading">
+                    <Loader2 size={28} className="animate-spin" style={{ color: 'var(--blue)' }}/>
+                    <p>Loading map…</p>
                   </div>
                 )}
-                <Button variant="ghost" size="sm" icon={<Navigation size={14}/>} onClick={autoLocate}>
-                  Use GPS
-                </Button>
+                <div ref={mapRef} className="qr-map" style={{ opacity: mapReady ? 1 : 0 }} />
+                <div className="qr-map-tip"><Crosshair size={14}/> Click to set the attendance point</div>
               </div>
-            </div>
 
-            {/* Saved location chips */}
-            {savedLocs.length > 0 && (
-              <div style={{ padding: '8px 12px', background: 'var(--bg)', borderRadius: 6, marginBottom: 12, display: 'flex', gap: 8, overflowX: 'auto', whiteSpace: 'nowrap' }}>
-                <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--muted)', display: 'flex', alignItems: 'center', marginRight: 4 }}>Saved:</span>
-                {savedLocs.map(loc => (
-                  <span key={loc.id} style={{ fontSize: '0.75rem', padding: '4px 10px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 12, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                    <span style={{ cursor: 'pointer' }} onClick={() => applySavedLocation(loc.id)}>{loc.name}</span>
-                    <Trash2 size={12} style={{ cursor: 'pointer', color: 'var(--red)', opacity: deleting === loc.id ? 0.5 : 1 }} onClick={(e) => removeSavedLocation(loc.id, e)}/>
-                  </span>
-                ))}
+              <div className={`pin-status ${pinStatus === 'set' ? 'ps-ok' : 'ps-wait'}`}>
+                {pinStatus === 'set'
+                  ? <><CheckCircle size={16}/> Classroom pinned <span>{pin.lat.toFixed(5)}, {pin.lng.toFixed(5)}</span></>
+                  : <><MapPin size={16}/> Choose the classroom location on the map to continue</>}
               </div>
-            )}
 
-            {/* ── Manual Coordinate Input ── */}
-            <div style={{
-              padding: '14px 16px',
-              background: 'rgba(0,102,255,0.04)',
-              border: '1px solid rgba(0,102,255,0.15)',
-              borderRadius: 10,
-              marginBottom: 14,
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-                <MapPin size={15} style={{ color: 'var(--blue)', flexShrink: 0 }} />
-                <span style={{ fontSize: '0.82rem', fontWeight: 700, color: 'var(--blue)' }}>
-                  Enter Exact Coordinates
-                </span>
-                <span style={{ fontSize: '0.75rem', color: 'var(--muted)', marginLeft: 4 }}>
-                  — for more precise location than GPS
-                </span>
-              </div>
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'flex-end' }}>
-                <div style={{ flex: 1, minWidth: 140 }}>
-                  <label style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--muted)', display: 'block', marginBottom: 4 }}>
-                    Latitude
+              <details className="qr-coordinate-details">
+                <summary><span><MapPin size={15}/> Enter coordinates manually</span><ChevronDown size={16}/></summary>
+                <p>Use coordinates from Google Maps if you need to place the pin precisely.</p>
+                <div className="qr-coordinate-fields">
+                  <label>Latitude
+                    <input type="number" step="any" placeholder="e.g. 6.688400" value={manualLat} onChange={e => setManualLat(e.target.value)}/>
                   </label>
-                  <input
-                    type="number"
-                    step="any"
-                    placeholder="e.g. 6.688400"
-                    value={manualLat}
-                    onChange={e => setManualLat(e.target.value)}
-                    style={{
-                      width: '100%', padding: '8px 12px',
-                      border: '1px solid var(--border)', borderRadius: 8,
-                      fontSize: '0.9rem', background: 'var(--surface)',
-                      color: 'var(--text)', boxSizing: 'border-box',
-                    }}
-                  />
-                </div>
-                <div style={{ flex: 1, minWidth: 140 }}>
-                  <label style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--muted)', display: 'block', marginBottom: 4 }}>
-                    Longitude
+                  <label>Longitude
+                    <input type="number" step="any" placeholder="e.g. -1.624400" value={manualLng} onChange={e => setManualLng(e.target.value)}/>
                   </label>
-                  <input
-                    type="number"
-                    step="any"
-                    placeholder="e.g. -1.624400"
-                    value={manualLng}
-                    onChange={e => setManualLng(e.target.value)}
-                    style={{
-                      width: '100%', padding: '8px 12px',
-                      border: '1px solid var(--border)', borderRadius: 8,
-                      fontSize: '0.9rem', background: 'var(--surface)',
-                      color: 'var(--text)', boxSizing: 'border-box',
-                    }}
-                  />
+                  <Button size="sm" onClick={applyManualCoords} icon={<Search size={14}/>}>Set pin</Button>
                 </div>
-                <Button
-                  size="sm"
-                  onClick={applyManualCoords}
-                  icon={<Search size={14}/>}
-                  style={{ whiteSpace: 'nowrap', height: 38 }}
-                >
-                  Pin Location
-                </Button>
-              </div>
-              {coordError && (
-                <p style={{ fontSize: '0.78rem', color: 'var(--red)', marginTop: 8, margin: '8px 0 0' }}>
-                  <AlertTriangle size={15} /> {coordError}
-                </p>
-              )}
-              <p style={{ fontSize: '0.73rem', color: 'var(--muted)', marginTop: 8, margin: '8px 0 0' }}>
-                <Lightbulb size={16} /> Tip: Open Google Maps, long-press your classroom and copy the coordinates shown at the bottom.
-              </p>
-            </div>
-
-            {/* Map */}
-            <div className="qr-map-wrap">
-              {!mapReady && (
-                <div className="qr-map-loading">
-                  <Loader2 size={28} className="animate-spin" style={{ color: 'var(--blue)' }}/>
-                  <p>Loading map…</p>
-                </div>
-              )}
-              <div ref={mapRef} className="qr-map" style={{ opacity: mapReady ? 1 : 0 }} />
-            </div>
-
-            <div className={`pin-status ${pinStatus === 'set' ? 'ps-ok' : 'ps-wait'}`}>
-              {pinStatus === 'set'
-                ? <><CheckCircle size={15} /> Pinned at {pin.lat.toFixed(5)}, {pin.lng.toFixed(5)} — drag marker to adjust</>
-                : <><MapPin size={15} /> Click the map, use GPS, or enter coordinates above to pin your classroom</>}
-            </div>
-
-            <div className="radius-row">
-              <span className="radius-label">Allowed radius:</span>
-              <div className="radius-chips">
-                {RADII.map(r => (
-                  <button key={r} type="button"
-                    className={`chip ${radius === r ? 'chip-active' : ''}`}
-                    onClick={() => setRadius(r)}
-                  >{r}m</button>
-                ))}
-              </div>
-            </div>
-
-            {pinStatus === 'set' && (
-              <div style={{ marginTop: 12, padding: '12px 16px', background: 'rgba(0,102,255,0.04)', border: '1px solid rgba(0,102,255,0.1)', borderRadius: 8, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-                <span style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--blue)' }}>Save this preset for next time:</span>
-                <input
-                  placeholder="e.g. Lecture Hall C"
-                  value={locName}
-                  onChange={e => setLocName(e.target.value)}
-                  style={{ flex: 1, minWidth: 150, padding: '6px 12px', border: '1px solid var(--border)', borderRadius: 6, fontSize: '0.85rem' }}
-                />
-                <Button size="sm" variant="secondary" loading={saving} onClick={savePreset} disabled={!locName.trim()}>
-                  <Save size={14} style={{ marginRight: 6 }}/> Save
-                </Button>
-              </div>
-            )}
-          </Card>
-
-          {/* Step 2 — lecture + generate */}
-          {pinStatus === 'set' && (
-            <Card className="animate-fade-up" style={{ marginTop: 16 }}>
-              <div className="step-head">
-                <div className="step-num">2</div>
-                <div>
-                  <p className="step-title">Select Lecture &amp; Generate</p>
-                  <p className="step-sub">Choose a saved lecture name, then generate the QR code</p>
-                </div>
-              </div>
-
-              <div className="pin-confirm-box">
-                <div className="pin-confirm-item">
-                  <span className="pc-label"><MapPin size={14} /> Location</span>
-                  <span className="pc-value">{pin.lat.toFixed(5)}, {pin.lng.toFixed(5)}</span>
-                </div>
-                <div className="pc-divider"/>
-                <div className="pin-confirm-item">
-                  <span className="pc-label"><Ruler size={14} /> Radius</span>
-                  <span className="pc-value">{radius}m</span>
-                </div>
-              </div>
-
-              {savedLectures.length === 0 ? (
-                <div style={{ marginTop: 16, padding: '12px 14px', background: 'rgba(229,62,62,0.06)', border: '1px solid rgba(229,62,62,0.15)', borderRadius: 8 }}>
-                  <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--txt2)' }}>
-                    No lectures saved yet. Go to your{' '}
-                    <Link to="/dashboard" style={{ color: 'var(--blue)', fontWeight: 700 }}>dashboard</Link>
-                    {' '}and add lecture names under <strong>My Lectures</strong> first.
-                  </p>
-                </div>
-              ) : (
-                <Select label="Lecture Name" id="lecture" value={lecture}
-                  onChange={e => setLecture(e.target.value)} style={{ marginTop: 16 }}>
-                  <option value="" disabled>Select a lecture...</option>
-                  {savedLectures.map(l => (
-                    <option key={l.id} value={l.name}>{l.name}</option>
-                  ))}
-                </Select>
-              )}
-
-              <Button fullWidth loading={loading} onClick={generate}
-                icon={<QrCode size={16}/>} style={{ marginTop: 16 }} size="lg"
-                disabled={!lecture || savedLectures.length === 0}>
-                Generate QR Code
-              </Button>
+                {coordError && <p className="qr-coordinate-error"><AlertTriangle size={15}/> {coordError}</p>}
+              </details>
             </Card>
-          )}
+
+            <div className="qr-settings-column">
+              <Card className="qr-settings-card">
+                <div className="qr-card-heading compact">
+                  <div>
+                    <div className="qr-eyebrow">ATTENDANCE AREA</div>
+                    <h2>Set allowed distance</h2>
+                    <p>Students must be inside this radius to check in.</p>
+                  </div>
+                  <Ruler size={21} className="qr-heading-icon"/>
+                </div>
+                <div className="radius-chips">
+                  {RADII.map(r => (
+                    <button key={r} type="button" className={`chip ${radius === r ? 'chip-active' : ''}`} aria-pressed={radius === r} onClick={() => setRadius(r)}>{r}m</button>
+                  ))}
+                </div>
+                <div className="qr-radius-note"><Lightbulb size={15}/> Choose a radius that covers the classroom without including nearby buildings.</div>
+
+                {pinStatus === 'set' && (
+                  <div className="qr-save-location">
+                    <label htmlFor="save-location-name">Save this classroom for next time</label>
+                    <div className="qr-save-row">
+                      <input id="save-location-name" placeholder="e.g. Lecture Hall C" value={locName} onChange={e => setLocName(e.target.value)}/>
+                      <Button size="sm" variant="secondary" loading={saving} onClick={savePreset} disabled={!locName.trim()} icon={<Save size={14}/>}>Save</Button>
+                    </div>
+                  </div>
+                )}
+              </Card>
+
+              <Card className={`qr-lecture-card ${pinStatus === 'set' ? 'has-pin' : ''}`}>
+                <div className="qr-card-heading compact">
+                  <div>
+                    <div className="qr-eyebrow">STEP 2</div>
+                    <h2>Choose a lecture</h2>
+                    <p>Select which class this attendance session is for.</p>
+                  </div>
+                  <BookOpen size={21} className="qr-heading-icon"/>
+                </div>
+
+                {pinStatus !== 'set' ? (
+                  <div className="qr-next-step"><MapPin size={17}/><span>Pin your classroom on the map to unlock lecture selection.</span></div>
+                ) : savedLectures.length === 0 ? (
+                  <div className="qr-no-lectures">
+                    <p>No saved lectures yet. Add a lecture under <strong>My Lectures</strong> on your{' '}
+                      <Link to="/dashboard">dashboard</Link> before generating attendance.</p>
+                  </div>
+                ) : (
+                  <Select label="Lecture name" id="lecture" value={lecture} onChange={e => setLecture(e.target.value)}>
+                    <option value="" disabled>Select a lecture…</option>
+                    {savedLectures.map(l => <option key={l.id} value={l.name}>{l.name}</option>)}
+                  </Select>
+                )}
+
+                <Button fullWidth loading={loading} onClick={generate} icon={<QrCode size={17}/>} style={{ marginTop: 18 }} size="lg" disabled={pinStatus !== 'set' || !lecture || savedLectures.length === 0}>
+                  Generate attendance QR
+                </Button>
+                <p className="qr-generate-footnote">A new live attendance session will start when you generate the code.</p>
+              </Card>
+            </div>
+          </div>
         </div>
       )}
 
@@ -508,18 +437,10 @@ export default function GenerateQRPage() {
 
             <div className="qr-actions">
               <Button
-                variant="secondary"
-                icon={<ArrowLeft size={15}/>}
-                onClick={() => setStep('map')}
-                style={{ flex: 1 }}
-              >
-                Back to Map
-              </Button>
-              <Button
                 variant="danger"
                 loading={ending}
                 onClick={endSession}
-                style={{ flex: 1 }}
+                fullWidth
               >
                 <CircleStop size={16} /> End Session
               </Button>

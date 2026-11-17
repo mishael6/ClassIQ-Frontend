@@ -312,3 +312,76 @@
 .add-stu-name  { font-size: 0.85rem; font-weight: 700; color: var(--txt); }
 .add-stu-index { font-size: 0.72rem; color: var(--muted); font-family: monospace; }
 .add-stu-check { font-size: 1rem; flex-shrink: 0; }
+
+/* Clearer class representative attendance history layout */
+.classrep-att-page { max-width: 1120px; padding-bottom: 40px; }
+.classrep-att-loading-head, .classrep-att-loading-panel, .classrep-att-loading-stats div { border: 1px solid var(--border); border-radius: 14px; background: linear-gradient(100deg,var(--border) 20%,var(--bg) 45%,var(--border) 70%); background-size: 200% 100%; animation: classrep-att-shimmer 1.2s linear infinite; }
+.classrep-att-loading-head { width: 45%; height: 62px; margin-bottom: 22px; }
+.classrep-att-loading-stats { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 12px; margin-bottom: 22px; }
+.classrep-att-loading-stats div { height: 90px; }
+.classrep-att-loading-panel { height: 280px; }
+@keyframes classrep-att-shimmer { to { background-position: -200% 0; } }
+.classrep-att-summary { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin-bottom:22px; }
+.classrep-att-stat { display:grid; grid-template-columns:42px 1fr; grid-template-rows:auto auto; align-items:center; gap:3px 12px; padding:15px; border:1px solid var(--border); border-radius:14px; background:var(--surface); box-shadow:var(--shadow-sm); animation:attFadeUp .35s ease both; }
+.classrep-att-stat-icon { grid-row:span 2; display:grid; place-items:center; width:40px; height:40px; border-radius:12px; background:var(--blue-lt); color:var(--blue); }
+.classrep-att-stat.is-green .classrep-att-stat-icon { background:var(--green-lt); color:var(--green); }
+.classrep-att-stat.is-red .classrep-att-stat-icon { background:var(--red-lt); color:var(--red); }
+.classrep-att-stat.is-orange .classrep-att-stat-icon { background:var(--orange-lt); color:var(--orange); }
+.classrep-att-stat-value { color:var(--txt); font:800 1.35rem/1.1 var(--font-head); }
+.classrep-att-stat-label { color:var(--muted); font-size:.7rem; font-weight:650; }
+.classrep-att-toolbar { display:flex; align-items:center; gap:12px; margin-bottom:20px; }
+.classrep-att-search { display:flex; align-items:center; gap:9px; width:min(100%,460px); min-width:220px; height:42px; padding:0 12px; border:1px solid var(--border); border-radius:10px; background:var(--surface); color:var(--muted); }
+.classrep-att-search:focus-within { border-color:var(--blue); box-shadow:0 0 0 3px rgba(0,102,255,.09); }
+.classrep-att-search input { flex:1; min-width:0; border:0; outline:0; background:transparent; color:var(--txt); font:500 .8rem var(--font-body); }
+.classrep-att-search input::placeholder { color:var(--muted2); }
+.classrep-att-search > button { display:grid; place-items:center; width:24px; height:24px; border:0; border-radius:6px; background:transparent; color:var(--muted); cursor:pointer; }
+.classrep-att-filter { display:flex; align-items:center; gap:8px; height:42px; padding:0 10px; border:1px solid var(--border); border-radius:10px; background:var(--surface); color:var(--muted); }
+.classrep-att-filter > span { display:flex; align-items:center; gap:6px; font-size:.72rem; font-weight:700; }
+.classrep-att-filter select { border:0; outline:0; background:transparent; color:var(--txt); font:600 .76rem var(--font-body); cursor:pointer; }
+.classrep-att-result-count { margin-left:auto; color:var(--muted); font-size:.72rem; white-space:nowrap; }
+.classrep-att-date-header { display:flex; align-items:center; justify-content:space-between; gap:14px; margin-bottom:11px; padding:16px 18px; border:1px solid rgba(0,102,255,.15); border-radius:14px; background:linear-gradient(110deg,#eff6ff,#fff 75%); }
+.classrep-att-date-title { display:flex; align-items:center; gap:9px; color:var(--txt); font:800 1rem var(--font-head); }
+.classrep-att-date-title svg { color:var(--blue); }
+.classrep-att-date-sub { margin:5px 0 0 26px; color:var(--muted); font-size:.72rem; }
+.classrep-att-date-badge { display:flex; align-items:center; gap:6px; padding:7px 10px; border:1px solid var(--border); border-radius:999px; background:var(--surface); color:var(--txt2); font-size:.7rem; font-weight:700; white-space:nowrap; }
+.classrep-att-date-badge svg { color:var(--blue); }
+.classrep-att-lecture { margin-bottom:10px; overflow:hidden; border:1px solid var(--border); border-radius:13px; background:var(--surface); box-shadow:var(--shadow-sm); }
+.classrep-att-lecture-head { display:flex; align-items:center; justify-content:space-between; gap:14px; width:100%; min-height:76px; padding:13px 16px; border:0; background:var(--surface); color:var(--txt); text-align:left; cursor:pointer; }
+.classrep-att-lecture-head:hover { background:#f9fbff; }
+.classrep-att-lecture-head:focus-visible { outline:2px solid var(--blue); outline-offset:-3px; }
+.classrep-att-lecture-title-wrap { min-width:0; }
+.classrep-att-lecture-name { display:flex; align-items:center; gap:9px; font-size:.87rem; font-weight:800; }
+.classrep-att-lecture-icon { display:grid; place-items:center; width:30px; height:30px; border-radius:9px; background:var(--blue-lt); color:var(--blue); }
+.classrep-att-lecture-meta { display:flex; flex-wrap:wrap; gap:6px; margin:8px 0 0 39px; }
+.classrep-att-lecture-meta span { padding:4px 8px; border:1px solid var(--border); border-radius:999px; background:var(--bg); color:var(--muted); font-size:.63rem; font-weight:700; }
+.classrep-att-lecture-meta .is-present { background:rgba(16,185,129,.08); color:#078258; }
+.classrep-att-lecture-meta .is-flagged { background:var(--red-lt); color:#c93333; }
+.classrep-att-lecture-meta .is-outside { background:var(--orange-lt); color:#9a6500; }
+.classrep-att-chevron { flex-shrink:0; color:var(--muted); transition:transform .2s; }
+.classrep-att-lecture.is-open .classrep-att-chevron { transform:rotate(180deg); }
+.classrep-att-lecture-body { display:grid; grid-template-rows:0fr; transition:grid-template-rows .24s ease; }
+.classrep-att-lecture.is-open .classrep-att-lecture-body { grid-template-rows:1fr; }
+.classrep-att-lecture-inner { min-height:0; overflow:hidden; padding:0 16px; }
+.classrep-att-lecture.is-open .classrep-att-lecture-inner { padding:0 16px 16px; }
+.classrep-att-controls { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:13px; padding:12px 0; border-top:1px solid var(--border); border-bottom:1px dashed var(--border); }
+.classrep-att-table-wrap { width:100%; overflow:auto; border:1px solid var(--border); border-radius:10px; }
+.classrep-att-table { width:100%; min-width:650px; border-collapse:collapse; text-align:left; font-size:.76rem; }
+.classrep-att-table th { padding:10px 12px; background:var(--bg); color:var(--muted); font-size:.63rem; font-weight:800; text-transform:uppercase; white-space:nowrap; }
+.classrep-att-table td { padding:9px 12px; border-top:1px solid var(--border); color:var(--txt2); white-space:nowrap; }
+.classrep-att-student-row:hover { background:#f9fbff; }
+.classrep-att-student-row.is-flagged { background:rgba(239,68,68,.025); }
+.classrep-att-student-row.is-outside { background:rgba(245,158,11,.035); }
+.classrep-att-student-name { display:flex; align-items:center; gap:9px; color:var(--txt); font-weight:700; }
+.classrep-att-avatar { display:grid; place-items:center; width:30px; height:30px; flex:0 0 30px; border-radius:9px; background:var(--blue-lt); color:var(--blue); font:750 .65rem var(--font-head); }
+.classrep-att-index { color:var(--txt2); font:650 .71rem var(--font-body); }
+.classrep-att-time { color:var(--muted)!important; font-size:.72rem; }
+.classrep-att-table td:last-child { width:1%; text-align:right; }
+.classrep-att-no-results { display:flex; flex-direction:column; align-items:center; gap:6px; min-height:200px; padding:24px; border:1px dashed var(--border2); border-radius:14px; background:var(--surface); text-align:center; }
+.classrep-att-no-results > svg { margin-bottom:4px; color:var(--blue); }
+.classrep-att-no-results strong { color:var(--txt); font:750 .9rem var(--font-head); }
+.classrep-att-no-results span { color:var(--muted); font-size:.75rem; }
+.classrep-att-no-results button { margin-top:8px; padding:7px 10px; border:1px solid var(--border); border-radius:8px; background:var(--surface); color:var(--blue); font:700 .72rem var(--font-body); cursor:pointer; }
+.classrep-att-page .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+.att-date-block { margin-bottom:18px; }
+@media (max-width:800px) { .classrep-att-summary { grid-template-columns:repeat(2,minmax(0,1fr)); } .classrep-att-toolbar { align-items:stretch; flex-wrap:wrap; } .classrep-att-search { width:100%; max-width:none; } .classrep-att-result-count { width:100%; margin:0; } }
+@media (max-width:560px) { .classrep-att-loading-stats { grid-template-columns:repeat(2,minmax(0,1fr)); } .classrep-att-date-header { align-items:flex-start; padding:13px; } .classrep-att-date-title { font-size:.88rem; } .classrep-att-date-badge { padding:6px 8px; font-size:.62rem; } .classrep-att-lecture-head { min-height:70px; padding:11px; } .classrep-att-lecture-name { font-size:.8rem; } .classrep-att-lecture-meta { margin-left:0; } .classrep-att-lecture-inner,.classrep-att-lecture.is-open .classrep-att-lecture-inner { padding-right:10px; padding-left:10px; } .classrep-att-controls { gap:6px; } }

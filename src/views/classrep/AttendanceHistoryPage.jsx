@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { classrepApi } from '../../lib/api'
 import { Card, PageHeader, Button, Badge, Alert, Modal } from '../../components/ui'
-import { UserPlus, RotateCcw, Trash2, MapPin, Flag, ChevronDown, Download, BookOpen, Calendar, CheckCircle, AlertTriangle, ClipboardList } from 'lucide-react'
+import { UserPlus, RotateCcw, Trash2, MapPin, Flag, ChevronDown, Download, BookOpen, Calendar, CheckCircle, AlertTriangle, ClipboardList, Users, Search, RefreshCw, X } from 'lucide-react'
 import { format } from 'date-fns'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
@@ -46,9 +46,12 @@ export default function AttendanceHistoryPage() {
   const [modal,   setModal]   = useState(null)
   const [addIndex,setAddIndex]= useState('')
   const [openLectures, setOpenLectures] = useState({})
+  const [search, setSearch] = useState('')
+  const [statusFilter, setStatusFilter] = useState('all')
 
   const load = () => {
     setLoading(true)
+    setError('')
     classrepApi.getAttendance()
       .then(r => {
         const rec = r.data.records || {}
@@ -149,8 +152,6 @@ export default function AttendanceHistoryPage() {
     doc.save(`Attendance_${lecture.replace(/\s+/g, '_')}_${date}.pdf`)
   }
 
-  if (loading) return <div className="dash-loading"><div className="spinner"/></div>
-
   const allDates = Object.entries(records).sort((a, b) => b[0].localeCompare(a[0]))
 
   let totalRecords = 0, totalPresent = 0, totalFlagged = 0, totalOutside = 0
@@ -163,31 +164,76 @@ export default function AttendanceHistoryPage() {
   })
   totalPresent = totalRecords - totalFlagged - totalOutside
 
+  const query = search.trim().toLowerCase()
+  const filteredDates = allDates.map(([date, lectures]) => {
+    const filteredLectures = Object.entries(lectures).map(([lecture, entries]) => [
+      lecture,
+      entries.filter(entry => {
+        const matchesSearch = !query || `${entry.student_name || ''} ${entry.index_number || ''}`.toLowerCase().includes(query)
+        const normalizedStatus = entry.status === 'Normal' ? 'Present' : entry.status
+        const matchesStatus = statusFilter === 'all' || normalizedStatus === statusFilter
+        return matchesSearch && matchesStatus
+      }),
+    ]).filter(([, entries]) => entries.length)
+    return [date, filteredLectures]
+  }).filter(([, lectures]) => lectures.length)
+  const visibleRecords = filteredDates.reduce((sum, [, lectures]) => sum + lectures.reduce((daySum, [, entries]) => daySum + entries.length, 0), 0)
+
+  if (loading) return (
+    <div className="classrep-att-loading" role="status" aria-label="Loading attendance history">
+      <div className="classrep-att-loading-head" />
+      <div className="classrep-att-loading-stats">{[1, 2, 3, 4].map(item => <div key={item} />)}</div>
+      <div className="classrep-att-loading-panel" />
+    </div>
+  )
+
   return (
-    <div className="animate-fade-up att-page">
+    <div className="animate-fade-up classrep-att-page">
       <PageHeader
         title="Attendance History"
         subtitle={allDates.length
-          ? `${allDates.length} day${allDates.length !== 1 ? 's' : ''} · ${totalRecords} record${totalRecords !== 1 ? 's' : ''}`
+          ? `Review and manage your class check-ins · ${allDates.length} day${allDates.length !== 1 ? 's' : ''}`
           : 'No records yet'}
+        actions={<Button size="sm" variant="secondary" icon={<RefreshCw size={14}/>} onClick={load}>Refresh</Button>}
       />
 
       {error   && <Alert variant="error"   onClose={() => setError('')}   style={{ marginBottom: 16 }}>{error}</Alert>}
       {success && <Alert variant="success" onClose={() => setSuccess('')} style={{ marginBottom: 16 }}>{success}</Alert>}
 
       {allDates.length > 0 && (
-        <div className="att-summary">
+        <div className="classrep-att-summary">
           {[
-            { label: 'Total Records', value: totalRecords, color: 'var(--blue)' },
-            { label: 'Present', value: totalPresent, color: 'var(--green)' },
-            { label: 'Flagged', value: totalFlagged, color: 'var(--red)' },
-            { label: 'Outside', value: totalOutside, color: 'var(--orange)' },
+            { label: 'Attendance records', value: totalRecords, color: 'blue', icon: <Users size={17}/> },
+            { label: 'Present', value: totalPresent, color: 'green', icon: <CheckCircle size={17}/> },
+            { label: 'Flagged for review', value: totalFlagged, color: 'red', icon: <AlertTriangle size={17}/> },
+            { label: 'Outside radius', value: totalOutside, color: 'orange', icon: <MapPin size={17}/> },
           ].map(s => (
-            <div key={s.label} className="att-summary-card">
-              <span className="att-summary-label">{s.label}</span>
-              <span className="att-summary-value" style={{ color: s.color }}>{s.value}</span>
+            <div key={s.label} className={`classrep-att-stat is-${s.color}`}>
+              <span className="classrep-att-stat-icon">{s.icon}</span>
+              <span className="classrep-att-stat-value">{s.value.toLocaleString()}</span>
+              <span className="classrep-att-stat-label">{s.label}</span>
             </div>
           ))}
+        </div>
+      )}
+
+      {!!allDates.length && (
+        <div className="classrep-att-toolbar">
+          <div className="classrep-att-search">
+            <Search size={16} aria-hidden="true" />
+            <input value={search} onChange={event => setSearch(event.target.value)} placeholder="Search by student name or index number" aria-label="Search attendance records" />
+            {search && <button type="button" onClick={() => setSearch('')} aria-label="Clear search"><X size={15} /></button>}
+          </div>
+          <label className="classrep-att-filter">
+            <span><ClipboardList size={14} /> Status</span>
+            <select value={statusFilter} onChange={event => setStatusFilter(event.target.value)} aria-label="Filter by attendance status">
+              <option value="all">All statuses</option>
+              <option value="Present">Present</option>
+              <option value="Flagged">Flagged</option>
+              <option value="Outside">Outside radius</option>
+            </select>
+          </label>
+          <span className="classrep-att-result-count">Showing {visibleRecords.toLocaleString()} of {totalRecords.toLocaleString()} records</span>
         </div>
       )}
 
@@ -199,9 +245,15 @@ export default function AttendanceHistoryPage() {
             <p className="att-empty-sub">Generate a QR code to start taking attendance for your class.</p>
           </div>
         </Card>
+      ) : filteredDates.length === 0 ? (
+        <div className="classrep-att-no-results">
+          <Search size={22} />
+          <strong>No attendance matches these filters</strong>
+          <span>Try another student name, index number or status.</span>
+          <button type="button" onClick={() => { setSearch(''); setStatusFilter('all') }}>Clear filters</button>
+        </div>
       ) : (
-        allDates.map(([date, lectures], dateIdx) => {
-          const lectureEntries = Object.entries(lectures)
+        filteredDates.map(([date, lectureEntries], dateIdx) => {
           const dayTotal = lectureEntries.reduce((sum, [, e]) => sum + e.length, 0)
           const dayLectures = lectureEntries.length
 
@@ -211,15 +263,15 @@ export default function AttendanceHistoryPage() {
               className="att-date-section"
               style={{ animationDelay: `${dateIdx * 0.08}s` }}
             >
-              <div className="att-date-header">
+              <div className="classrep-att-date-header">
                 <div>
-                  <div className="att-date-title">
-                    <Calendar size={18} style={{ display: 'inline', marginRight: 8, verticalAlign: -3 }} />
+                  <div className="classrep-att-date-title">
+                    <Calendar size={17} />
                     {formatDateLabel(date)}
                   </div>
-                  <div className="att-date-sub">{formatDateShort(date)} · {dayLectures} lecture{dayLectures !== 1 ? 's' : ''}</div>
+                  <div className="classrep-att-date-sub">{formatDateShort(date)} <span>·</span> {dayLectures} lecture{dayLectures !== 1 ? 's' : ''}</div>
                 </div>
-                <span className="att-date-badge">{dayTotal} student{dayTotal !== 1 ? 's' : ''}</span>
+                <span className="classrep-att-date-badge"><Users size={14}/>{dayTotal} check-in{dayTotal !== 1 ? 's' : ''}</span>
               </div>
 
               {lectureEntries.map(([lecture, entries], lecIdx) => {
@@ -232,28 +284,28 @@ export default function AttendanceHistoryPage() {
                 return (
                   <div
                     key={sectionKey}
-                    className={`att-lecture-section ${isOpen ? 'is-open' : ''}`}
+                    className={`classrep-att-lecture ${isOpen ? 'is-open' : ''}`}
                     style={{ animationDelay: `${(dateIdx * 0.08) + (lecIdx * 0.05)}s` }}
                   >
-                    <div className="att-lecture-head" onClick={() => toggleLecture(sectionKey)}>
-                      <div className="att-lecture-title-wrap">
-                        <div className="att-lecture-name">
-                          <BookOpen size={16} style={{ color: 'var(--blue)' }} />
+                    <button className="classrep-att-lecture-head" type="button" onClick={() => toggleLecture(sectionKey)} aria-expanded={isOpen} aria-controls={`attendance-${dateIdx}-${lecIdx}`}>
+                      <div className="classrep-att-lecture-title-wrap">
+                        <div className="classrep-att-lecture-name">
+                          <span className="classrep-att-lecture-icon"><BookOpen size={16} /></span>
                           {lecture}
                         </div>
-                        <div className="att-lecture-meta">
-                          <span className="att-lecture-pill">{entries.length} total</span>
-                          <span className="att-lecture-pill present">{present} present</span>
-                          {flagged > 0 && <span className="att-lecture-pill flagged">{flagged} flagged</span>}
-                          {outside > 0 && <span className="att-lecture-pill outside">{outside} outside</span>}
+                        <div className="classrep-att-lecture-meta">
+                          <span>{entries.length} check-ins</span>
+                          <span className="is-present">{present} present</span>
+                          {flagged > 0 && <span className="is-flagged">{flagged} flagged</span>}
+                          {outside > 0 && <span className="is-outside">{outside} outside</span>}
                         </div>
                       </div>
-                      <ChevronDown size={20} className="att-chevron" />
-                    </div>
+                      <ChevronDown size={18} className="classrep-att-chevron" />
+                    </button>
 
-                    <div className="att-lecture-body">
-                      <div className="att-lecture-inner">
-                        <div className="att-controls">
+                    <div id={`attendance-${dateIdx}-${lecIdx}`} className="classrep-att-lecture-body" aria-hidden={!isOpen} inert={!isOpen}>
+                      <div className="classrep-att-lecture-inner">
+                        <div className="classrep-att-controls">
                           <Button size="sm" variant="success" icon={<UserPlus size={13}/>} onClick={() => setModal({ date, lecture })}>
                             Add Student
                           </Button>
@@ -278,30 +330,23 @@ export default function AttendanceHistoryPage() {
                           </Button>
                         </div>
 
-                        <div className="att-student-grid">
-                          {entries.map((student, i) => (
-                            <div
-                              key={`${student.index_number}-${i}`}
-                              className={`att-student-card ${
-                                student.status === 'Flagged' ? 'row-flagged'
-                                  : student.status === 'Outside' ? 'row-outside' : 'row-present'
-                              }`}
-                              style={{ animationDelay: `${i * 0.04}s` }}
-                            >
-                              <div className="att-stu-avatar">{initials(student.student_name)}</div>
-                              <div className="att-stu-info">
-                                <div className="att-stu-name">{student.student_name}</div>
-                                <div className="att-stu-index">{student.index_number}</div>
-                              </div>
-                              <div className="att-stu-right">
-                                {statusBadge(student.status)}
-                                <span className="att-stu-time">{formatTime(student.time_marked)}</span>
-                                <Button size="xs" variant="danger" onClick={() => removeSingle(date, lecture, student.index_number)}>
-                                  Remove
-                                </Button>
-                              </div>
-                            </div>
-                          ))}
+                        <div className="classrep-att-table-wrap">
+                          <table className="classrep-att-table">
+                            <thead>
+                              <tr><th>Student</th><th>Index number</th><th>Time marked</th><th>Status</th><th><span className="sr-only">Actions</span></th></tr>
+                            </thead>
+                            <tbody>
+                              {entries.map((student, i) => (
+                                <tr key={`${student.index_number}-${i}`} className={`classrep-att-student-row ${student.status === 'Flagged' ? 'is-flagged' : student.status === 'Outside' ? 'is-outside' : ''}`}>
+                                  <td><div className="classrep-att-student-name"><span className="classrep-att-avatar">{initials(student.student_name)}</span><span>{student.student_name}</span></div></td>
+                                  <td><code className="classrep-att-index">{student.index_number}</code></td>
+                                  <td className="classrep-att-time">{formatTime(student.time_marked)}</td>
+                                  <td>{statusBadge(student.status)}</td>
+                                  <td><Button size="xs" variant="danger" onClick={() => removeSingle(date, lecture, student.index_number)}>Remove</Button></td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
                         </div>
                       </div>
                     </div>
