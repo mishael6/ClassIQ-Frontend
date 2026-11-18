@@ -20,9 +20,19 @@ const timeAgo = (dt) => {
   return new Date(dt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
 }
 
-const messagesChanged = (prev, next) => {
-  if (prev.length !== next.length) return true
-  return prev.some((m, i) => (m.id ?? i) !== (next[i]?.id ?? i) || m.message !== next[i]?.message)
+const mergeMessages = (current, incoming) => {
+  const byId = new Map()
+  ;[...current, ...incoming].forEach((message, index) => {
+    const key = message.id == null ? `${message.sender_role}-${message.created_at}-${index}` : String(message.id)
+    byId.set(key, message)
+  })
+  const merged = [...byId.values()].sort((a, b) =>
+    String(a.created_at || '').localeCompare(String(b.created_at || '')) || Number(a.id || 0) - Number(b.id || 0)
+  )
+  if (merged.length === current.length && merged.every((message, index) =>
+    String(message.id ?? '') === String(current[index]?.id ?? '') && message.message === current[index]?.message
+  )) return current
+  return merged
 }
 
 export default function ReportIssuePage() {
@@ -41,7 +51,6 @@ export default function ReportIssuePage() {
   const [live, setLive] = useState(false)
   const bottomRef = useRef(null)
   const activeIssueRef = useRef(null)
-  const threadRequestRef = useRef(0)
 
   const loadIssues = useCallback((silent = false) => {
     if (!silent) setLoading(true)
@@ -61,21 +70,20 @@ export default function ReportIssuePage() {
 
   const refreshThread = useCallback(async (issueId, silent = true, showLoading = false) => {
     if (activeIssueRef.current !== issueId) return
-    const requestId = ++threadRequestRef.current
     if (showLoading) setLoadingThread(true)
     try {
       const r = await messagesApi.getThread(issueId)
-      if (activeIssueRef.current !== issueId || requestId !== threadRequestRef.current) return
+      if (activeIssueRef.current !== issueId) return
       const next = r.data.messages || []
-      setThread(prev => messagesChanged(prev, next) ? next : prev)
+      setThread(prev => mergeMessages(prev, next))
       if (r.data.issue) {
         setSelected(prev => prev?.id === issueId ? { ...prev, ...r.data.issue } : prev)
       }
       if (showLoading) loadIssues(true)
     } catch {
-      if (!silent && activeIssueRef.current === issueId && requestId === threadRequestRef.current) setError('Failed to refresh conversation.')
+      if ((!silent || showLoading) && activeIssueRef.current === issueId) setError('Failed to load conversation. Try refreshing the issue.')
     } finally {
-      if (showLoading && activeIssueRef.current === issueId && requestId === threadRequestRef.current) setLoadingThread(false)
+      if (activeIssueRef.current === issueId) setLoadingThread(false)
     }
   }, [loadIssues])
 
@@ -101,7 +109,6 @@ export default function ReportIssuePage() {
       return
     }
     activeIssueRef.current = issue.id
-    threadRequestRef.current += 1
     setSelected(issue)
     setView('thread')
     setThread([])
@@ -131,7 +138,6 @@ export default function ReportIssuePage() {
       setSuccess('Issue submitted! Admin will respond shortly.')
       setNewForm({ subject: '', message: '' })
       activeIssueRef.current = null
-      threadRequestRef.current += 1
       setSelected(null)
       setThread([])
       setView('list')
@@ -151,7 +157,7 @@ export default function ReportIssuePage() {
             <Button
               size="sm"
               icon={<Plus size={14}/>}
-              onClick={() => { activeIssueRef.current = null; threadRequestRef.current += 1; setView('new') }}
+              onClick={() => { activeIssueRef.current = null; setView('new') }}
             >
               New Issue
             </Button>
@@ -255,7 +261,7 @@ export default function ReportIssuePage() {
           <div className="ri-thread-header">
             <button
               className="ri-back-btn"
-              onClick={() => { activeIssueRef.current = null; threadRequestRef.current += 1; setView('list'); setSelected(null); setThread([]) }}
+              onClick={() => { activeIssueRef.current = null; setView('list'); setSelected(null); setThread([]) }}
             >
               <ChevronLeft size={16} /> Back
             </button>
